@@ -25,6 +25,7 @@ interface DashboardViewProps {
   branches: Branch[];
   attendanceRecords: AttendanceRecord[];
   onAddSimulatedPunch: () => void;
+  onNavigateToAttendance?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -32,6 +33,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   branches,
   attendanceRecords,
   onAddSimulatedPunch,
+  onNavigateToAttendance,
 }) => {
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -288,6 +290,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <option value="lunch_in">Regreso de Almuerzo</option>
               <option value="exit">Salida de Turno</option>
             </select>
+
+            {onNavigateToAttendance && (
+              <button
+                type="button"
+                onClick={onNavigateToAttendance}
+                className="py-1.5 px-3 rounded-xl bg-[#0871A0] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-xs"
+              >
+                <span>Auditar y Corroborar Todo</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 

@@ -33,6 +33,7 @@ import { Footer } from './components/Footer';
 
 // Admin Views
 import { DashboardView } from './views/admin/DashboardView';
+import { AttendanceView } from './views/admin/AttendanceView';
 import { EmployeesView } from './views/admin/EmployeesView';
 import { DocumentsView } from './views/admin/DocumentsView';
 import { BranchesView } from './views/admin/BranchesView';
@@ -41,6 +42,9 @@ import { OvertimeView } from './views/admin/OvertimeView';
 import { ReportsView } from './views/admin/ReportsView';
 import { UsersView } from './views/admin/UsersView';
 import { SettingsView } from './views/admin/SettingsView';
+
+// Common / Universal Views
+import { UserManualView } from './views/common/UserManualView';
 
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
@@ -260,6 +264,27 @@ export default function App() {
     }));
   };
 
+  // Attendance Corroboration Handlers
+  const handleUpdateAttendanceRecord = (updatedRecord: AttendanceRecord) => {
+    setAttendanceRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+  };
+
+  const handleBatchCorroborateAttendance = (recordIds: string[], reviewerName: string) => {
+    const nowStr = new Date().toLocaleString('es-MX');
+    setAttendanceRecords(prev => prev.map(r => {
+      if (recordIds.includes(r.id)) {
+        return {
+          ...r,
+          isCorroborated: true,
+          corroboratedBy: reviewerName,
+          corroboratedAt: nowStr,
+          corroborationNotes: r.corroborationNotes || 'Corroboración masiva aprobada por Recursos Humanos.',
+        };
+      }
+      return r;
+    }));
+  };
+
   // If no role is selected yet, render the clean role selection screen
   if (!currentRole) {
     return <RoleSelector onSelectRole={handleSelectRole} />;
@@ -308,6 +333,18 @@ export default function App() {
                   branches={branches}
                   attendanceRecords={attendanceRecords}
                   onAddSimulatedPunch={handleAddSimulatedPunch}
+                  onNavigateToAttendance={() => setCurrentAdminModule('attendance')}
+                />
+              )}
+
+              {currentAdminModule === 'attendance' && (
+                <AttendanceView
+                  attendanceRecords={attendanceRecords}
+                  employees={employees}
+                  branches={branches}
+                  currentUser={currentUser}
+                  onUpdateAttendanceRecord={handleUpdateAttendanceRecord}
+                  onBatchCorroborate={handleBatchCorroborateAttendance}
                 />
               )}
 
@@ -370,6 +407,10 @@ export default function App() {
                 <UsersView onSwitchRole={handleSelectRole} />
               )}
 
+              {currentAdminModule === 'manual' && (
+                <UserManualView currentRole={currentRole} />
+              )}
+
               {currentAdminModule === 'settings' && (
                 <SettingsView
                   settings={settings}
@@ -409,6 +450,10 @@ export default function App() {
                   overtimeRecords={overtimeRecords}
                   onSubmitOvertime={handleSubmitOvertime}
                 />
+              )}
+
+              {currentEmployeeModule === 'manual' && (
+                <UserManualView currentRole={currentRole} />
               )}
             </>
           )}

@@ -13,6 +13,8 @@ import {
   FileText,
   MoreHorizontal,
   X,
+  UserCheck,
+  BookOpen,
 } from 'lucide-react';
 
 interface BottomBarProps {
@@ -38,25 +40,28 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   // For Admin: Primary bottom bar has 4 items + "Más"
   const adminPrimaryItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { id: 'attendance', label: 'Asistencias', icon: UserCheck },
     { id: 'employees', label: 'Empleados', icon: Users },
     { id: 'leaves', label: 'Permisos', icon: CalendarCheck, badge: pendingLeavesCount },
-    { id: 'overtime', label: 'H. Extra', icon: Clock },
   ];
 
   const adminSecondaryItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'documents', label: 'Documentos', icon: FileText },
+    { id: 'overtime', label: 'Horas Extra', icon: Clock },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
     { id: 'users', label: 'Usuarios', icon: UserCog },
+    { id: 'manual', label: 'Manual de Uso', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  // For Employee: Exactly 4 modules!
+  // For Employee: Modules including Manual
   const employeeItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'punch', label: 'Marcaje', icon: Fingerprint },
     { id: 'leaves', label: 'Permisos', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente', icon: FileText },
     { id: 'overtime', label: 'H. Extra', icon: Clock },
+    { id: 'manual', label: 'Manual', icon: BookOpen },
   ];
 
   return (

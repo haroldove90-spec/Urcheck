@@ -4,6 +4,7 @@ export type UserRole =
 
 export type AdminModule = 
   | 'dashboard'
+  | 'attendance'
   | 'employees'
   | 'branches'
   | 'leaves'
@@ -11,13 +12,15 @@ export type AdminModule =
   | 'reports'
   | 'users'
   | 'documents'
+  | 'manual'
   | 'settings';
 
 export type EmployeeModule = 
   | 'punch'
   | 'leaves'
   | 'documents'
-  | 'overtime';
+  | 'overtime'
+  | 'manual';
 
 export interface DigitalSignature {
   id: string;
@@ -149,6 +152,10 @@ export interface AttendanceRecord {
   verificationScore?: number;
   hashAudit: string;
   photoSnapshot?: string;
+  isCorroborated?: boolean;
+  corroboratedBy?: string;
+  corroboratedAt?: string;
+  corroborationNotes?: string;
 }
 
 export interface LeaveRequest {

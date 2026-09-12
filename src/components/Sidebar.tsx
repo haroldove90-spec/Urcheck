@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Activity,
   LogOut,
+  UserCheck,
+  BookOpen,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -46,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const adminNavItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { id: 'attendance', label: 'Asistencias', icon: UserCheck },
     { id: 'employees', label: 'Empleados', icon: Users },
     { id: 'documents', label: 'Mis Documentos', icon: FileText },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
@@ -53,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'overtime', label: 'Horas extra', icon: Clock, badge: pendingOvertimeCount },
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
     { id: 'users', label: 'Usuarios', icon: UserCog },
+    { id: 'manual', label: 'Manual de Operación', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
@@ -61,6 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'leaves', label: 'Permisos y Vacaciones', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente / Docs', icon: FileText },
     { id: 'overtime', label: 'Horas extra', icon: Clock },
+    { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
   ];
 
   return (
