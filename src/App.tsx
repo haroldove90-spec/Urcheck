@@ -9,7 +9,9 @@ import {
   AttendanceRecord, 
   LeaveRequest, 
   OvertimeRecord, 
-  SystemSettings 
+  SystemSettings,
+  CompanyDocument,
+  DigitalSignature
 } from './types';
 import { 
   INITIAL_PROFILES, 
@@ -20,6 +22,7 @@ import {
   INITIAL_OVERTIME_RECORDS, 
   INITIAL_SETTINGS 
 } from './data/mockData';
+import { INITIAL_COMPANY_DOCUMENTS } from './utils/documentUtils';
 
 // Layout Components
 import { RoleSelector } from './components/RoleSelector';
@@ -31,6 +34,7 @@ import { Footer } from './components/Footer';
 // Admin Views
 import { DashboardView } from './views/admin/DashboardView';
 import { EmployeesView } from './views/admin/EmployeesView';
+import { DocumentsView } from './views/admin/DocumentsView';
 import { BranchesView } from './views/admin/BranchesView';
 import { LeavesView } from './views/admin/LeavesView';
 import { OvertimeView } from './views/admin/OvertimeView';
@@ -61,6 +65,7 @@ export default function App() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(INITIAL_LEAVE_REQUESTS);
   const [overtimeRecords, setOvertimeRecords] = useState<OvertimeRecord[]>(INITIAL_OVERTIME_RECORDS);
   const [settings, setSettings] = useState<SystemSettings>(INITIAL_SETTINGS);
+  const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(INITIAL_COMPANY_DOCUMENTS);
 
   // Role Switch Handler
   const handleSelectRole = (role: UserRole) => {
@@ -228,6 +233,33 @@ export default function App() {
     setSettings(newSettings);
   };
 
+  // Company Documents Handlers (Synchronized between Admin and Employee)
+  const handleAddDocument = (newDoc: CompanyDocument) => {
+    setCompanyDocuments(prev => [newDoc, ...prev]);
+  };
+
+  const handleUpdateDocument = (updatedDoc: CompanyDocument) => {
+    setCompanyDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+  };
+
+  const handleDeleteDocument = (docId: string) => {
+    setCompanyDocuments(prev => prev.filter(d => d.id !== docId));
+  };
+
+  const handleSignDocumentByEmployee = (docId: string, signature: DigitalSignature) => {
+    setCompanyDocuments(prev => prev.map(doc => {
+      if (doc.id === docId) {
+        return {
+          ...doc,
+          isEmployeeSigned: true,
+          employeeSignature: signature,
+          status: doc.isAdminSigned ? 'signed_both' : 'pending_admin',
+        };
+      }
+      return doc;
+    }));
+  };
+
   // If no role is selected yet, render the clean role selection screen
   if (!currentRole) {
     return <RoleSelector onSelectRole={handleSelectRole} />;
@@ -286,6 +318,17 @@ export default function App() {
                   onAddEmployee={handleAddEmployee}
                   onUpdateEmployee={handleUpdateEmployee}
                   onDeleteEmployee={handleDeleteEmployee}
+                />
+              )}
+
+              {currentAdminModule === 'documents' && (
+                <DocumentsView
+                  documents={companyDocuments}
+                  employees={employees}
+                  currentUser={currentUser}
+                  onAddDocument={handleAddDocument}
+                  onUpdateDocument={handleUpdateDocument}
+                  onDeleteDocument={handleDeleteDocument}
                 />
               )}
 
@@ -353,7 +396,11 @@ export default function App() {
               )}
 
               {currentEmployeeModule === 'documents' && (
-                <MyDocumentsView currentUser={currentUser} />
+                <MyDocumentsView 
+                  currentUser={currentUser} 
+                  companyDocuments={companyDocuments}
+                  onSignDocument={handleSignDocumentByEmployee}
+                />
               )}
 
               {currentEmployeeModule === 'overtime' && (

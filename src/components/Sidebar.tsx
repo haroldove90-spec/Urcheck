@@ -47,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminNavItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
     { id: 'employees', label: 'Empleados', icon: Users },
+    { id: 'documents', label: 'Mis Documentos', icon: FileText },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
     { id: 'leaves', label: 'Permisos y Vacaciones', icon: CalendarCheck, badge: pendingLeavesCount },
     { id: 'overtime', label: 'Horas extra', icon: Clock, badge: pendingOvertimeCount },

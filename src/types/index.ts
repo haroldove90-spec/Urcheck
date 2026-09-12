@@ -10,6 +10,7 @@ export type AdminModule =
   | 'overtime'
   | 'reports'
   | 'users'
+  | 'documents'
   | 'settings';
 
 export type EmployeeModule = 
@@ -17,6 +18,52 @@ export type EmployeeModule =
   | 'leaves'
   | 'documents'
   | 'overtime';
+
+export interface DigitalSignature {
+  id: string;
+  signerName: string;
+  signerRole: UserRole;
+  signerTitle?: string;
+  signedAt: string;
+  signatureImage: string;
+  ipAddress: string;
+  deviceInfo: string;
+  securityHash: string;
+}
+
+export type DocumentCategory = 
+  | 'contrato' 
+  | 'nda' 
+  | 'politica' 
+  | 'addendum' 
+  | 'constancia';
+
+export interface CompanyDocument {
+  id: string;
+  code: string;
+  title: string;
+  category: DocumentCategory;
+  categoryLabel: string;
+  description: string;
+  fileSize: string;
+  fileName?: string;
+  fileDataUrl?: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  targetEmployeeId: string | 'all'; // 'all' or specific employeeId
+  targetEmployeeName?: string;
+  contentClauses: string[];
+  
+  requiresAdminSignature: boolean;
+  isAdminSigned: boolean;
+  adminSignature?: DigitalSignature;
+
+  requiresEmployeeSignature: boolean;
+  isEmployeeSigned: boolean;
+  employeeSignature?: DigitalSignature;
+
+  status: 'pending_both' | 'pending_employee' | 'pending_admin' | 'signed_both';
+}
 
 export interface UserProfile {
   id: string;

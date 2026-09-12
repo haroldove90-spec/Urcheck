@@ -44,6 +44,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   ];
 
   const adminSecondaryItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'documents', label: 'Documentos', icon: FileText },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
     { id: 'users', label: 'Usuarios', icon: UserCog },
