@@ -272,6 +272,7 @@ export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
     biometricDeviceId: 'ZKTeco SpeedFace-V5L Cloud',
     verificationScore: 99.4,
     hashAudit: 'SHA256: 8f4b...32e1',
+    photoSnapshot: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
   },
   {
     id: 'att-102',
@@ -304,6 +305,7 @@ export const INITIAL_ATTENDANCE_RECORDS: AttendanceRecord[] = [
     biometricDeviceId: 'Anviz FacePass 7 Pro',
     verificationScore: 99.8,
     hashAudit: 'SHA256: 77a1...ff32',
+    photoSnapshot: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80',
   },
   {
     id: 'att-104',

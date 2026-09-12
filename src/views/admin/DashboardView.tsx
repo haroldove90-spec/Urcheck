@@ -14,7 +14,10 @@ import {
   Zap,
   ArrowUpRight,
   ShieldCheck,
-  Search
+  Search,
+  Camera,
+  Eye,
+  X
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -34,6 +37,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Hace unos segundos');
+  const [selectedRecordForSelfie, setSelectedRecordForSelfie] = useState<AttendanceRecord | null>(null);
 
   const totalEmployees = employees.length;
   const uniqueAttendees = new Set(attendanceRecords.map(r => r.employeeId)).size;
@@ -308,15 +312,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <tr key={record.id} className="hover:bg-neutral-50 transition-colors">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={record.employeeAvatar}
-                            alt={record.employeeName}
-                            className="w-8 h-8 rounded-full object-cover border border-neutral-300"
-                          />
+                          <div className="relative shrink-0">
+                            <img
+                              src={record.employeeAvatar}
+                              alt={record.employeeName}
+                              className="w-8 h-8 rounded-full object-cover border border-neutral-300"
+                            />
+                            {record.photoSnapshot && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRecordForSelfie(record)}
+                                title="Ver foto selfie tomada en el marcaje"
+                                className="absolute -bottom-1 -right-1 p-0.5 bg-[#0871A0] hover:bg-[#065a80] text-white rounded-full shadow-xs cursor-pointer"
+                              >
+                                <Camera className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
                           <div>
-                            <span className="font-bold text-neutral-900 block leading-tight">
-                              {record.employeeName}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-neutral-900 block leading-tight">
+                                {record.employeeName}
+                              </span>
+                              {record.photoSnapshot && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRecordForSelfie(record)}
+                                  className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#0871A0]/10 text-[#0871A0] hover:bg-[#0871A0]/20 cursor-pointer inline-flex items-center gap-0.5"
+                                >
+                                  <Camera className="w-2.5 h-2.5" /> Selfie
+                                </button>
+                              )}
+                            </div>
                             <span className="text-[11px] font-mono text-neutral-500">
                               {record.employeeCode}
                             </span>
@@ -391,6 +418,76 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Modal de Auditoría de Selfie para Administradores / RRHH */}
+      {selectedRecordForSelfie && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
+              <div className="flex items-center gap-2">
+                <ScanFace className="w-5 h-5 text-[#0871A0]" />
+                <h3 className="font-bold text-neutral-900 text-base">
+                  Evidencia Fotográfica de Marcaje
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRecordForSelfie(null)}
+                className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-500 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-col items-center">
+              <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-2xl overflow-hidden border-4 border-emerald-500 shadow-lg relative bg-neutral-900">
+                <img
+                  src={selectedRecordForSelfie.photoSnapshot || selectedRecordForSelfie.employeeAvatar}
+                  alt={selectedRecordForSelfie.employeeName}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs px-2.5 py-1 rounded text-[10px] font-mono text-emerald-400 border border-emerald-500/40">
+                  IA MATCH: {selectedRecordForSelfie.verificationScore || 99.8}%
+                </div>
+                <div className="absolute bottom-2 inset-x-2 bg-black/75 backdrop-blur-xs px-2 py-1 rounded text-[10px] font-mono text-white text-center">
+                  {selectedRecordForSelfie.timestamp} • {selectedRecordForSelfie.branchName}
+                </div>
+              </div>
+
+              <div className="mt-4 w-full bg-neutral-50 rounded-xl p-3.5 border border-neutral-200 text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Colaborador:</span>
+                  <span className="font-bold text-neutral-900">{selectedRecordForSelfie.employeeName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Código de Empleado:</span>
+                  <span className="font-mono text-neutral-800">{selectedRecordForSelfie.employeeCode}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Terminal Checadora:</span>
+                  <span className="text-neutral-800 font-medium">{selectedRecordForSelfie.biometricDeviceId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Dictamen Biométrico:</span>
+                  <span className="text-[#138128] font-bold">Rostro Reconocido (Liveness OK)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Hash Criptográfico:</span>
+                  <span className="font-mono text-neutral-800 text-[10px]">{selectedRecordForSelfie.hashAudit}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRecordForSelfie(null)}
+                className="mt-4 w-full py-2.5 rounded-xl bg-[#0A3142] text-white font-bold text-xs hover:bg-[#082735] transition cursor-pointer"
+              >
+                Cerrar Expediente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
