@@ -22,7 +22,7 @@ import {
 } from '../utils/credentialUtils';
 
 interface ShareCredentialsModalProps {
-  data: ShareCredentialsData;
+  data: ShareCredentialsData | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -34,9 +34,18 @@ export const ShareCredentialsModal: React.FC<ShareCredentialsModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showPassword, setShowPassword] = useState(true);
-  const [editablePhone, setEditablePhone] = useState(data.phone || '');
+  const [editablePhone, setEditablePhone] = useState(data?.phone || '');
 
-  if (!isOpen) return null;
+  // Keep editablePhone in sync when data changes
+  React.useEffect(() => {
+    if (data?.phone) {
+      setEditablePhone(data.phone);
+    } else {
+      setEditablePhone('');
+    }
+  }, [data?.phone]);
+
+  if (!isOpen || !data) return null;
 
   const currentData: ShareCredentialsData = {
     ...data,
