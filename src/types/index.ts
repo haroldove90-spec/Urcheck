@@ -75,6 +75,8 @@ export interface Branch {
   biometricDeviceName: string;
   biometricIp: string;
   biometricStatus: 'online' | 'syncing' | 'offline';
+  status?: 'active' | 'inactive';
+  isActive?: boolean;
   lastPing: string;
   latitude: number;
   longitude: number;

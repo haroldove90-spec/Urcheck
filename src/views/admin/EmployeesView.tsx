@@ -16,8 +16,20 @@ import {
   ShieldCheck,
   Building2,
   Mail,
-  Phone
+  Phone,
+  Share2,
+  Key,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
+import { PasswordField } from '../../components/PasswordField';
+import { ShareCredentialsModal } from '../../components/ShareCredentialsModal';
+import { 
+  generateSecurePassword, 
+  generateUsername, 
+  ShareCredentialsData, 
+  ACCESS_PORTAL_URL 
+} from '../../utils/credentialUtils';
 
 interface EmployeesViewProps {
   employees: Employee[];
@@ -47,11 +59,22 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
   const [newEmpCode, setNewEmpCode] = useState(`EMP-${Math.floor(1000 + Math.random() * 9000)}`);
   const [newEmpEmail, setNewEmpEmail] = useState('');
   const [newEmpPhone, setNewEmpPhone] = useState('');
+  const [newEmpUsername, setNewEmpUsername] = useState('');
+  const [newEmpPassword, setNewEmpPassword] = useState(() => generateSecurePassword(10));
   const [newEmpDept, setNewEmpDept] = useState('Operaciones');
   const [newEmpPos, setNewEmpPos] = useState('');
   const [newEmpBranch, setNewEmpBranch] = useState(branches[0]?.id || 'suc-01');
   const [newEmpShift, setNewEmpShift] = useState('Matutino (08:00 - 17:00)');
   const [newEmpRate, setNewEmpRate] = useState(160);
+
+  // Credentials sharing modal
+  const [shareCredentialsData, setShareCredentialsData] = useState<ShareCredentialsData | null>(null);
+
+  const handleNameChange = (nameVal: string) => {
+    setNewEmpName(nameVal);
+    // Suggest username automatically if user hasn't typed a custom one
+    setNewEmpUsername(generateUsername(nameVal, newEmpCode));
+  };
 
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,6 +90,9 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
     if (!newEmpName.trim()) return;
 
     const targetBranch = branches.find(b => b.id === newEmpBranch);
+    const finalUsername = newEmpUsername.trim() || generateUsername(newEmpName, newEmpCode);
+    const finalPassword = newEmpPassword.trim() || generateSecurePassword(10);
+
     const newEmp: Employee = {
       id: `emp-${Date.now()}`,
       employeeCode: newEmpCode,
@@ -95,10 +121,27 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
 
     onAddEmployee(newEmp);
     setIsAddModalOpen(false);
+
+    // Prompt WhatsApp credentials sharing modal
+    setShareCredentialsData({
+      name: newEmp.name,
+      username: finalUsername,
+      password: finalPassword,
+      roleName: 'Empleado / Colaborador',
+      branchName: targetBranch?.name || 'Sede Principal',
+      phone: newEmp.phone,
+      portalUrl: ACCESS_PORTAL_URL,
+    });
+
     // Reset form
     setNewEmpName('');
     setNewEmpPos('');
-    setNewEmpCode(`EMP-${Math.floor(1000 + Math.random() * 9000)}`);
+    setNewEmpPhone('');
+    setNewEmpEmail('');
+    const nextCode = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
+    setNewEmpCode(nextCode);
+    setNewEmpUsername('');
+    setNewEmpPassword(generateSecurePassword(10));
   };
 
   const handleUpdateDocumentStatus = (docId: string, newStatus: DocumentStatus) => {
@@ -292,11 +335,29 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-right space-x-1">
+                      <td className="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+                        <button
+                          onClick={() => {
+                            setShareCredentialsData({
+                              name: emp.name,
+                              username: generateUsername(emp.name, emp.employeeCode),
+                              password: generateSecurePassword(10),
+                              roleName: 'Empleado / Colaborador',
+                              branchName: emp.branchName,
+                              phone: emp.phone,
+                              portalUrl: ACCESS_PORTAL_URL,
+                            });
+                          }}
+                          title="Compartir Credenciales por WhatsApp"
+                          className="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors inline-flex items-center gap-1 text-xs font-semibold cursor-pointer"
+                        >
+                          <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="hidden xl:inline text-[11px]">WhatsApp</span>
+                        </button>
                         <button
                           onClick={() => setInspectingDossierEmp(emp)}
                           title="Ver Expediente"
-                          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#0871A0] hover:bg-[#0871A0]/10 transition-colors"
+                          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#0871A0] hover:bg-[#0871A0]/10 transition-colors inline-flex items-center cursor-pointer"
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -307,7 +368,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                             }
                           }}
                           title="Baja de Colaborador"
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors inline-flex items-center cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -442,8 +503,8 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                     required
                     placeholder="Ej. Juan Pérez Garza"
                     value={newEmpName}
-                    onChange={(e) => setNewEmpName(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -458,6 +519,56 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                 </div>
               </div>
 
+              {/* Credenciales de Acceso al Portal / Móvil */}
+              <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0A3142] flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-[#0871A0]" />
+                    Credenciales para Acceso Móvil y Portal Web
+                  </span>
+                  <span className="text-[10px] text-neutral-500 font-medium">
+                    (Se compartirán por WhatsApp)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-neutral-600 mb-1">
+                      Usuario de Ingreso *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        placeholder="usuario.login"
+                        value={newEmpUsername}
+                        onChange={(e) => setNewEmpUsername(e.target.value)}
+                        className="w-full p-2 pr-8 rounded-lg border border-neutral-300 bg-white font-mono text-xs focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewEmpUsername(generateUsername(newEmpName, newEmpCode))}
+                        title="Regenerar usuario"
+                        className="absolute right-2 top-2 text-neutral-400 hover:text-[#0871A0]"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <PasswordField
+                      id="input-emp-password"
+                      label="Contraseña Generada"
+                      value={newEmpPassword}
+                      onChange={setNewEmpPassword}
+                      placeholder="Contraseña segura"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-neutral-700 mb-1">Correo Electrónico</label>
@@ -466,17 +577,17 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                     placeholder="nombre@empresa.com"
                     value={newEmpEmail}
                     onChange={(e) => setNewEmpEmail(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Teléfono</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Teléfono (WhatsApp) *</label>
                   <input
                     type="tel"
                     placeholder="55 0000 0000"
                     value={newEmpPhone}
                     onChange={(e) => setNewEmpPhone(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
                   />
                 </div>
               </div>
@@ -548,13 +659,20 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                   type="submit"
                   className="px-4 py-2 rounded-xl bg-[#0A3142] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
                 >
-                  Guardar y Registrar Biometría
+                  Guardar y Generar Credenciales
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Share Credentials Modal */}
+      <ShareCredentialsModal
+        isOpen={Boolean(shareCredentialsData)}
+        data={shareCredentialsData}
+        onClose={() => setShareCredentialsData(null)}
+      />
     </div>
   );
 };

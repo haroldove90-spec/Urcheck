@@ -132,6 +132,30 @@ export default function App() {
     setBranches(prev => [...prev, newBranch]);
   };
 
+  const handleUpdateBranch = (updatedBranch: Branch) => {
+    setBranches(prev => prev.map(b => b.id === updatedBranch.id ? updatedBranch : b));
+  };
+
+  const handleDeleteBranch = (branchId: string) => {
+    setBranches(prev => prev.filter(b => b.id !== branchId));
+  };
+
+  const handleToggleBranchStatus = (branchId: string) => {
+    setBranches(prev => prev.map(b => {
+      if (b.id === branchId) {
+        const isCurrentlyInactive = b.status === 'inactive' || b.isActive === false;
+        const nextStatus = isCurrentlyInactive ? 'active' : 'inactive';
+        return {
+          ...b,
+          status: nextStatus,
+          isActive: nextStatus === 'active',
+          biometricStatus: nextStatus === 'active' ? 'online' : 'offline',
+        };
+      }
+      return b;
+    }));
+  };
+
   // Leaves Handlers
   const handleApproveLeave = (leaveId: string) => {
     setLeaveRequests(prev => prev.map(req => {
@@ -269,6 +293,9 @@ export default function App() {
                 <BranchesView
                   branches={branches}
                   onAddBranch={handleAddBranch}
+                  onUpdateBranch={handleUpdateBranch}
+                  onDeleteBranch={handleDeleteBranch}
+                  onToggleBranchStatus={handleToggleBranchStatus}
                 />
               )}
 

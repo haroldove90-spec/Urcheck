@@ -39,12 +39,12 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
       id="main-institutional-header"
       className="sticky top-0 z-30 bg-white border-b border-neutral-200 shadow-xs"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-18">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 gap-2">
           
           {/* System Logo: Urcheck */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0A3142] flex items-center justify-center p-2 shadow-sm border border-[#082633]">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#0A3142] flex items-center justify-center p-1.5 sm:p-2 shadow-xs border border-[#082633] shrink-0">
               {/* Shield & Fingerprint in #0871A0 and White */}
               <svg viewBox="0 0 48 48" className="w-full h-full" fill="none">
                 <path d="M24 4L38 9V22C38 31 32 39 24 43C16 39 10 31 10 22V9L24 4Z" fill="#0871A0" />
@@ -55,49 +55,53 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
             </div>
 
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-black tracking-tight text-[#0A3142] leading-none">
+              <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-[#0A3142] leading-none">
                 Ur<span className="text-[#0871A0]">check</span>
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-neutral-500 mt-0.5">
-                Control de Asistencia Biométrico
+              <span className="hidden sm:block text-[9px] sm:text-[10px] md:text-xs font-semibold uppercase tracking-wider text-neutral-500 mt-0.5">
+                Control Biométrico
               </span>
             </div>
           </div>
 
           {/* Right Actions: Role identification, Install button, Logout */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3 shrink-0">
             
             {/* Active Role Identification Badge */}
             <div 
               id="active-role-badge"
-              className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#0A3142]/5 border border-[#0871A0]/20"
+              title={`${currentUser.name} (${currentUser.roleName})`}
+              className="flex items-center gap-1.5 sm:gap-2.5 px-1.5 sm:px-3 py-1 rounded-full bg-[#0A3142]/5 border border-[#0871A0]/20 max-w-[150px] sm:max-w-[220px] md:max-w-none"
             >
-              <img 
-                src={currentUser.avatar} 
-                alt={currentUser.name} 
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#0871A0] shadow-xs"
-              />
-              <div className="flex flex-col text-left">
-                <span className="text-xs sm:text-sm font-bold text-[#0A3142] leading-tight">
-                  {currentUser.name}
+              <div className="relative shrink-0">
+                <img 
+                  src={currentUser.avatar} 
+                  alt={currentUser.name} 
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#0871A0] shadow-2xs"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#138128] border-2 border-white" />
+              </div>
+              <div className="hidden xs:flex flex-col text-left min-w-0">
+                <span className="text-xs sm:text-sm font-bold text-[#0A3142] leading-tight truncate">
+                  {currentUser.name.split(' ').slice(0, 2).join(' ')}
                 </span>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-[#0871A0] leading-none">
-                  {currentUser.roleName}
+                <span className="text-[9px] sm:text-[10px] md:text-[11px] font-semibold text-[#0871A0] leading-none truncate">
+                  {currentUser.role === 'admin' ? 'Administrador' : 'Empleado'}
                 </span>
               </div>
             </div>
 
-            {/* Quick App Install Button: "Instala Gestión Escolar" */}
+            {/* Quick App Install Button */}
             <button
               id="btn-pwa-install"
               onClick={handleInstallClick}
               type="button"
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#0871A0] active:scale-95 transition-all rounded-xl shadow-sm focus:ring-2 focus:ring-[#0871A0] focus:ring-offset-1 cursor-pointer"
-              title="Instalar aplicación en Android, iOS o Computadora"
+              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 text-xs font-bold text-white bg-[#0A3142] hover:bg-[#0871A0] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0"
+              title="Instalar aplicación en tu dispositivo"
             >
               <DownloadCloud className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">Instala Urcheck</span>
-              <span className="sm:hidden">Instalar</span>
+              <span className="hidden md:inline">Instala Urcheck</span>
+              <span className="hidden sm:inline md:hidden">Instalar</span>
             </button>
 
             {/* Logout Button */}
@@ -105,11 +109,11 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
               id="btn-logout"
               onClick={onLogout}
               type="button"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 text-xs sm:text-sm font-medium text-neutral-700 hover:text-[#0A3142] bg-white hover:bg-neutral-100 border border-neutral-300 rounded-xl transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-neutral-700 hover:text-[#0A3142] bg-white hover:bg-neutral-100 border border-neutral-300 rounded-xl transition-colors cursor-pointer shrink-0"
               title="Cerrar sesión o cambiar de rol"
             >
-              <LogOut className="w-4 h-4 text-[#0871A0]" />
-              <span className="hidden md:inline">Cerrar sesión</span>
+              <LogOut className="w-4 h-4 text-[#0871A0] shrink-0" />
+              <span className="hidden lg:inline">Salir</span>
             </button>
           </div>
         </div>
