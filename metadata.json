@@ -1,6 +1,6 @@
 {
-  "name": "Control se asistencia PRO",
-  "description": "Plataforma integral de control de asistencia digital, biométricos en tiempo real, expedientes, incidencias y gestión de personal.",
+  "name": "Urcheck",
+  "description": "Urcheck - Plataforma integral de control de asistencia digital, hardware biométrico en tiempo real, gestión de empleados y expedientes laborales.",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

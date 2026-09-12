@@ -62,7 +62,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Reporte_${reportType}_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `Urcheck_Reporte_${reportType}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -81,8 +81,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
-            <FileBarChart className="w-6 h-6 text-red-600" />
+          <h2 className="text-xl font-bold text-[#0A3142] flex items-center gap-2">
+            <FileBarChart className="w-6 h-6 text-[#0871A0]" />
             Reportes Automáticos y Cumplimiento Legal
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -94,7 +94,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <button
             onClick={handleExportCSV}
             type="button"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>Exportar CSV / Excel</span>
@@ -112,8 +112,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
       </div>
 
       {exportMessage && (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-[#138128]/10 border border-[#138128]/30 text-[#138128] text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#138128]" />
           {exportMessage}
         </div>
       )}
@@ -127,7 +127,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value as any)}
-            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-red-500"
+            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-[#0871A0]"
           >
             <option value="asistencia">Reporte de Asistencia y Puntualidad Diaria</option>
             <option value="incidencias">Historial Trazable de Incidencias y Retardos</option>
@@ -143,7 +143,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-red-500"
+            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-[#0871A0]"
           >
             <option value="hoy">Jornada de Hoy en Tiempo Real</option>
             <option value="semana">Semana Laboral Actual</option>
@@ -159,7 +159,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           <select
             value={branchFilter}
             onChange={(e) => setBranchFilter(e.target.value)}
-            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-red-500"
+            className="w-full p-2.5 text-xs sm:text-sm rounded-xl border border-neutral-300 bg-white font-medium text-neutral-900 focus:ring-2 focus:ring-[#0871A0]"
           >
             <option value="all">Todas las Sedes y Áreas</option>
             {branches.map(b => (
@@ -174,15 +174,15 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b-2 border-neutral-800 gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded bg-red-600 text-white font-black text-xs">
-                CONTROL PRO
+              <span className="px-2.5 py-1 rounded-md bg-[#0A3142] text-white font-black text-xs tracking-wider">
+                URCHECK OFICIAL
               </span>
-              <h3 className="text-lg font-black text-neutral-900 uppercase">
+              <h3 className="text-lg font-black text-[#0A3142] uppercase">
                 Dictamen Oficial de Asistencia y Cumplimiento
               </h3>
             </div>
             <p className="text-xs text-neutral-500 font-mono mt-1">
-              Folio de Auditoría: AUD-2026-0912-ZK4 • Sincronización en la Nube ZKTeco SHA-256
+              Folio de Auditoría: AUD-2026-0912-URC4 • Urcheck BioCloud Sincronización SHA-256
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
           <div>
             <span className="text-neutral-500 font-semibold block">Índice de Puntualidad</span>
-            <span className="text-xl font-bold text-emerald-600">92.8%</span>
+            <span className="text-xl font-bold text-[#138128]">92.8%</span>
           </div>
           <div>
             <span className="text-neutral-500 font-semibold block">Tolerancia Aplicada</span>
@@ -209,7 +209,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
           </div>
           <div>
             <span className="text-neutral-500 font-semibold block">Validador Oficial</span>
-            <span className="text-xl font-bold text-red-600">Fernanda Soto</span>
+            <span className="text-xl font-bold text-[#0871A0]">Fernanda Soto</span>
           </div>
         </div>
 
@@ -238,7 +238,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
                   <td className="py-2 px-3 capitalize text-neutral-600">{r.method}</td>
                   <td className="py-2 px-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      r.status === 'on_time' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      r.status === 'on_time' ? 'bg-[#138128]/10 text-[#138128]' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {r.status === 'on_time' ? 'Válido en Tiempo' : 'Retardo Registrado'}
                     </span>
@@ -252,7 +252,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Footer Stamp & Sign Block */}
         <div className="mt-8 pt-6 border-t border-neutral-300 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+            <ShieldCheck className="w-5 h-5 text-[#138128]" />
             <span>Documento certificado para inspecciones de la Secretaría del Trabajo (STPS) y Nómina.</span>
           </div>
 

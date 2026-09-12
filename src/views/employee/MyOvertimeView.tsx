@@ -70,10 +70,10 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
       {/* Header Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0871A0]">
             Tiempo Extraordinario Operativo
           </span>
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0A3142]">
             Mis Horas Extraordinarias
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -84,7 +84,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>{isFormOpen ? 'Cerrar Registro' : 'Registrar Tiempo Extra'}</span>
@@ -92,17 +92,17 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
       </div>
 
       {feedback && (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-[#138128]/10 border border-[#138128]/30 text-[#138128] text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#138128]" />
           {feedback}
         </div>
       )}
 
       {/* Form */}
       {isFormOpen && (
-        <div className="bg-white rounded-2xl border-2 border-red-500 p-6 shadow-md animate-in fade-in">
-          <h3 className="text-base font-bold text-neutral-900 mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-red-600" />
+        <div className="bg-white rounded-2xl border-2 border-[#0871A0] p-6 shadow-md animate-in fade-in">
+          <h3 className="text-base font-bold text-[#0A3142] mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#0871A0]" />
             Reportar Jornada Extraordinaria
           </h3>
 
@@ -115,7 +115,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
 
@@ -126,7 +126,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                   required
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
 
@@ -137,7 +137,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                   required
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
             </div>
@@ -152,18 +152,18 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                   required
                   value={totalHours}
                   onChange={(e) => setTotalHours(Number(e.target.value))}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300 font-bold"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 font-bold focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
 
               <div className="bg-neutral-50 p-3 rounded-xl border border-neutral-200 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-neutral-500 font-semibold block">Cálculo Estimado a Cobrar</span>
-                  <span className="text-lg font-black text-emerald-600">
+                  <span className="text-lg font-black text-[#138128]">
                     ${(totalHours * 160 * 2.0).toLocaleString('es-MX')} MXN
                   </span>
                 </div>
-                <span className="text-[11px] font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800">
+                <span className="text-[11px] font-bold px-2 py-1 rounded bg-[#138128]/10 text-[#138128]">
                   Tarifa Doble x2.0
                 </span>
               </div>
@@ -179,7 +179,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                 placeholder="Especifica la tarea extraordinaria realizada por solicitud del supervisor..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-neutral-300"
+                className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
               />
             </div>
 
@@ -193,7 +193,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-xs"
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white font-bold shadow-xs cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Enviar a Validación Patronal</span>
@@ -205,8 +205,8 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
 
       {/* Overtime Records History */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs">
-        <h3 className="text-base font-bold text-neutral-900 mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-red-600" />
+        <h3 className="text-base font-bold text-[#0A3142] mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#0871A0]" />
           Historial de Horas Extras Registradas
         </h3>
 
@@ -223,15 +223,15 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                 >
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-neutral-900 text-sm">
+                      <span className="font-bold text-[#0A3142] text-sm">
                         {r.date} ({r.startTime} - {r.endTime} hrs)
                       </span>
                       <span className="px-2 py-0.5 rounded font-bold text-xs bg-neutral-200 text-neutral-800">
                         {r.totalHours} Horas Extra
                       </span>
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        isApproved ? 'bg-emerald-100 text-emerald-800' :
-                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                        isApproved ? 'bg-[#138128]/10 text-[#138128]' :
+                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                       }`}>
                         {isApproved && '✓ Aprobado para Nómina'}
                         {isPending && '⏳ En Validación por RRHH'}
@@ -240,7 +240,7 @@ export const MyOvertimeView: React.FC<MyOvertimeViewProps> = ({
                     </div>
 
                     <p className="text-xs text-neutral-600 mt-1 font-medium">{r.reason}</p>
-                    <span className="text-xs font-semibold text-emerald-700 block mt-1">
+                    <span className="text-xs font-semibold text-[#138128] block mt-1">
                       Monto a pagar: ${r.estimatedPay.toLocaleString('es-MX')} MXN
                     </span>
                   </div>

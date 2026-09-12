@@ -9,22 +9,22 @@ export const Footer: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          <span className="font-semibold text-neutral-800">Control se asistencia PRO</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#138128] animate-pulse" />
+          <span className="font-bold text-[#0A3142]">Urcheck</span>
           <span className="text-neutral-400">|</span>
-          <span className="text-neutral-500 hidden sm:inline">Servidor Biométrico Cloud v4.2 Activo</span>
+          <span className="text-neutral-500 hidden sm:inline">Servidor Biométrico Cloud Activo (4 terminales ZKTeco)</span>
         </div>
 
-        <p className="text-center sm:text-right font-medium">
+        <p className="text-center sm:text-right font-medium text-neutral-700">
           Desarrollado por Harold Anguiano - App Design – Whatsapp:{' '}
           <a
             id="footer-whatsapp-link"
             href="https://wa.me/525624222449"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-bold text-red-600 hover:text-red-700 hover:underline transition-colors"
+            className="inline-flex items-center gap-1.5 font-bold text-[#138128] hover:text-[#0e631f] hover:underline transition-colors"
           >
-            <MessageSquare className="w-3.5 h-3.5 inline text-emerald-600" />
+            <MessageSquare className="w-4 h-4 inline text-[#138128]" />
             5624222449
           </a>
         </p>

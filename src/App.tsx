@@ -66,7 +66,7 @@ export default function App() {
   const handleSelectRole = (role: UserRole) => {
     setCurrentRole(role);
     setCurrentUser(INITIAL_PROFILES[role]);
-    if (role === 'admin' || role === 'supervisor' || role === 'auditor') {
+    if (role === 'admin') {
       setCurrentAdminModule('dashboard');
     } else {
       setCurrentEmployeeModule('punch');
@@ -211,10 +211,10 @@ export default function App() {
 
   const pendingLeavesCount = leaveRequests.filter(r => r.status === 'pending').length;
   const pendingOvertimeCount = overtimeRecords.filter(r => r.status === 'pending').length;
-  const isAdminOrSuper = currentRole === 'admin' || currentRole === 'supervisor' || currentRole === 'auditor';
+  const isAdmin = currentRole === 'admin';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-red-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#0871A0] selection:text-white">
       
       {/* 1. Unified Institutional Header */}
       <Header 
@@ -244,7 +244,7 @@ export default function App() {
           id="main-content-viewport"
           className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-12"
         >
-          {isAdminOrSuper ? (
+          {isAdmin ? (
             <>
               {currentAdminModule === 'dashboard' && (
                 <DashboardView

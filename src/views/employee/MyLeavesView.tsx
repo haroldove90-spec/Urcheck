@@ -77,8 +77,8 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
       {/* Header & Balance Cards */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
-            <CalendarCheck className="w-6 h-6 text-red-600" />
+          <h2 className="text-xl font-bold text-[#0A3142] flex items-center gap-2">
+            <CalendarCheck className="w-6 h-6 text-[#0871A0]" />
             Permisos y Solicitud de Vacaciones
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -89,7 +89,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>{isFormOpen ? 'Cerrar Formulario' : 'Nueva Solicitud'}</span>
@@ -97,8 +97,8 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
       </div>
 
       {submittedFeedback && (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-[#138128]/10 border border-[#138128]/30 text-[#138128] text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#138128]" />
           {submittedFeedback}
         </div>
       )}
@@ -110,7 +110,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
             Días Vacacionales Disponibles
           </span>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-red-600">12</span>
+            <span className="text-3xl sm:text-4xl font-black text-[#138128]">12</span>
             <span className="text-xs text-neutral-500 font-semibold">días ley vigentes</span>
           </div>
         </div>
@@ -120,7 +120,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
             Días Disfrutados Este Año
           </span>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-neutral-900">4</span>
+            <span className="text-3xl sm:text-4xl font-black text-[#0A3142]">4</span>
             <span className="text-xs text-neutral-500 font-semibold">días aprobados</span>
           </div>
         </div>
@@ -140,9 +140,9 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
 
       {/* Form Card */}
       {isFormOpen && (
-        <div className="bg-white rounded-2xl border-2 border-red-500 p-6 shadow-md animate-in fade-in">
-          <h3 className="text-base font-bold text-neutral-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-red-600" />
+        <div className="bg-white rounded-2xl border-2 border-[#0871A0] p-6 shadow-md animate-in fade-in">
+          <h3 className="text-base font-bold text-[#0A3142] mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#0871A0]" />
             Tramitar Nueva Solicitud de Permiso o Vacaciones
           </h3>
 
@@ -154,7 +154,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as any)}
-                className="w-full p-2.5 rounded-xl border border-neutral-300 bg-white font-medium"
+                className="w-full p-2.5 rounded-xl border border-neutral-300 bg-white font-medium focus:ring-2 focus:ring-[#0871A0]"
               >
                 <option value="vacation">Periodo Vacacional Oficial (Ley)</option>
                 <option value="medical">Incapacidad Médica / Consulta Salud</option>
@@ -173,7 +173,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
                   required
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
                   required
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
                 />
               </div>
             </div>
@@ -198,10 +198,10 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
               <textarea
                 rows={3}
                 required
-                placeholder="Indica brevemente el motivo para revisión de RRHH..."
+                placeholder="Indica brevemente el motivo para revisión de Recursos Humanos..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-neutral-300"
+                className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
               />
             </div>
 
@@ -217,7 +217,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setAttachmentName('comprobante_medico_imss.pdf')}
-                  className="px-3 py-1 text-xs font-bold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-lg"
+                  className="px-3 py-1 text-xs font-bold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-xl cursor-pointer"
                 >
                   {attachmentName ? 'Cambiar' : 'Subir Archivo'}
                 </button>
@@ -234,7 +234,7 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-xs"
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white font-bold shadow-xs cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>Enviar Solicitud a RRHH</span>
@@ -246,8 +246,8 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
 
       {/* History of my requests */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs">
-        <h3 className="text-base font-bold text-neutral-900 mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-red-600" />
+        <h3 className="text-base font-bold text-[#0A3142] mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#0871A0]" />
           Historial de Mis Solicitudes
         </h3>
 
@@ -260,12 +260,12 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-neutral-900 text-sm capitalize">
+                    <span className="font-bold text-[#0A3142] text-sm capitalize">
                       {req.type === 'vacation' ? 'Vacaciones' : req.type}
                     </span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      req.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                      req.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                      req.status === 'approved' ? 'bg-[#138128]/10 text-[#138128]' :
+                      req.status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                     }`}>
                       {req.status === 'approved' && '✓ Aprobado'}
                       {req.status === 'pending' && '⏳ En Revisión'}

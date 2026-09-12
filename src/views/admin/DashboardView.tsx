@@ -36,7 +36,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [lastSyncTime, setLastSyncTime] = useState('Hace unos segundos');
 
   const totalEmployees = employees.length;
-  // Calculate attendance metrics
   const uniqueAttendees = new Set(attendanceRecords.map(r => r.employeeId)).size;
   const attendanceRate = totalEmployees > 0 ? Math.round((uniqueAttendees / totalEmployees) * 100) : 0;
   
@@ -66,21 +65,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Top Banner with Biometric Hardware Connection & Quick Sync */}
       <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center shrink-0 border border-neutral-800">
-            <Activity className="w-6 h-6 text-red-500" />
+          <div className="w-12 h-12 rounded-xl bg-[#0A3142] text-white flex items-center justify-center shrink-0 border border-[#082735]">
+            <Activity className="w-6 h-6 text-[#0871A0]" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg sm:text-xl font-bold text-neutral-900">
-                Monitoreo Biométrico en Tiempo Real
+              <h2 className="text-lg sm:text-xl font-bold text-[#0A3142]">
+                Monitoreo Global en Tiempo Real
               </h2>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#138128]/10 text-[#138128] border border-[#138128]/30">
+                <span className="w-2 h-2 rounded-full bg-[#138128] animate-pulse" />
                 4 TERMINALES CONECTADAS
               </span>
             </div>
             <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-              Sincronización instantánea con nube ZKTeco BioCloud Protocol • Último ping: {lastSyncTime}
+              Urcheck Biometric Cloud Protocol • Último ping de hardware: {lastSyncTime}
             </p>
           </div>
         </div>
@@ -90,7 +89,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             id="btn-simulate-punch"
             onClick={onAddSimulatedPunch}
             type="button"
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white shadow-xs transition cursor-pointer"
             title="Simular marcaje en vivo para probar reactividad"
           >
             <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
@@ -102,9 +101,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={handleManualSync}
             disabled={isSyncing}
             type="button"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 transition cursor-pointer"
           >
-            <RefreshCw className={`w-4 h-4 text-red-600 ${isSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-[#0871A0] ${isSyncing ? 'animate-spin' : ''}`} />
             <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
           </button>
         </div>
@@ -119,21 +118,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
               % Asistencia Hoy
             </span>
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#0871A0]/10 text-[#0871A0] flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-neutral-900">
+            <span className="text-3xl sm:text-4xl font-black text-[#0A3142]">
               {attendanceRate}%
             </span>
-            <span className="text-xs font-medium text-emerald-600 inline-flex items-center">
-              <ArrowUpRight className="w-3.5 h-3.5" /> +2.4% vs ayer
+            <span className="text-xs font-medium text-[#138128] inline-flex items-center">
+              <ArrowUpRight className="w-3.5 h-3.5" /> +2.4% hoy
             </span>
           </div>
           <div className="mt-3 w-full bg-neutral-100 rounded-full h-2 overflow-hidden">
             <div 
-              className="bg-red-600 h-2 rounded-full transition-all duration-500" 
+              className="bg-[#0871A0] h-2 rounded-full transition-all duration-500" 
               style={{ width: `${attendanceRate}%` }} 
             />
           </div>
@@ -148,12 +147,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
               A Tiempo
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#138128]/10 text-[#138128] flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl sm:text-4xl font-black text-neutral-900">
+            <span className="text-3xl sm:text-4xl font-black text-[#138128]">
               {onTimeRecords.length}
             </span>
             <span className="text-xs text-neutral-600 block mt-1">
@@ -193,11 +192,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl sm:text-4xl font-black text-neutral-900">
+            <span className="text-3xl sm:text-4xl font-black text-neutral-800">
               {absentCount}
             </span>
             <span className="text-xs text-neutral-600 block mt-1">
-              Colaboradores sin registro
+              Colaboradores pendientes
             </span>
           </div>
         </div>
@@ -206,8 +205,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Biometric Devices Status Overview */}
       <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-red-600" />
+          <h3 className="text-base font-bold text-[#0A3142] flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-[#0871A0]" />
             Estatus de Sucursales y Checadores Biométricos
           </h3>
           <span className="text-xs text-neutral-500 font-medium">
@@ -219,14 +218,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {branches.map(branch => (
             <div 
               key={branch.id} 
-              className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-white hover:border-red-300 transition-all shadow-2xs"
+              className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-white hover:border-[#0871A0]/40 transition-all shadow-2xs"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-bold text-neutral-900 text-sm">{branch.name}</h4>
+                  <h4 className="font-bold text-[#0A3142] text-sm">{branch.name}</h4>
                   <p className="text-[11px] text-neutral-500">{branch.city}</p>
                 </div>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#138128] ring-4 ring-[#138128]/20 animate-pulse" />
               </div>
 
               <div className="mt-3 pt-2.5 border-t border-neutral-200/80 space-y-1 text-xs">
@@ -240,7 +239,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div className="flex justify-between text-neutral-600">
                   <span className="text-[11px]">Personal:</span>
-                  <span className="font-bold text-red-600 text-[11px]">{branch.employeeCount} colaboradores</span>
+                  <span className="font-bold text-[#0871A0] text-[11px]">{branch.employeeCount} colaboradores</span>
                 </div>
               </div>
             </div>
@@ -252,8 +251,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-              <Fingerprint className="w-5 h-5 text-red-600" />
+            <h3 className="text-base font-bold text-[#0A3142] flex items-center gap-2">
+              <Fingerprint className="w-5 h-5 text-[#0871A0]" />
               Evidencia en Tiempo Real e Historial Trazable
             </h3>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -270,14 +269,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 placeholder="Buscar empleado o sede..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 w-44 sm:w-56"
+                className="pl-9 pr-3 py-1.5 text-xs rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#0871A0] focus:border-[#0871A0] w-44 sm:w-56"
               />
             </div>
 
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="py-1.5 px-2.5 text-xs rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-neutral-700 cursor-pointer"
+              className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#0871A0] text-neutral-700 cursor-pointer"
             >
               <option value="all">Todos los tipos</option>
               <option value="entry">Entradas</option>
@@ -292,7 +291,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-neutral-50 text-neutral-600 font-bold uppercase tracking-wider text-[11px] border-b border-neutral-200">
+              <tr className="bg-[#0A3142]/5 text-[#0A3142] font-bold uppercase tracking-wider text-[11px] border-b border-neutral-200">
                 <th className="py-3 px-4">Colaborador</th>
                 <th className="py-3 px-4">Sucursal</th>
                 <th className="py-3 px-4">Hora Servidor</th>
@@ -305,9 +304,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <tbody className="divide-y divide-neutral-100 font-medium">
               {filteredRecords.length > 0 ? (
                 filteredRecords.map((record) => {
-                  const isEntry = record.type === 'entry';
-                  const isLate = record.status === 'late';
-
                   return (
                     <tr key={record.id} className="hover:bg-neutral-50 transition-colors">
                       <td className="py-3 px-4">
@@ -341,52 +337,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
-                          record.type === 'entry' ? 'bg-emerald-100 text-emerald-800' :
+                          record.type === 'entry' ? 'bg-[#138128]/10 text-[#138128]' :
                           record.type === 'lunch_out' ? 'bg-amber-100 text-amber-800' :
-                          record.type === 'lunch_in' ? 'bg-blue-100 text-blue-800' :
+                          record.type === 'lunch_in' ? 'bg-[#0871A0]/10 text-[#0871A0]' :
                           'bg-neutral-100 text-neutral-800'
                         }`}>
-                          {record.type === 'entry' && '🟢 Entrada'}
-                          {record.type === 'lunch_out' && '🟡 Salida Almuerzo'}
-                          {record.type === 'lunch_in' && '🔵 Regreso Almuerzo'}
-                          {record.type === 'exit' && '🔴 Salida Turno'}
+                          {record.type === 'entry' && 'Entrada'}
+                          {record.type === 'lunch_out' && 'Salida Almuerzo'}
+                          {record.type === 'lunch_in' && 'Regreso Almuerzo'}
+                          {record.type === 'exit' && 'Salida Fin Turno'}
                         </span>
                       </td>
 
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5 text-neutral-700">
-                          {record.method === 'facial' && <ScanFace className="w-4 h-4 text-red-600" />}
-                          {record.method === 'fingerprint' && <Fingerprint className="w-4 h-4 text-red-600" />}
-                          {record.method === 'rfid' && <CreditCard className="w-4 h-4 text-red-600" />}
-                          <span className="capitalize text-xs">{record.method}</span>
-                          {record.verificationScore && (
-                            <span className="text-[10px] text-neutral-600 bg-neutral-100 px-1 rounded font-mono">
-                              {record.verificationScore}%
-                            </span>
-                          )}
+                      <td className="py-3 px-4 text-neutral-600">
+                        <div className="flex items-center gap-1.5">
+                          {record.method === 'facial' && <ScanFace className="w-3.5 h-3.5 text-[#0871A0]" />}
+                          {record.method === 'fingerprint' && <Fingerprint className="w-3.5 h-3.5 text-[#0871A0]" />}
+                          {record.method === 'rfid' && <CreditCard className="w-3.5 h-3.5 text-[#0871A0]" />}
+                          <span className="text-xs truncate max-w-[130px]">{record.biometricDeviceId}</span>
                         </div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                          isLate
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}>
-                          {isLate ? 'Retardo (+18 min)' : 'A Tiempo'}
-                        </span>
+                        {record.status === 'on_time' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#138128]/10 text-[#138128]">
+                            <CheckCircle2 className="w-3 h-3" />
+                            A tiempo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                            <ClockAlert className="w-3 h-3" />
+                            Retardo
+                          </span>
+                        )}
                       </td>
 
-                      <td className="py-3 px-4 text-right font-mono text-[11px] text-neutral-500">
-                        {record.hashAudit}
+                      <td className="py-3 px-4 text-right">
+                        <span className="font-mono text-[10px] text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                          {record.hashAudit}
+                        </span>
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-neutral-500 text-xs">
-                    No se encontraron registros de marcaje con los filtros seleccionados.
+                  <td colSpan={7} className="py-8 text-center text-neutral-400">
+                    No se encontraron marcajes con los filtros seleccionados
                   </td>
                 </tr>
               )}

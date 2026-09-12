@@ -1,8 +1,6 @@
 export type UserRole = 
-  | 'admin'          // Administrador / RRHH (Fernanda Soto Vargas)
-  | 'employee'       // Empleado / Colaborador (Carlos Mendoza Ortiz)
-  | 'supervisor'     // Supervisor de Sucursal
-  | 'auditor';       // Auditor / Nómina
+  | 'admin'          // Administrador / Recursos Humanos
+  | 'employee';      // Empleado / Colaborador
 
 export type AdminModule = 
   | 'dashboard'

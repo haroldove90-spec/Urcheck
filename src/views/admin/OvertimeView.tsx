@@ -8,9 +8,9 @@ import {
   Building2, 
   Calendar, 
   FileCheck, 
-  CheckCircle2,
-  TrendingUp,
-  AlertCircle
+  CheckCircle2, 
+  TrendingUp, 
+  AlertCircle 
 } from 'lucide-react';
 
 interface OvertimeViewProps {
@@ -44,18 +44,18 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
       {/* Header with Payroll Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-neutral-900 flex items-center gap-2">
-            <Clock className="w-6 h-6 text-red-600" />
+          <h2 className="text-xl font-bold text-[#0A3142] flex items-center gap-2">
+            <Clock className="w-6 h-6 text-[#0871A0]" />
             Supervisión y Control de Horas Extraordinarias
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-            Validación de tiempo extraordinario y autorización para dispersión de nómina
+            Supervisión, validación y control de las jornadas extraordinarias registradas para cálculo de nómina
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="px-3.5 py-1.5 rounded-xl bg-neutral-900 text-white text-xs font-bold flex items-center gap-1.5">
-            <TrendingUp className="w-4 h-4 text-red-500" />
+          <span className="px-3.5 py-1.5 rounded-xl bg-[#0A3142] text-white text-xs font-bold flex items-center gap-1.5">
+            <TrendingUp className="w-4 h-4 text-[#138128]" />
             Costo Nómina: ${totalPayrollCost.toLocaleString('es-MX')} MXN
           </span>
         </div>
@@ -78,7 +78,7 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
             Horas Aprobadas para Nómina
           </span>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-600">{totalHoursApproved} hrs</span>
+            <span className="text-3xl font-black text-[#138128]">{totalHoursApproved} hrs</span>
             <span className="text-xs text-neutral-500">({approved.length} validadas)</span>
           </div>
         </div>
@@ -88,8 +88,8 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
             Total a Dispersar (MXN)
           </span>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-neutral-900">${totalPayrollCost.toLocaleString('es-MX')}</span>
-            <span className="text-xs font-semibold text-emerald-600">Tarifa Ley x2.0</span>
+            <span className="text-3xl font-black text-[#0A3142]">${totalPayrollCost.toLocaleString('es-MX')}</span>
+            <span className="text-xs font-semibold text-[#138128]">Tarifa Ley x2.0</span>
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
             onClick={() => setFilter(status)}
             className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               filter === status
-                ? 'bg-neutral-900 text-white shadow-xs'
+                ? 'bg-[#0A3142] text-white shadow-xs'
                 : 'bg-white text-neutral-600 hover:bg-neutral-100'
             }`}
           >
@@ -124,7 +124,7 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[#0871A0]/30 transition-all"
               >
                 <div className="flex items-start gap-4">
                   <img
@@ -134,7 +134,7 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
                   />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-neutral-900 text-sm sm:text-base">
+                      <h4 className="font-bold text-[#0A3142] text-sm sm:text-base">
                         {item.employeeName}
                       </h4>
                       <span className="inline-flex items-center gap-1 text-xs text-neutral-500 font-semibold">
@@ -142,8 +142,8 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
                         {item.branchName}
                       </span>
                       <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                        isApproved ? 'bg-emerald-100 text-emerald-800' :
-                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                        isApproved ? 'bg-[#138128]/10 text-[#138128]' :
+                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                       }`}>
                         {isApproved && '✓ Validado para Nómina'}
                         {isPending && '⏳ Pendiente de Autorización'}
@@ -157,13 +157,13 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
 
                     <div className="flex items-center gap-4 mt-2.5 text-xs text-neutral-600 flex-wrap">
                       <span className="flex items-center gap-1 font-bold text-neutral-900">
-                        <Calendar className="w-3.5 h-3.5 text-red-600" />
+                        <Calendar className="w-3.5 h-3.5 text-[#0871A0]" />
                         Fecha: {item.date} ({item.startTime} - {item.endTime} hrs)
                       </span>
                       <span className="px-2 py-0.5 rounded bg-neutral-100 font-bold text-neutral-800">
                         {item.totalHours} Horas Extraordinarias
                       </span>
-                      <span className="font-bold text-emerald-700">
+                      <span className="font-bold text-[#138128]">
                         Importe estimado: ${item.estimatedPay.toLocaleString('es-MX')} MXN (Factor {item.rateMultiplier}x)
                       </span>
                     </div>
@@ -177,7 +177,7 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
                       <button
                         onClick={() => onApproveOvertime(item.id)}
                         type="button"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-700 text-white transition-all shadow-xs cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-[#138128] hover:bg-[#0e661f] text-white transition-all shadow-xs cursor-pointer active:scale-95"
                       >
                         <Check className="w-4 h-4" />
                         <span>Autorizar para Nómina</span>

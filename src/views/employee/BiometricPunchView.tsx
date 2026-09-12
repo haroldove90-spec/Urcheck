@@ -106,7 +106,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       type: selectedPunchType,
       method: selectedMethod,
       status: isLate ? 'late' : 'on_time',
-      biometricDeviceId: 'ZKTeco SpeedFace-V5L Cloud',
+      biometricDeviceId: 'Urcheck BioCloud Facial & RFID Terminal',
       verificationScore: 99.6,
       hashAudit: `SHA256: ${Math.random().toString(36).substring(2, 8)}...${Math.random().toString(36).substring(2, 6)}`,
     };
@@ -123,11 +123,11 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       {/* Live Biometric Clock & Server Time Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-600 flex items-center justify-center sm:justify-start gap-1.5 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            Terminal Checadora Biometría Cloud Activa
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0871A0] flex items-center justify-center sm:justify-start gap-1.5 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#138128] animate-ping" />
+            Terminal Checadora Urcheck BioCloud Activa
           </span>
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0A3142]">
             Registro Oficial de Asistencia
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -135,11 +135,11 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           </p>
         </div>
 
-        <div className="bg-neutral-900 text-white px-5 py-3 rounded-2xl border border-neutral-800 shadow-md text-center">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 block">
+        <div className="bg-[#0A3142] text-white px-5 py-3 rounded-2xl border border-[#0A3142] shadow-md text-center">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-300 block">
             Hora Oficial Servidor
           </span>
-          <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider text-red-500">
+          <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider text-emerald-400">
             {currentTime}
           </span>
         </div>
@@ -155,8 +155,8 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           {[
             { id: 'entry', label: 'Entrada a Laborar', icon: '🟢', color: 'border-emerald-500 bg-emerald-50/50' },
             { id: 'lunch_out', label: 'Salida Almuerzo', icon: '🟡', color: 'border-amber-500 bg-amber-50/50' },
-            { id: 'lunch_in', label: 'Regreso Almuerzo', icon: '🔵', color: 'border-blue-500 bg-blue-50/50' },
-            { id: 'exit', label: 'Salida de Turno', icon: '🔴', color: 'border-neutral-800 bg-neutral-100' },
+            { id: 'lunch_in', label: 'Regreso Almuerzo', icon: '🔵', color: 'border-[#0871A0] bg-blue-50/50' },
+            { id: 'exit', label: 'Salida de Turno', icon: '⚪', color: 'border-neutral-800 bg-neutral-100' },
           ].map(evt => (
             <button
               key={evt.id}
@@ -164,7 +164,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
               type="button"
               className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 ${
                 selectedPunchType === evt.id
-                  ? `${evt.color} text-neutral-900 shadow-xs scale-102 ring-2 ring-red-600 ring-offset-1`
+                  ? `${evt.color} text-neutral-900 shadow-xs scale-102 ring-2 ring-[#0871A0] ring-offset-1`
                   : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
               }`}
             >
@@ -196,11 +196,11 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                 type="button"
                 className={`p-4 rounded-xl border-2 text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-2 ${
                   isSelected
-                    ? 'border-red-600 bg-red-50 text-red-700 font-bold shadow-xs'
+                    ? 'border-[#0871A0] bg-[#0871A0]/10 text-[#0871A0] font-bold shadow-xs'
                     : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50'
                 }`}
               >
-                <Icon className={`w-7 h-7 ${isSelected ? 'text-red-600' : 'text-neutral-500'}`} />
+                <Icon className={`w-7 h-7 ${isSelected ? 'text-[#0871A0]' : 'text-neutral-500'}`} />
                 <span className="text-xs sm:text-sm">{meth.label}</span>
               </button>
             );
@@ -209,18 +209,18 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       </div>
 
       {/* Step 3: Interactive Biometric Scanner Device */}
-      <div className="bg-neutral-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-neutral-800 relative overflow-hidden">
+      <div className="bg-[#0A3142] rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-[#082735] relative overflow-hidden">
         
         {/* Decorative Hardware Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
-            <span className="text-xs font-mono tracking-wider uppercase text-neutral-400">
-              Terminal: ZKTeco SpeedFace-V5L Cloud
+            <span className="w-2.5 h-2.5 rounded-full bg-[#138128] animate-pulse" />
+            <span className="text-xs font-mono tracking-wider uppercase text-neutral-300">
+              Terminal: Urcheck BioCloud Multi-Sensor V5
             </span>
           </div>
           <span className="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-800">
-            SENSOR READY
+            SENSOR ONLINE
           </span>
         </div>
 
@@ -229,7 +229,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           
           {/* Method: Facial Scan */}
           {selectedMethod === 'facial' && (
-            <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full border-4 border-dashed border-red-600/80 p-2 flex items-center justify-center bg-neutral-900/60 overflow-hidden shadow-inner">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full border-4 border-dashed border-[#0871A0] p-2 flex items-center justify-center bg-black/30 overflow-hidden shadow-inner">
               {cameraActive ? (
                 <video 
                   ref={videoRef} 
@@ -266,36 +266,36 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
               {/* Laser Scanning line animation */}
               {isScanning && (
-                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_15px_#dc2626] animate-bounce top-1/2" />
+                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#0871A0] to-transparent shadow-[0_0_15px_#0871A0] animate-bounce top-1/2" />
               )}
             </div>
           )}
 
           {/* Method: Fingerprint Scan */}
           {selectedMethod === 'fingerprint' && (
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-3xl border-2 border-neutral-700 bg-neutral-900 flex items-center justify-center shadow-inner overflow-hidden">
-              <Fingerprint className={`w-28 h-28 ${isScanning ? 'text-red-500 scale-105' : 'text-neutral-500'} transition-all duration-300`} />
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-3xl border-2 border-white/20 bg-black/40 flex items-center justify-center shadow-inner overflow-hidden">
+              <Fingerprint className={`w-28 h-28 ${isScanning ? 'text-emerald-400 scale-105' : 'text-neutral-400'} transition-all duration-300`} />
               {isScanning && (
-                <div className="absolute inset-x-0 h-1 bg-red-500 shadow-[0_0_15px_#dc2626] animate-bounce" />
+                <div className="absolute inset-x-0 h-1 bg-[#138128] shadow-[0_0_15px_#138128] animate-bounce" />
               )}
             </div>
           )}
 
           {/* Method: RFID Tap */}
           {selectedMethod === 'rfid' && (
-            <div className="relative w-56 h-36 rounded-2xl border-2 border-neutral-700 bg-gradient-to-tr from-neutral-900 to-neutral-800 flex flex-col items-center justify-center p-4 shadow-xl">
-              <CreditCard className={`w-14 h-14 ${isScanning ? 'text-red-500 animate-pulse' : 'text-neutral-400'}`} />
+            <div className="relative w-56 h-36 rounded-2xl border-2 border-white/20 bg-gradient-to-tr from-black/50 to-neutral-800/60 flex flex-col items-center justify-center p-4 shadow-xl">
+              <CreditCard className={`w-14 h-14 ${isScanning ? 'text-emerald-400 animate-pulse' : 'text-neutral-400'}`} />
               <span className="font-mono text-xs text-neutral-300 mt-2 font-bold tracking-widest">
-                TARJETA PROXIMIDAD
+                TARJETA PROXIMIDAD RFID
               </span>
-              <span className="text-[10px] text-neutral-500">ID: {currentUser.employeeId || 'EMP-7742'}</span>
+              <span className="text-[10px] text-neutral-400">ID: {currentUser.employeeId || 'EMP-7742'}</span>
             </div>
           )}
 
           {/* Status & Feedback */}
           <div className="mt-5 text-center">
             <span className="text-sm font-bold text-neutral-200 block">
-              {isScanning ? 'Verificando datos biométricos en la nube...' : `Colaborador: ${currentUser.name}`}
+              {isScanning ? 'Verificando datos biométricos en la nube Urcheck...' : `Colaborador: ${currentUser.name}`}
             </span>
             <span className="text-xs text-neutral-400">
               {selectedMethod === 'facial' && 'Mantén el rostro centrado en el marco óptico'}
@@ -308,7 +308,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           {isScanning && (
             <div className="w-64 bg-neutral-800 rounded-full h-2.5 mt-4 overflow-hidden">
               <div
-                className="bg-red-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-[#138128] h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${scanProgress}%` }}
               />
             </div>
@@ -316,14 +316,14 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-neutral-800">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-white/10">
           {selectedMethod === 'facial' && (
             <button
               onClick={() => setCameraActive(!cameraActive)}
               type="button"
-              className="px-4 py-2.5 rounded-xl border border-neutral-700 text-xs font-semibold text-neutral-300 hover:bg-neutral-800 transition cursor-pointer inline-flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-2"
             >
-              <Camera className="w-4 h-4 text-red-500" />
+              <Camera className="w-4 h-4 text-[#0871A0]" />
               <span>{cameraActive ? 'Desactivar Cámara' : 'Activar Cámara Web'}</span>
             </button>
           )}
@@ -333,7 +333,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             onClick={handleStartBiometricScan}
             disabled={isScanning}
             type="button"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-red-900/40 transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#138128] hover:bg-[#0e661f] active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-black/40 transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             <Zap className="w-5 h-5 fill-white" />
             <span>{isScanning ? 'ESCANEANDO BIOMETRÍA...' : 'CONFIRMAR MARCAJE DIGITAL'}</span>
@@ -343,23 +343,23 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
       {/* Digital Receipt / Comprobante Inmediato */}
       {recentVoucher && (
-        <div className="bg-white rounded-2xl border-2 border-emerald-500 p-6 shadow-md animate-in fade-in">
+        <div className="bg-white rounded-2xl border-2 border-[#138128] p-6 shadow-md animate-in fade-in">
           <div className="flex items-start justify-between pb-4 border-b border-neutral-200">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-[#138128]/10 text-[#138128] flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#138128]">
                   ¡Marcaje Registrado y Sincronizado Exitosamente!
                 </span>
-                <h3 className="text-lg font-bold text-neutral-900">
-                  Comprobante Laboral Digital
+                <h3 className="text-lg font-bold text-[#0A3142]">
+                  Comprobante Laboral Digital Urcheck
                 </h3>
               </div>
             </div>
 
-            <span className="px-3 py-1 rounded-full text-xs font-black bg-neutral-900 text-white font-mono">
+            <span className="px-3 py-1 rounded-full text-xs font-black bg-[#0A3142] text-white font-mono">
               FOLIO: {recentVoucher.hashAudit}
             </span>
           </div>
@@ -379,7 +379,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             </div>
             <div>
               <span className="text-neutral-500 block">Estatus de Puntualidad:</span>
-              <span className={`font-bold text-sm ${recentVoucher.status === 'on_time' ? 'text-emerald-600' : 'text-amber-600'}`}>
+              <span className={`font-bold text-sm ${recentVoucher.status === 'on_time' ? 'text-[#138128]' : 'text-amber-600'}`}>
                 {recentVoucher.status === 'on_time' ? 'A Tiempo' : 'Retardo Registrado'}
               </span>
             </div>
@@ -389,8 +389,8 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
       {/* My Today's Punches History */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs">
-        <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-red-600" />
+        <h3 className="text-sm font-bold text-[#0A3142] uppercase tracking-wider mb-3 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#0871A0]" />
           Mis Marcajes Registrados Hoy
         </h3>
 
@@ -405,7 +405,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                 <div className="flex items-center gap-3">
                   <span className="capitalize text-neutral-500 text-xs">{r.method}</span>
                   <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                    r.status === 'on_time' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    r.status === 'on_time' ? 'bg-[#138128]/10 text-[#138128]' : 'bg-amber-100 text-amber-800'
                   }`}>
                     {r.status === 'on_time' ? 'A Tiempo' : 'Retardo'}
                   </span>

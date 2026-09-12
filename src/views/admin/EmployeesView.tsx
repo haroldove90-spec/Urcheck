@@ -150,7 +150,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           id="btn-open-add-employee"
           onClick={() => setIsAddModalOpen(true)}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Alta de Colaborador</span>
@@ -166,7 +166,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
             placeholder="Buscar por nombre, código o área..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#0871A0] focus:border-[#0871A0]"
           />
         </div>
 
@@ -178,7 +178,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           <select
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
-            className="py-1.5 px-2.5 text-xs rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-neutral-800"
+            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#0871A0] text-neutral-800"
           >
             <option value="all">Todas las sedes</option>
             {branches.map(b => (
@@ -192,7 +192,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           <select
             value={selectedDocStatus}
             onChange={(e) => setSelectedDocStatus(e.target.value as 'all' | DocumentStatus)}
-            className="py-1.5 px-2.5 text-xs rounded-lg border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-neutral-800"
+            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#0871A0] text-neutral-800"
           >
             <option value="all">Todos los estatus</option>
             <option value="complete">🟢 Completos</option>
@@ -296,7 +296,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                         <button
                           onClick={() => setInspectingDossierEmp(emp)}
                           title="Ver Expediente"
-                          className="p-1.5 rounded-lg text-neutral-600 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#0871A0] hover:bg-[#0871A0]/10 transition-colors"
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -307,7 +307,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                             }
                           }}
                           title="Baja de Colaborador"
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -336,7 +336,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                 <img
                   src={inspectingDossierEmp.avatar}
                   alt={inspectingDossierEmp.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-red-600"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#0871A0]"
                 />
                 <div>
                   <h3 className="text-lg font-bold text-neutral-900">
@@ -546,7 +546,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700"
+                  className="px-4 py-2 rounded-xl bg-[#0A3142] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
                 >
                   Guardar y Registrar Biometría
                 </button>

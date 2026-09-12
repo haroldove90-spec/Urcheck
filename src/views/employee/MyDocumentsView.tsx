@@ -8,8 +8,8 @@ import {
   AlertCircle, 
   ShieldCheck, 
   Download, 
-  FileCheck2,
-  X
+  FileCheck2, 
+  X 
 } from 'lucide-react';
 
 interface MyDocumentsViewProps {
@@ -48,16 +48,21 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
     setTimeout(() => setFeedback(null), 3500);
   };
 
+  const handleDownloadCopy = (docName: string) => {
+    setFeedback(`Descargando copia digital certificada de: ${docName}`);
+    setTimeout(() => setFeedback(null), 3500);
+  };
+
   return (
     <div id="employee-my-documents-view" className="max-w-4xl mx-auto space-y-6">
       
       {/* Header Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0871A0]">
             Expediente Laboral Digital
           </span>
-          <h2 className="text-xl sm:text-2xl font-black text-neutral-900">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0A3142]">
             Mis Documentos y Contratos
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -66,24 +71,24 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
         </div>
 
         {/* Progress Circular/Badge */}
-        <div className="bg-neutral-900 text-white px-5 py-3 rounded-2xl border border-neutral-800 flex items-center gap-4">
+        <div className="bg-[#0A3142] text-white px-5 py-3 rounded-2xl border border-[#0A3142] flex items-center gap-4 shadow-sm">
           <div>
-            <span className="text-[10px] text-neutral-400 uppercase font-bold block">
+            <span className="text-[10px] text-neutral-300 uppercase font-bold block">
               Cumplimiento
             </span>
-            <span className="text-2xl font-black text-red-500">
+            <span className="text-2xl font-black text-emerald-400">
               {progressPercent}%
             </span>
           </div>
-          <div className="text-xs text-neutral-300 font-medium border-l border-neutral-700 pl-4">
+          <div className="text-xs text-neutral-200 font-medium border-l border-white/20 pl-4">
             {completedCount} de {documents.length} documentos<br />aprobados por RRHH
           </div>
         </div>
       </div>
 
       {feedback && (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-[#138128]/10 border border-[#138128]/30 text-[#138128] text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#138128]" />
           {feedback}
         </div>
       )}
@@ -91,8 +96,8 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
       {/* Document List */}
       <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
         <div className="p-5 border-b border-neutral-200">
-          <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-red-600" />
+          <h3 className="text-base font-bold text-[#0A3142] flex items-center gap-2">
+            <FileCheck2 className="w-5 h-5 text-[#0871A0]" />
             Checklist de Expediente Individual
           </h3>
         </div>
@@ -107,8 +112,8 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
               <div key={doc.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-neutral-50 transition">
                 <div className="flex items-start gap-3">
                   <div className={`p-2.5 rounded-xl shrink-0 ${
-                    isComplete ? 'bg-emerald-50 text-emerald-600' :
-                    isPending ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
+                    isComplete ? 'bg-[#138128]/10 text-[#138128]' :
+                    isPending ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
                   }`}>
                     {isComplete && <CheckCircle2 className="w-5 h-5" />}
                     {isPending && <Clock className="w-5 h-5" />}
@@ -117,12 +122,12 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
 
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-bold text-neutral-900 text-sm sm:text-base">
+                      <h4 className="font-bold text-[#0A3142] text-sm sm:text-base">
                         {doc.name}
                       </h4>
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        isComplete ? 'bg-emerald-100 text-emerald-800' :
-                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                        isComplete ? 'bg-[#138128]/10 text-[#138128]' :
+                        isPending ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
                       }`}>
                         {isComplete && '✓ Aprobado y Completo'}
                         {isPending && '⏳ En Revisión'}
@@ -132,7 +137,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
 
                     <p className="text-xs text-neutral-500 mt-1">
                       {doc.lastUpdated && <span>Última actualización: {doc.lastUpdated}</span>}
-                      {doc.notes && <span className="ml-2 text-red-600 font-semibold">• {doc.notes}</span>}
+                      {doc.notes && <span className="ml-2 text-rose-600 font-semibold">• {doc.notes}</span>}
                     </p>
                   </div>
                 </div>
@@ -140,9 +145,9 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
                 <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                   {isComplete ? (
                     <button
-                      onClick={() => alert(`Descargando copia digital certificada de: ${doc.name}`)}
+                      onClick={() => handleDownloadCopy(doc.name)}
                       type="button"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-300 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-neutral-300 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Descargar Copia</span>
@@ -151,7 +156,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
                     <button
                       onClick={() => setActiveUploadDocId(doc.id)}
                       type="button"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white text-xs font-bold shadow-xs transition cursor-pointer"
                     >
                       <UploadCloud className="w-4 h-4" />
                       <span>Subir Documento</span>
@@ -169,7 +174,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-neutral-200">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 mb-4">
-              <h3 className="text-base font-bold text-neutral-900">
+              <h3 className="text-base font-bold text-[#0A3142]">
                 Adjuntar Documento al Expediente
               </h3>
               <button
@@ -180,8 +185,8 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
               </button>
             </div>
 
-            <div className="border-2 border-dashed border-red-300 rounded-2xl p-6 text-center bg-red-50/40 space-y-3">
-              <UploadCloud className="w-10 h-10 text-red-600 mx-auto" />
+            <div className="border-2 border-dashed border-[#0871A0]/40 rounded-2xl p-6 text-center bg-blue-50/30 space-y-3">
+              <UploadCloud className="w-10 h-10 text-[#0871A0] mx-auto" />
               <div>
                 <p className="text-xs sm:text-sm font-bold text-neutral-800">
                   Arrastra tu archivo aquí o haz clic para explorar
@@ -194,7 +199,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
               <button
                 onClick={() => handleSimulatedUpload(activeUploadDocId)}
                 type="button"
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white font-bold text-xs shadow-xs cursor-pointer"
               >
                 Seleccionar y Subir Documento
               </button>
@@ -204,7 +209,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({ currentUser })
               <button
                 type="button"
                 onClick={() => setActiveUploadDocId(null)}
-                className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-100 rounded-lg"
+                className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-100 rounded-xl"
               >
                 Cancelar
               </button>
