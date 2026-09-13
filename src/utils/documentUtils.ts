@@ -13,7 +13,7 @@ export function generateSecurityHash(): string {
 export function createSampleSignatureSvg(name: string, roleTitle: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100">
     <path d="M 20 70 Q 50 15, 80 60 T 130 50 Q 160 20, 190 65 T 250 45" fill="none" stroke="#082735" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M 40 45 Q 90 85, 220 55" fill="none" stroke="#0871A0" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M 40 45 Q 90 85, 220 55" fill="none" stroke="#069AD8" stroke-width="1.8" stroke-linecap="round"/>
     <text x="30" y="88" font-family="sans-serif" font-size="10" fill="#64748b" font-style="italic">Firmado digitalmente: ${name}</text>
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -170,7 +170,7 @@ export const INITIAL_COMPANY_DOCUMENTS: CompanyDocument[] = [
 export function downloadCertifiedDocument(doc: CompanyDocument) {
   const adminSigBlock = doc.adminSignature ? `
     <div style="flex: 1; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; background: #f8fafc;">
-      <div style="font-size: 10px; font-weight: bold; color: #0871A0; text-transform: uppercase;">Firma por la Empresa (Patrón / RRHH)</div>
+      <div style="font-size: 10px; font-weight: bold; color: #069AD8; text-transform: uppercase;">Firma por la Empresa (Patrón / RRHH)</div>
       <div style="margin: 8px 0; height: 50px;">
         <img src="${doc.adminSignature.signatureImage}" alt="Firma Admin" style="max-height: 50px; max-width: 100%; object-fit: contain;" />
       </div>
@@ -187,7 +187,7 @@ export function downloadCertifiedDocument(doc: CompanyDocument) {
 
   const employeeSigBlock = doc.employeeSignature ? `
     <div style="flex: 1; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; background: #f8fafc;">
-      <div style="font-size: 10px; font-weight: bold; color: #138128; text-transform: uppercase;">Firma Digital del Colaborador (Empleado)</div>
+      <div style="font-size: 10px; font-weight: bold; color: #1F832D; text-transform: uppercase;">Firma Digital del Colaborador (Empleado)</div>
       <div style="margin: 8px 0; height: 50px;">
         <img src="${doc.employeeSignature.signatureImage}" alt="Firma Empleado" style="max-height: 50px; max-width: 100%; object-fit: contain;" />
       </div>
@@ -216,8 +216,8 @@ export function downloadCertifiedDocument(doc: CompanyDocument) {
       <title>${doc.title} - Copia Certificada Urcheck</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #1e293b; background: #fff; max-width: 800px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0A3142; padding-bottom: 20px; margin-bottom: 25px; }
-        .logo-title { font-size: 20px; font-weight: 900; color: #0A3142; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #093244; padding-bottom: 20px; margin-bottom: 25px; }
+        .logo-title { font-size: 20px; font-weight: 900; color: #093244; }
         .code { font-family: monospace; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; color: #475569; }
         .doc-title { font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 15px; }
         .badge { display: inline-block; padding: 3px 10px; background: #e0f2fe; color: #0369a1; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 20px; }
@@ -233,12 +233,12 @@ export function downloadCertifiedDocument(doc: CompanyDocument) {
     <body>
       <div class="no-print" style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-size: 12px; color: #065f46; font-weight: bold;">✓ Documento Certificado y Firmado Digitalmente en Urcheck Cloud</span>
-        <button onclick="window.print()" style="background: #0A3142; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Imprimir / Guardar en PDF</button>
+        <button onclick="window.print()" style="background: #093244; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">Imprimir / Guardar en PDF</button>
       </div>
 
       <div class="header">
         <div>
-          <div class="logo-title">URCHECK® ENTERPRISE</div>
+          <img src="https://ljymwaifrkaedgmpdpwv.supabase.co/storage/v1/object/public/logo/urchecklogo.png" style="height: 36px; width: auto; margin-bottom: 6px; display: block;" alt="Urcheck" />
           <div style="font-size: 11px; color: #64748b;">Sistema Institucional de Gestión y Control Laboral</div>
         </div>
         <div style="text-align: right;">
@@ -257,7 +257,7 @@ export function downloadCertifiedDocument(doc: CompanyDocument) {
         ${clausesHtml}
       </div>
 
-      <div style="font-size: 12px; font-weight: bold; color: #0A3142; margin-bottom: 10px;">
+      <div style="font-size: 12px; font-weight: bold; color: #093244; margin-bottom: 10px;">
         ESTAMPA DE FIRMAS Y VALIDEZ LEGAL DIGITAL
       </div>
 

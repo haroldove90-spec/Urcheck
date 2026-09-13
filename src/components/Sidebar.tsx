@@ -78,14 +78,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Collapse/Expand button */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
         {!isCollapsed && (
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#0A3142]/60">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#093244]/60">
             Módulos del Sistema
           </span>
         )}
         <button
           onClick={onToggleCollapse}
           type="button"
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-[#0A3142] hover:bg-neutral-100 transition-colors ml-auto cursor-pointer"
+          className="p-1.5 rounded-lg text-neutral-400 hover:text-[#093244] hover:bg-neutral-100 transition-colors ml-auto cursor-pointer"
           title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
         >
           {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -106,17 +106,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-[#0A3142] text-white font-semibold shadow-xs border-l-4 border-[#0871A0]'
-                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-[#0A3142]'
+                    ? 'bg-[#093244] text-white font-semibold shadow-xs border-l-4 border-[#069AD8]'
+                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-[#093244]'
                 } ${isCollapsed ? 'justify-center px-2' : ''}`}
                 title={item.label}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#0871A0]' : 'text-neutral-500'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#069AD8]' : 'text-neutral-500'}`} />
                 {!isCollapsed && (
                   <span className="truncate flex-1 text-left">{item.label}</span>
                 )}
                 {!isCollapsed && Boolean(item.badge && item.badge > 0) && (
-                  <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#0871A0] text-white">
+                  <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#069AD8] text-white">
                     {item.badge}
                   </span>
                 )}
@@ -135,12 +135,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? 'bg-[#0A3142] text-white font-semibold shadow-xs border-l-4 border-[#0871A0]'
-                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-[#0A3142]'
+                    ? 'bg-[#093244] text-white font-semibold shadow-xs border-l-4 border-[#069AD8]'
+                    : 'text-neutral-700 hover:bg-neutral-100 hover:text-[#093244]'
                 } ${isCollapsed ? 'justify-center px-2' : ''}`}
                 title={item.label}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#0871A0]' : 'text-neutral-500'}`} />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#069AD8]' : 'text-neutral-500'}`} />
                 {!isCollapsed && (
                   <span className="truncate flex-1 text-left">{item.label}</span>
                 )}
@@ -156,11 +156,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="p-2.5 rounded-xl bg-white border border-neutral-200 shadow-xs">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-[#138128]" />
+                <Activity className="w-3.5 h-3.5 text-[#1F832D]" />
                 Biométrico ZKTeco
               </span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#138128]/10 text-[#138128]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#138128] animate-pulse" />
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#1F832D]/10 text-[#1F832D]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1F832D] animate-pulse" />
                 ONLINE
               </span>
             </div>
@@ -170,19 +170,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <div className="flex justify-center" title="Hardware Biométrico en línea">
-            <span className="w-3 h-3 rounded-full bg-[#138128] ring-4 ring-[#138128]/20 animate-pulse" />
+            <span className="w-3 h-3 rounded-full bg-[#1F832D] ring-4 ring-[#1F832D]/20 animate-pulse" />
           </div>
         )}
 
         <button
           onClick={onLogout}
           type="button"
-          className={`mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:text-[#0A3142] hover:bg-[#0A3142]/5 transition-colors cursor-pointer ${
+          className={`mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:text-[#093244] hover:bg-[#093244]/5 transition-colors cursor-pointer ${
             isCollapsed ? 'justify-center' : ''
           }`}
           title="Cerrar sesión"
         >
-          <LogOut className="w-4 h-4 text-[#0871A0] shrink-0" />
+          <LogOut className="w-4 h-4 text-[#069AD8] shrink-0" />
           {!isCollapsed && <span>Cerrar sesión</span>}
         </button>
       </div>

@@ -162,7 +162,7 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
       // Generate styled typed signature SVG
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100">
         <text x="30" y="55" font-family="'Brush Script MT', cursive, sans-serif" font-size="28" fill="#082735">${typedName}</text>
-        <path d="M 25 65 Q 120 75, 270 60" fill="none" stroke="#0871A0" stroke-width="2"/>
+        <path d="M 25 65 Q 120 75, 270 60" fill="none" stroke="#069AD8" stroke-width="2"/>
         <text x="30" y="85" font-family="sans-serif" font-size="9" fill="#94a3b8">Firma Digital Certificada Urcheck</text>
       </svg>`;
       signatureImage = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -197,11 +197,11 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
         {/* Header */}
         <div className="flex items-start justify-between pb-3 border-b border-neutral-200">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#0871A0] flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#0871A0]" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#069AD8] flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#069AD8]" />
               Firma Electrónica Avanzada
             </span>
-            <h3 className="text-lg font-bold text-[#0A3142]">
+            <h3 className="text-lg font-bold text-[#093244]">
               Estampar Firma Digital
             </h3>
           </div>
@@ -215,11 +215,11 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
 
         {/* Document details box */}
         <div className="my-3 p-3 rounded-2xl bg-neutral-50 border border-neutral-200 flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-[#0871A0]/10 text-[#0871A0] shrink-0">
+          <div className="p-2 rounded-xl bg-[#069AD8]/10 text-[#069AD8] shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1 text-xs">
-            <span className="font-bold text-[#0A3142] block truncate">
+            <span className="font-bold text-[#093244] block truncate">
               {documentTitle}
             </span>
             <div className="text-neutral-500 flex items-center gap-2 mt-0.5 font-mono text-[11px]">
@@ -242,11 +242,11 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
             onClick={() => setSignatureMode('draw')}
             className={`flex-1 py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
               signatureMode === 'draw' 
-                ? 'bg-white text-[#0A3142] shadow-xs' 
+                ? 'bg-white text-[#093244] shadow-xs' 
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            <PenTool className="w-3.5 h-3.5 text-[#0871A0]" />
+            <PenTool className="w-3.5 h-3.5 text-[#069AD8]" />
             <span>Dibujar con Dedo / Trazo</span>
           </button>
           <button
@@ -254,7 +254,7 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
             onClick={() => setSignatureMode('type')}
             className={`flex-1 py-1.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5 ${
               signatureMode === 'type' 
-                ? 'bg-white text-[#0A3142] shadow-xs' 
+                ? 'bg-white text-[#093244] shadow-xs' 
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
@@ -306,12 +306,12 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
               <span className="flex items-center gap-1">
                 {isMobileDevice ? (
                   <>
-                    <Smartphone className="w-3 h-3 text-[#0871A0]" />
+                    <Smartphone className="w-3 h-3 text-[#069AD8]" />
                     Sensor táctil móvil activo
                   </>
                 ) : (
                   <>
-                    <Laptop className="w-3 h-3 text-[#0871A0]" />
+                    <Laptop className="w-3 h-3 text-[#069AD8]" />
                     Puntero de precisión activo
                   </>
                 )}
@@ -330,7 +330,7 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
                 value={typedName}
                 onChange={(e) => setTypedName(e.target.value)}
                 placeholder="Nombre y Apellidos del Firmante"
-                className="w-full p-2.5 rounded-xl border border-neutral-300 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                className="w-full p-2.5 rounded-xl border border-neutral-300 text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
               />
             </div>
 
@@ -351,7 +351,7 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
         {/* Legal Consent Disclaimer */}
         <div className="mt-3.5 p-3 rounded-xl bg-blue-50/50 border border-blue-100 text-[11px] text-neutral-600 space-y-1">
           <p className="font-medium">
-            <strong className="text-[#0A3142]">Declaración de Consentimiento:</strong> Al presionar &ldquo;Estampar Firma Digital&rdquo;, certifico que he leído el contenido de este documento, conviniendo en otorgar pleno valor legal a la firma electrónica conforme al marco legal laboral y mercantil.
+            <strong className="text-[#093244]">Declaración de Consentimiento:</strong> Al presionar &ldquo;Estampar Firma Digital&rdquo;, certifico que he leído el contenido de este documento, conviniendo en otorgar pleno valor legal a la firma electrónica conforme al marco legal laboral y mercantil.
           </p>
         </div>
 
@@ -370,7 +370,7 @@ export const DigitalSignatureModal: React.FC<DigitalSignatureModalProps> = ({
             onClick={handleSaveSignature}
             className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-2 ${
               canSubmit
-                ? 'bg-[#0A3142] hover:bg-[#082735] text-white cursor-pointer'
+                ? 'bg-[#093244] hover:bg-[#082735] text-white cursor-pointer'
                 : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
             }`}
           >

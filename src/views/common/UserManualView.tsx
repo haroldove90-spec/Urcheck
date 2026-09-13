@@ -20,7 +20,8 @@ import {
   Lock,
   Camera,
   Activity,
-  Award
+  Award,
+  Database
 } from 'lucide-react';
 import { UserRole } from '../../types';
 
@@ -236,6 +237,32 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
         ],
       },
     },
+    {
+      id: 'supabase-cloud',
+      title: '9. Base de Datos Cloud Supabase y Sincronización',
+      subtitle: 'Configuración del proyecto, ejecución del script SQL y replicación en tiempo real.',
+      icon: Database,
+      roleAudience: 'admin',
+      content: {
+        summary: 'Urcheck BioCloud Enterprise se conecta de forma nativa a la instancia Supabase del usuario para almacenar empleados, checadas con selfie, permisos, contratos y configuración del sistema.',
+        steps: [
+          'Paso 1: Ingrese al módulo "Configuración" desde el menú lateral del Administrador.',
+          'Paso 2: Desplácese a la sección "Base de Datos Cloud Supabase".',
+          'Paso 3: Verifique el estado de conexión con el botón "Probar Conexión Supabase".',
+          'Paso 4: Presione "Copiar Script SQL" o "Descargar .sql" para obtener el esquema de base de datos.',
+          'Paso 5: En su panel de control Supabase, vaya a SQL Editor > New Query, pegue el código y presione "Run".',
+        ],
+        tips: [
+          'El script SQL incluye políticas de seguridad Row Level Security (RLS) y publicación en tiempo real (Supabase Realtime) para que los marcajes se reflejen instantáneamente.',
+        ],
+        faq: [
+          {
+            q: '¿Qué pasa si no ejecuto el script SQL de inmediato?',
+            a: 'La aplicación continuará funcionando en modo híbrido con persistencia local en memoria y navegador, y comenzará a sincronizar automáticamente con Supabase en cuanto las tablas sean creadas en su proyecto.',
+          },
+        ],
+      },
+    },
   ];
 
   // Filter sections by search and audience
@@ -307,15 +334,15 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0A3142] text-white flex items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5 text-[#0871A0]" />
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#093244] text-white flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5 text-[#069AD8]" />
               Centro de Ayuda y Documentación
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#138128]/10 text-[#138128]">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1F832D]/10 text-[#1F832D]">
               Versión Oficial v5.2
             </span>
           </div>
-          <h1 className="text-2xl font-black text-[#0A3142]">
+          <h1 className="text-2xl font-black text-[#093244]">
             Manual de Operación de Urcheck BioCloud
           </h1>
           <p className="text-neutral-500 text-xs sm:text-sm mt-0.5">
@@ -329,7 +356,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             id="btn-download-manual-pdf"
             type="button"
             onClick={handlePrintPDF}
-            className="px-4 py-2.5 rounded-xl bg-[#0871A0] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm"
+            className="px-4 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm"
             title="Generar y descargar archivo PDF del manual completo"
           >
             <Download className="w-4 h-4" />
@@ -342,7 +369,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             className="px-3.5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
             title="Descargar versión en texto / markdown"
           >
-            <FileText className="w-4 h-4 text-[#0871A0]" />
+            <FileText className="w-4 h-4 text-[#069AD8]" />
             <span>Descargar .DOC / .MD</span>
           </button>
         </div>
@@ -357,7 +384,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             placeholder="Buscar por tema (ej. selfie, firma, corroborar, permisos)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#0871A0] focus:bg-white transition"
+            className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#069AD8] focus:bg-white transition"
           />
         </div>
 
@@ -367,7 +394,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             onClick={() => setActiveAudienceFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeAudienceFilter === 'all'
-                ? 'bg-white text-[#0A3142] shadow-xs'
+                ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
@@ -378,7 +405,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             onClick={() => setActiveAudienceFilter('admin')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeAudienceFilter === 'admin'
-                ? 'bg-white text-[#0A3142] shadow-xs'
+                ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
@@ -389,7 +416,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             onClick={() => setActiveAudienceFilter('employee')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
               activeAudienceFilter === 'employee'
-                ? 'bg-white text-[#0A3142] shadow-xs'
+                ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
@@ -418,11 +445,11 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
                   onClick={() => setActiveSectionId(section.id)}
                   className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer flex items-start gap-3 ${
                     isSelected
-                      ? 'bg-[#0A3142] text-white shadow-sm border-l-4 border-[#0871A0]'
+                      ? 'bg-[#093244] text-white shadow-sm border-l-4 border-[#069AD8]'
                       : 'text-neutral-700 hover:bg-neutral-100'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${isSelected ? 'text-[#0871A0]' : 'text-neutral-500'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${isSelected ? 'text-[#069AD8]' : 'text-neutral-500'}`} />
                   <div className="flex-1 min-w-0">
                     <span className={`block text-xs font-bold leading-snug ${isSelected ? 'text-white' : 'text-neutral-900'}`}>
                       {section.title}
@@ -431,7 +458,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
                       {section.subtitle}
                     </span>
                   </div>
-                  <ChevronRight className={`w-4 h-4 shrink-0 mt-1 ${isSelected ? 'text-[#0871A0]' : 'text-neutral-400'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 mt-1 ${isSelected ? 'text-[#069AD8]' : 'text-neutral-400'}`} />
                 </button>
               );
             })}
@@ -444,12 +471,12 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
           {/* Chapter Header */}
           <div className="border-b border-neutral-200 pb-5">
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-[#0871A0]/10 text-[#0871A0]">
+              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-[#069AD8]/10 text-[#069AD8]">
                 {activeSection.roleAudience === 'both' ? 'Para Todos los Usuarios' : activeSection.roleAudience === 'admin' ? 'Módulo de Administrador' : 'Módulo de Empleado'}
               </span>
               <span className="text-xs text-neutral-400">• Procedimiento Oficial</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#0A3142]">
+            <h2 className="text-xl sm:text-2xl font-black text-[#093244]">
               {activeSection.title}
             </h2>
             <p className="text-neutral-600 text-xs sm:text-sm mt-1">
@@ -460,7 +487,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
           {/* Section Summary */}
           <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200">
             <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-1.5 flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5 text-[#0871A0]" /> Resumen Ejecutivo
+              <BookOpen className="w-3.5 h-3.5 text-[#069AD8]" /> Resumen Ejecutivo
             </h3>
             <p className="text-neutral-800 text-xs sm:text-sm leading-relaxed">
               {activeSection.content.summary}
@@ -469,14 +496,14 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
 
           {/* Step-by-Step Instructions */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0A3142] flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#138128]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#093244] flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#1F832D]" />
               Guía de Ejecución Paso a Paso
             </h3>
             <div className="space-y-2.5">
               {activeSection.content.steps.map((step, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-neutral-50/70 border border-neutral-100 hover:border-neutral-200 transition">
-                  <span className="w-6 h-6 rounded-full bg-[#0871A0] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
+                  <span className="w-6 h-6 rounded-full bg-[#069AD8] text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 shadow-xs">
                     {idx + 1}
                   </span>
                   <p className="text-xs sm:text-sm text-neutral-800 leading-relaxed pt-0.5">
@@ -507,8 +534,8 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
           {/* Frequently Asked Questions */}
           {activeSection.content.faq && activeSection.content.faq.length > 0 && (
             <div className="pt-4 border-t border-neutral-200 space-y-3">
-              <h4 className="text-xs font-bold text-[#0A3142] uppercase tracking-wider flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-[#0871A0]" />
+              <h4 className="text-xs font-bold text-[#093244] uppercase tracking-wider flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4 text-[#069AD8]" />
                 Preguntas Frecuentes
               </h4>
               <div className="space-y-2.5">
@@ -532,7 +559,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             <button
               type="button"
               onClick={handlePrintPDF}
-              className="text-[#0871A0] hover:underline font-bold flex items-center gap-1 cursor-pointer"
+              className="text-[#069AD8] hover:underline font-bold flex items-center gap-1 cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               Imprimir este capítulo
@@ -544,10 +571,16 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
 
       {/* Printable Section for Window Print / PDF Export */}
       <div className="hidden print:block print:p-8 bg-white text-black space-y-6">
-        <div className="border-b-2 border-black pb-4 text-center">
-          <h1 className="text-2xl font-black uppercase">URCHECK BIOCLOUD ENTERPRISE</h1>
-          <p className="text-sm font-bold">MANUAL OFICIAL DE OPERACIÓN Y PROCEDIMIENTOS</p>
-          <p className="text-xs text-neutral-600">Fecha de emisión: {new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}</p>
+        <div className="border-b-2 border-[#093244] pb-4 flex items-center justify-between">
+          <img 
+            src="https://ljymwaifrkaedgmpdpwv.supabase.co/storage/v1/object/public/logo/urchecklogo.png" 
+            alt="Urcheck Logo" 
+            className="h-12 w-auto object-contain"
+          />
+          <div className="text-right">
+            <h1 className="text-lg font-black uppercase text-[#093244]">MANUAL OFICIAL DE OPERACIÓN</h1>
+            <p className="text-xs text-neutral-600">Fecha de emisión: {new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}</p>
+          </div>
         </div>
 
         {manualSections.map((sec, idx) => (

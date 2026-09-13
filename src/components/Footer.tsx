@@ -9,8 +9,8 @@ export const Footer: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#138128] animate-pulse" />
-          <span className="font-bold text-[#0A3142]">Urcheck</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#1F832D] animate-pulse" />
+          <span className="font-bold text-[#093244]">Urcheck</span>
           <span className="text-neutral-400">|</span>
           <span className="text-neutral-500 hidden sm:inline">Servidor Biométrico Cloud Activo (4 terminales ZKTeco)</span>
         </div>
@@ -22,9 +22,9 @@ export const Footer: React.FC = () => {
             href="https://wa.me/525624222449"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-bold text-[#138128] hover:text-[#0e631f] hover:underline transition-colors"
+            className="inline-flex items-center gap-1.5 font-bold text-[#1F832D] hover:text-[#186a24] hover:underline transition-colors"
           >
-            <MessageSquare className="w-4 h-4 inline text-[#138128]" />
+            <MessageSquare className="w-4 h-4 inline text-[#1F832D]" />
             5624222449
           </a>
         </p>

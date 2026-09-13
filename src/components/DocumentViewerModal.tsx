@@ -48,7 +48,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
         <div className="flex items-start justify-between pb-4 border-b border-neutral-200 shrink-0">
           <div className="pr-4">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#0871A0]/10 text-[#0871A0]">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#069AD8]/10 text-[#069AD8]">
                 {doc.categoryLabel}
               </span>
               <span className="font-mono text-xs text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-md">
@@ -65,7 +65,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               )}
             </div>
 
-            <h3 className="text-lg sm:text-xl font-black text-[#0A3142] leading-snug">
+            <h3 className="text-lg sm:text-xl font-black text-[#093244] leading-snug">
               {doc.title}
             </h3>
             <p className="text-xs text-neutral-500 mt-1">
@@ -89,7 +89,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
             <div>
               <span className="text-neutral-400 block font-medium">Asignado a:</span>
               <strong className="text-neutral-800 flex items-center gap-1 mt-0.5">
-                <User className="w-3.5 h-3.5 text-[#0871A0]" />
+                <User className="w-3.5 h-3.5 text-[#069AD8]" />
                 {doc.targetEmployeeName || 'Todos los colaboradores'}
               </strong>
             </div>
@@ -129,8 +129,8 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
           {/* Contract Content / Clauses */}
           <div className="border border-neutral-200 rounded-2xl p-4 sm:p-5 bg-white space-y-3 shadow-2xs">
             <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-              <span className="text-xs font-bold text-[#0A3142] uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-[#0871A0]" />
+              <span className="text-xs font-bold text-[#093244] uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-[#069AD8]" />
                 Cláusulas y Términos Legales
               </span>
               <span className="text-[11px] text-neutral-400 font-mono">
@@ -145,7 +145,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                 const rest = parts.slice(1).join(':');
                 return (
                   <div key={idx} className="p-3 rounded-xl bg-neutral-50/70 border border-neutral-100">
-                    <strong className="text-[#0A3142] block mb-0.5">{title}:</strong>
+                    <strong className="text-[#093244] block mb-0.5">{title}:</strong>
                     <span>{rest}</span>
                   </div>
                 );
@@ -156,7 +156,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
           {/* Signatures Stamping Grid */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#0A3142] flex items-center gap-1.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#093244] flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 Firmas Digitales Institucionales
               </span>
@@ -171,7 +171,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/60 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-[#0871A0] uppercase">
+                    <span className="text-[11px] font-bold text-[#069AD8] uppercase">
                       1. Firma Patronal (RRHH)
                     </span>
                     {doc.isAdminSigned ? (
@@ -212,7 +212,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenSignatureModal(doc)}
-                          className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0A3142] text-white text-xs font-bold hover:bg-[#082735] transition cursor-pointer"
+                          className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#093244] text-white text-xs font-bold hover:bg-[#082735] transition cursor-pointer"
                         >
                           <PenTool className="w-3.5 h-3.5" />
                           <span>Firmar como Administrador</span>
@@ -227,7 +227,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/60 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-[#138128] uppercase">
+                    <span className="text-[11px] font-bold text-[#1F832D] uppercase">
                       2. Firma del Colaborador
                     </span>
                     {doc.isEmployeeSigned ? (
@@ -268,7 +268,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenSignatureModal(doc)}
-                          className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0871A0] text-white text-xs font-bold hover:bg-[#065b82] transition shadow-xs cursor-pointer animate-pulse"
+                          className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#069AD8] text-white text-xs font-bold hover:bg-[#065b82] transition shadow-xs cursor-pointer animate-pulse"
                         >
                           <PenTool className="w-3.5 h-3.5" />
                           <span>Firmar desde este Dispositivo</span>
@@ -305,7 +305,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenSignatureModal(doc)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#093244] hover:bg-[#082735] text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer"
               >
                 <PenTool className="w-4 h-4 text-emerald-400" />
                 <span>Firmar Digitalmente Ahora</span>
@@ -317,7 +317,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenSignatureModal(doc)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#093244] hover:bg-[#082735] text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer"
               >
                 <PenTool className="w-4 h-4 text-emerald-400" />
                 <span>Firmar como Administrador</span>

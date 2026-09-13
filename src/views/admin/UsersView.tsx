@@ -57,7 +57,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
     if (!name.trim() || !email.trim()) return;
 
     const roleNameMap: Record<UserRole, string> = {
-      admin: 'Administrador / Recursos Humanos',
+      admin: 'Administrador',
       employee: 'Empleado',
     };
 
@@ -108,7 +108,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
       name: userName,
       username: generateUsername(userName),
       password: tempPassword,
-      roleName: userRole === 'admin' ? 'Administrador / Recursos Humanos' : 'Empleado',
+      roleName: userRole === 'admin' ? 'Administrador' : 'Empleado',
       branchName: userBranch,
       portalUrl: ACCESS_PORTAL_URL,
     });
@@ -130,8 +130,8 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-xs">
         <div>
-          <h2 className="text-xl font-bold text-[#0A3142] flex items-center gap-2">
-            <UserCog className="w-6 h-6 text-[#0871A0]" />
+          <h2 className="text-xl font-bold text-[#093244] flex items-center gap-2">
+            <UserCog className="w-6 h-6 text-[#069AD8]" />
             Administración de Usuarios y Credenciales
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
@@ -145,7 +145,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
             setIsAddUserOpen(true);
           }}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#093244] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Nuevo Usuario</span>
@@ -197,8 +197,8 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                   <td className="py-3.5 px-4">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
                       user.role === 'admin'
-                        ? 'bg-[#0A3142]/10 text-[#0A3142] border border-[#0A3142]/20'
-                        : 'bg-[#0871A0]/10 text-[#0871A0] border border-[#0871A0]/20'
+                        ? 'bg-[#093244]/10 text-[#093244] border border-[#093244]/20'
+                        : 'bg-[#069AD8]/10 text-[#069AD8] border border-[#069AD8]/20'
                     }`}>
                       <ShieldCheck className="w-3 h-3" />
                       {user.roleName}
@@ -263,7 +263,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 mb-4">
-              <h3 className="text-lg font-bold text-[#0A3142]">
+              <h3 className="text-lg font-bold text-[#093244]">
                 Registrar Acceso de Usuario
               </h3>
               <button
@@ -283,15 +283,15 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                   placeholder="Ej. Roberto Flores Gómez"
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                  className="w-full p-2.5 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                 />
               </div>
 
               {/* Credenciales de Acceso */}
               <div className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#0A3142] flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-[#0871A0]" />
+                  <span className="text-xs font-bold text-[#093244] flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-[#069AD8]" />
                     Credenciales Generadas para el Usuario
                   </span>
                 </div>
@@ -307,13 +307,13 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                       placeholder="usuario.login"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full p-2.5 pr-8 rounded-xl border border-neutral-300 bg-white font-mono text-xs focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                      className="w-full p-2.5 pr-8 rounded-xl border border-neutral-300 bg-white font-mono text-xs focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={() => setUsername(generateUsername(name))}
                       title="Regenerar usuario sugerido"
-                      className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-[#0871A0]"
+                      className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-[#069AD8]"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
@@ -341,7 +341,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                     placeholder="usuario@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                    className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -351,7 +351,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                     placeholder="55 1234 5678"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                    className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                   />
                 </div>
               </div>
@@ -362,7 +362,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full p-2 rounded-xl border border-neutral-300 bg-white focus:ring-2 focus:ring-[#0871A0]"
+                    className="w-full p-2 rounded-xl border border-neutral-300 bg-white focus:ring-2 focus:ring-[#069AD8]"
                   >
                     <option value="admin">Administrador / RRHH</option>
                     <option value="employee">Empleado</option>
@@ -373,7 +373,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                   <select
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-neutral-300 bg-white focus:ring-2 focus:ring-[#0871A0]"
+                    className="w-full p-2 rounded-xl border border-neutral-300 bg-white focus:ring-2 focus:ring-[#069AD8]"
                   >
                     <option value="Corporativo Reforma">Corporativo Reforma</option>
                     <option value="Planta Industrial Norte">Planta Industrial Norte</option>
@@ -390,7 +390,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                   placeholder="Ej. Supervisor de Operaciones"
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#0871A0]"
+                  className="w-full p-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-[#069AD8]"
                 />
               </div>
 
@@ -404,7 +404,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#0A3142] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#093244] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
                 >
                   Crear y Compartir Credenciales
                 </button>

@@ -45,10 +45,10 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
           <button
             type="button"
             onClick={handleGenerate}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0871A0] hover:text-[#0A3142] transition cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#069AD8] hover:text-[#093244] transition cursor-pointer"
             title="Generar una contraseña de alta seguridad aleatoria"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#138128]" />
+            <Sparkles className="w-3.5 h-3.5 text-[#1F832D]" />
             <span>Generar Contraseña Segura</span>
           </button>
         )}
@@ -62,7 +62,7 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           required={required}
-          className="w-full pr-10 pl-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#0871A0] focus:border-[#0871A0] font-mono transition-all bg-white"
+          className="w-full pr-10 pl-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#069AD8] focus:border-[#069AD8] font-mono transition-all bg-white"
         />
 
         <button
@@ -70,7 +70,7 @@ export const PasswordField: React.FC<PasswordFieldProps> = ({
           onClick={() => setShowPassword(!showPassword)}
           aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
           title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-[#0871A0] transition cursor-pointer rounded-lg hover:bg-neutral-100"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-[#069AD8] transition cursor-pointer rounded-lg hover:bg-neutral-100"
         >
           {showPassword ? (
             <EyeOff className="w-4 h-4" />

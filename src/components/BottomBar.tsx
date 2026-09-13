@@ -73,7 +73,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
           onClick={() => setShowMoreMenu(false)}
         >
           <div 
-            className="bg-[#0A3142] text-white rounded-t-3xl p-5 border-t border-[#0871A0]/40 shadow-2xl animate-in slide-in-from-bottom"
+            className="bg-[#093244] text-white rounded-t-3xl p-5 border-t border-[#069AD8]/40 shadow-2xl animate-in slide-in-from-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-white/15 mb-4">
@@ -100,7 +100,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     type="button"
                     className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
                       isActive 
-                        ? 'bg-[#0871A0] text-white border-white/30 font-bold shadow-sm' 
+                        ? 'bg-[#069AD8] text-white border-white/30 font-bold shadow-sm' 
                         : 'bg-white/10 text-white/90 border-white/15 hover:bg-white/15'
                     }`}
                   >
@@ -117,7 +117,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
       {/* Main Fixed Bottom Bar with Institutional Background and White Icons */}
       <nav 
         id="mobile-bottom-bar"
-        className="fixed bottom-0 inset-x-0 bg-[#0A3142] border-t border-[#0871A0]/30 z-40 md:hidden shadow-2xl safe-area-pb"
+        className="fixed bottom-0 inset-x-0 bg-[#093244] border-t border-[#069AD8]/30 z-40 md:hidden shadow-2xl safe-area-pb"
       >
         <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
           {isAdmin ? (
@@ -134,11 +134,11 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
                   >
                     <div className="relative">
-                      <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#0871A0] shadow-xs' : 'group-hover:bg-white/10'}`}>
+                      <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
                         <Icon className="w-5 h-5 text-white" />
                       </div>
                       {Boolean(item.badge && item.badge > 0) && (
-                        <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#138128] text-white text-[9px] font-black flex items-center justify-center border border-[#0A3142]">
+                        <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#1F832D] text-white text-[9px] font-black flex items-center justify-center border border-[#093244]">
                           {item.badge}
                         </span>
                       )}
@@ -164,7 +164,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
               >
                 <div className={`p-1 rounded-xl transition-all ${
                   adminSecondaryItems.some(item => item.id === currentAdminModule)
-                    ? 'bg-[#0871A0] shadow-xs'
+                    ? 'bg-[#069AD8] shadow-xs'
                     : 'group-hover:bg-white/10'
                 }`}>
                   <MoreHorizontal className="w-5 h-5 text-white" />
@@ -195,7 +195,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     type="button"
                     className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
                   >
-                    <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#0871A0] shadow-xs' : 'group-hover:bg-white/10'}`}>
+                    <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
                     <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[68px] ${

@@ -30,6 +30,7 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { BottomBar } from './components/BottomBar';
 import { Footer } from './components/Footer';
+import { SplashScreen } from './components/SplashScreen';
 
 // Admin Views
 import { DashboardView } from './views/admin/DashboardView';
@@ -45,6 +46,17 @@ import { SettingsView } from './views/admin/SettingsView';
 
 // Common / Universal Views
 import { UserManualView } from './views/common/UserManualView';
+
+// Supabase Sync Services
+import { 
+  syncAttendanceToSupabase, 
+  syncBatchAttendanceCorroboration, 
+  syncEmployeeToSupabase, 
+  syncBranchToSupabase, 
+  syncLeaveRequestToSupabase, 
+  syncOvertimeToSupabase, 
+  syncDocumentToSupabase 
+} from './services/dbSync';
 
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
@@ -70,6 +82,7 @@ export default function App() {
   const [overtimeRecords, setOvertimeRecords] = useState<OvertimeRecord[]>(INITIAL_OVERTIME_RECORDS);
   const [settings, setSettings] = useState<SystemSettings>(INITIAL_SETTINGS);
   const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(INITIAL_COMPANY_DOCUMENTS);
+  const [showSplash, setShowSplash] = useState(true);
 
   // Role Switch Handler
   const handleSelectRole = (role: UserRole) => {
@@ -116,20 +129,24 @@ export default function App() {
     };
 
     setAttendanceRecords(prev => [newRecord, ...prev]);
+    syncAttendanceToSupabase(newRecord);
   };
 
   // Record a punch from employee terminal
   const handleRecordPunch = (newRecord: AttendanceRecord) => {
     setAttendanceRecords(prev => [newRecord, ...prev]);
+    syncAttendanceToSupabase(newRecord);
   };
 
   // Employees Handlers
   const handleAddEmployee = (newEmp: Employee) => {
     setEmployees(prev => [newEmp, ...prev]);
+    syncEmployeeToSupabase(newEmp);
   };
 
   const handleUpdateEmployee = (updatedEmp: Employee) => {
     setEmployees(prev => prev.map(e => e.id === updatedEmp.id ? updatedEmp : e));
+    syncEmployeeToSupabase(updatedEmp);
   };
 
   const handleDeleteEmployee = (empId: string) => {
@@ -139,10 +156,12 @@ export default function App() {
   // Branches Handlers
   const handleAddBranch = (newBranch: Branch) => {
     setBranches(prev => [...prev, newBranch]);
+    syncBranchToSupabase(newBranch);
   };
 
   const handleUpdateBranch = (updatedBranch: Branch) => {
     setBranches(prev => prev.map(b => b.id === updatedBranch.id ? updatedBranch : b));
+    syncBranchToSupabase(updatedBranch);
   };
 
   const handleDeleteBranch = (branchId: string) => {
@@ -169,12 +188,14 @@ export default function App() {
   const handleApproveLeave = (leaveId: string) => {
     setLeaveRequests(prev => prev.map(req => {
       if (req.id === leaveId) {
-        return {
+        const updated = {
           ...req,
-          status: 'approved',
+          status: 'approved' as const,
           reviewedBy: currentUser.name,
           reviewedDate: new Date().toISOString().split('T')[0],
         };
+        syncLeaveRequestToSupabase(updated);
+        return updated;
       }
       return req;
     }));
@@ -183,13 +204,15 @@ export default function App() {
   const handleRejectLeave = (leaveId: string, reason: string) => {
     setLeaveRequests(prev => prev.map(req => {
       if (req.id === leaveId) {
-        return {
+        const updated = {
           ...req,
-          status: 'rejected',
+          status: 'rejected' as const,
           rejectionReason: reason,
           reviewedBy: currentUser.name,
           reviewedDate: new Date().toISOString().split('T')[0],
         };
+        syncLeaveRequestToSupabase(updated);
+        return updated;
       }
       return req;
     }));
@@ -197,18 +220,21 @@ export default function App() {
 
   const handleSubmitLeaveRequest = (newReq: LeaveRequest) => {
     setLeaveRequests(prev => [newReq, ...prev]);
+    syncLeaveRequestToSupabase(newReq);
   };
 
   // Overtime Handlers
   const handleApproveOvertime = (recordId: string) => {
     setOvertimeRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
-        return {
+        const updated = {
           ...rec,
-          status: 'approved',
+          status: 'approved' as const,
           approvedBy: currentUser.name,
           approvedDate: new Date().toISOString().split('T')[0],
         };
+        syncOvertimeToSupabase(updated);
+        return updated;
       }
       return rec;
     }));
@@ -217,12 +243,14 @@ export default function App() {
   const handleRejectOvertime = (recordId: string) => {
     setOvertimeRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
-        return {
+        const updated = {
           ...rec,
-          status: 'rejected',
+          status: 'rejected' as const,
           approvedBy: currentUser.name,
           approvedDate: new Date().toISOString().split('T')[0],
         };
+        syncOvertimeToSupabase(updated);
+        return updated;
       }
       return rec;
     }));
@@ -230,6 +258,7 @@ export default function App() {
 
   const handleSubmitOvertime = (newRec: OvertimeRecord) => {
     setOvertimeRecords(prev => [newRec, ...prev]);
+    syncOvertimeToSupabase(newRec);
   };
 
   // Settings
@@ -240,10 +269,12 @@ export default function App() {
   // Company Documents Handlers (Synchronized between Admin and Employee)
   const handleAddDocument = (newDoc: CompanyDocument) => {
     setCompanyDocuments(prev => [newDoc, ...prev]);
+    syncDocumentToSupabase(newDoc);
   };
 
   const handleUpdateDocument = (updatedDoc: CompanyDocument) => {
     setCompanyDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+    syncDocumentToSupabase(updatedDoc);
   };
 
   const handleDeleteDocument = (docId: string) => {
@@ -253,12 +284,14 @@ export default function App() {
   const handleSignDocumentByEmployee = (docId: string, signature: DigitalSignature) => {
     setCompanyDocuments(prev => prev.map(doc => {
       if (doc.id === docId) {
-        return {
+        const updated = {
           ...doc,
           isEmployeeSigned: true,
           employeeSignature: signature,
-          status: doc.isAdminSigned ? 'signed_both' : 'pending_admin',
+          status: (doc.isAdminSigned ? 'signed_both' : 'pending_admin') as any,
         };
+        syncDocumentToSupabase(updated);
+        return updated;
       }
       return doc;
     }));
@@ -267,10 +300,12 @@ export default function App() {
   // Attendance Corroboration Handlers
   const handleUpdateAttendanceRecord = (updatedRecord: AttendanceRecord) => {
     setAttendanceRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+    syncAttendanceToSupabase(updatedRecord);
   };
 
   const handleBatchCorroborateAttendance = (recordIds: string[], reviewerName: string) => {
     const nowStr = new Date().toLocaleString('es-MX');
+    const notes = 'Corroboración masiva aprobada por Recursos Humanos.';
     setAttendanceRecords(prev => prev.map(r => {
       if (recordIds.includes(r.id)) {
         return {
@@ -278,16 +313,22 @@ export default function App() {
           isCorroborated: true,
           corroboratedBy: reviewerName,
           corroboratedAt: nowStr,
-          corroborationNotes: r.corroborationNotes || 'Corroboración masiva aprobada por Recursos Humanos.',
+          corroborationNotes: r.corroborationNotes || notes,
         };
       }
       return r;
     }));
+    syncBatchAttendanceCorroboration(recordIds, reviewerName, nowStr, notes);
   };
 
   // If no role is selected yet, render the clean role selection screen
   if (!currentRole) {
-    return <RoleSelector onSelectRole={handleSelectRole} />;
+    return (
+      <>
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+        <RoleSelector onSelectRole={handleSelectRole} />
+      </>
+    );
   }
 
   const pendingLeavesCount = leaveRequests.filter(r => r.status === 'pending').length;
@@ -295,7 +336,8 @@ export default function App() {
   const isAdmin = currentRole === 'admin';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#0871A0] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#069AD8] selection:text-white">
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       
       {/* 1. Unified Institutional Header */}
       <Header 

@@ -1,6 +1,6 @@
 export type UserRole = 
-  | 'admin'          // Administrador / Recursos Humanos
-  | 'employee';      // Empleado / Colaborador
+  | 'admin'          // Administrador
+  | 'employee';      // Empleado
 
 export type AdminModule = 
   | 'dashboard'

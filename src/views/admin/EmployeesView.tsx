@@ -127,7 +127,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
       name: newEmp.name,
       username: finalUsername,
       password: finalPassword,
-      roleName: 'Empleado / Colaborador',
+      roleName: 'Empleado',
       branchName: targetBranch?.name || 'Sede Principal',
       phone: newEmp.phone,
       portalUrl: ACCESS_PORTAL_URL,
@@ -193,7 +193,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           id="btn-open-add-employee"
           onClick={() => setIsAddModalOpen(true)}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#093244] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Alta de Colaborador</span>
@@ -209,7 +209,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
             placeholder="Buscar por nombre, código o área..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#0871A0] focus:border-[#0871A0]"
+            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#069AD8] focus:border-[#069AD8]"
           />
         </div>
 
@@ -221,7 +221,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           <select
             value={selectedBranch}
             onChange={(e) => setSelectedBranch(e.target.value)}
-            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#0871A0] text-neutral-800"
+            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#069AD8] text-neutral-800"
           >
             <option value="all">Todas las sedes</option>
             {branches.map(b => (
@@ -235,7 +235,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           <select
             value={selectedDocStatus}
             onChange={(e) => setSelectedDocStatus(e.target.value as 'all' | DocumentStatus)}
-            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#0871A0] text-neutral-800"
+            className="py-1.5 px-2.5 text-xs rounded-xl border border-neutral-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#069AD8] text-neutral-800"
           >
             <option value="all">Todos los estatus</option>
             <option value="complete">🟢 Completos</option>
@@ -342,7 +342,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                               name: emp.name,
                               username: generateUsername(emp.name, emp.employeeCode),
                               password: generateSecurePassword(10),
-                              roleName: 'Empleado / Colaborador',
+                              roleName: 'Empleado',
                               branchName: emp.branchName,
                               phone: emp.phone,
                               portalUrl: ACCESS_PORTAL_URL,
@@ -357,7 +357,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                         <button
                           onClick={() => setInspectingDossierEmp(emp)}
                           title="Ver Expediente"
-                          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#0871A0] hover:bg-[#0871A0]/10 transition-colors inline-flex items-center cursor-pointer"
+                          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#069AD8] hover:bg-[#069AD8]/10 transition-colors inline-flex items-center cursor-pointer"
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -397,7 +397,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                 <img
                   src={inspectingDossierEmp.avatar}
                   alt={inspectingDossierEmp.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#0871A0]"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#069AD8]"
                 />
                 <div>
                   <h3 className="text-lg font-bold text-neutral-900">
@@ -504,7 +504,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                     placeholder="Ej. Juan Pérez Garza"
                     value={newEmpName}
                     onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -522,8 +522,8 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
               {/* Credenciales de Acceso al Portal / Móvil */}
               <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#0A3142] flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-[#0871A0]" />
+                  <span className="text-xs font-bold text-[#093244] flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-[#069AD8]" />
                     Credenciales para Acceso Móvil y Portal Web
                   </span>
                   <span className="text-[10px] text-neutral-500 font-medium">
@@ -543,13 +543,13 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                         placeholder="usuario.login"
                         value={newEmpUsername}
                         onChange={(e) => setNewEmpUsername(e.target.value)}
-                        className="w-full p-2 pr-8 rounded-lg border border-neutral-300 bg-white font-mono text-xs focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                        className="w-full p-2 pr-8 rounded-lg border border-neutral-300 bg-white font-mono text-xs focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setNewEmpUsername(generateUsername(newEmpName, newEmpCode))}
                         title="Regenerar usuario"
-                        className="absolute right-2 top-2 text-neutral-400 hover:text-[#0871A0]"
+                        className="absolute right-2 top-2 text-neutral-400 hover:text-[#069AD8]"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                       </button>
@@ -577,7 +577,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                     placeholder="nombre@empresa.com"
                     value={newEmpEmail}
                     onChange={(e) => setNewEmpEmail(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -587,7 +587,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                     placeholder="55 0000 0000"
                     value={newEmpPhone}
                     onChange={(e) => setNewEmpPhone(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#0871A0] focus:outline-none"
+                    className="w-full p-2 rounded-lg border border-neutral-300 focus:ring-2 focus:ring-[#069AD8] focus:outline-none"
                   />
                 </div>
               </div>
@@ -657,7 +657,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#0A3142] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#093244] text-white font-bold hover:bg-[#082735] transition cursor-pointer"
                 >
                   Guardar y Generar Credenciales
                 </button>
