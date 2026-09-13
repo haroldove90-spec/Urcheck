@@ -156,7 +156,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
       {/* Main Fixed Bottom Bar with Institutional Background and White Icons */}
       <nav 
         id="mobile-bottom-bar"
-        className="fixed bottom-0 inset-x-0 bg-[#093244] border-t border-[#069AD8]/30 z-40 md:hidden shadow-2xl safe-area-pb"
+        className="fixed bottom-0 inset-x-0 bg-[#093244] border-t border-[#069AD8]/30 z-40 md:hidden shadow-2xl safe-area-pb overflow-hidden"
       >
         <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
           {isAdmin ? (
@@ -221,8 +221,8 @@ export const BottomBar: React.FC<BottomBarProps> = ({
               </button>
             </>
           ) : (
-            // Employee view has exactly 4 items
-            <div className="col-span-5 grid grid-cols-4 h-full">
+            // Employee view: 5 items evenly distributed in the 5-column grid
+            <>
               {employeeItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentEmployeeModule === item.id;
@@ -237,7 +237,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
                       <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[68px] ${
+                    <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[58px] ${
                       isActive ? 'text-white font-bold' : 'text-white/70 font-medium'
                     }`}>
                       {item.label}
@@ -248,7 +248,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                   </button>
                 );
               })}
-            </div>
+            </>
           )}
         </div>
       </nav>
