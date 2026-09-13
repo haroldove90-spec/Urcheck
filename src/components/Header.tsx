@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { PWAInstallModal } from './PWAInstallModal';
 import { 
   LogOut, 
   DownloadCloud, 
   CheckCircle2, 
-  X, 
-  Share2, 
-  PlusSquare, 
   Smartphone,
-  Fingerprint
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,14 +21,14 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
 
   const handleInstallClick = async () => {
     if (isInstallable) {
-      const success = await install();
-      if (success) {
-        setInstallSuccessMessage('¡Urcheck instalado con éxito!');
+      const outcome = await install();
+      if (outcome === 'accepted') {
+        setInstallSuccessMessage('¡Urcheck instalado con éxito como App!');
         setTimeout(() => setInstallSuccessMessage(null), 4000);
+        return;
       }
-    } else {
-      setShowInstallModal(true);
     }
+    setShowInstallModal(true);
   };
 
   return (
@@ -80,18 +77,20 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
               </div>
             </div>
 
-            {/* Quick App Install Button */}
-            <button
-              id="btn-pwa-install"
-              onClick={handleInstallClick}
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0"
-              title="Instalar aplicación en tu dispositivo"
-            >
-              <DownloadCloud className="w-4 h-4 shrink-0" />
-              <span className="hidden md:inline">Instala Urcheck</span>
-              <span className="hidden sm:inline md:hidden">Instalar</span>
-            </button>
+            {/* Quick App Install Button - Always accessible and visible */}
+            {!isInstalled && (
+              <button
+                id="btn-pwa-install"
+                onClick={handleInstallClick}
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0 border border-[#069AD8]/40"
+                title="Instalar Urcheck directamente en tu dispositivo como App móvil"
+              >
+                <DownloadCloud className="w-4 h-4 text-[#069AD8] group-hover:text-white shrink-0 animate-pulse" />
+                <span className="hidden sm:inline">Instalar App</span>
+                <span className="sm:hidden text-[11px]">Instalar</span>
+              </button>
+            )}
 
             {/* Logout Button */}
             <button
@@ -117,73 +116,14 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, onLogout }) => {
       )}
 
       {/* PWA Install Guide Modal */}
-      {showInstallModal && (
-        <div 
-          id="pwa-install-modal" 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
-        >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 relative">
-            <button
-              onClick={() => setShowInstallModal(false)}
-              className="absolute top-4 right-4 p-1 rounded-lg text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-[#069AD8]/10 text-[#069AD8] flex items-center justify-center">
-                <Smartphone className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-[#093244]">
-                  Instalar Urcheck
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  Control de asistencia biométrico disponible sin conexión
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-3.5 text-xs sm:text-sm text-neutral-700 bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-              <div className="flex items-start gap-3">
-                <span className="font-bold text-white bg-[#093244] w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">
-                  1
-                </span>
-                <p>
-                  <strong>En iPhone / iPad (Safari):</strong> Pulsa el botón <Share2 className="w-4 h-4 inline text-[#069AD8] mx-0.5" /> <em>Compartir</em> y selecciona <PlusSquare className="w-4 h-4 inline text-neutral-800 mx-0.5" /> <em>Agregar a pantalla de inicio</em>.
-                </p>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <span className="font-bold text-white bg-[#093244] w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">
-                  2
-                </span>
-                <p>
-                  <strong>En Android (Chrome):</strong> Toca el menú de opciones (tres puntos verticales) y presiona <em>Instalar aplicación</em> o <em>Añadir a la pantalla principal</em>.
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <span className="font-bold text-white bg-[#093244] w-5 h-5 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5">
-                  3
-                </span>
-                <p>
-                  <strong>En Computadora (Chrome / Edge):</strong> Haz clic en el ícono de instalar en la barra de direcciones o presiona el botón <em>Instala Urcheck</em>.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <button
-                onClick={() => setShowInstallModal(false)}
-                className="w-full py-2.5 text-xs sm:text-sm font-semibold rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white transition-colors cursor-pointer"
-              >
-                Entendido
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PWAInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        onSuccess={() => {
+          setInstallSuccessMessage('¡Urcheck instalado con éxito como App!');
+          setTimeout(() => setInstallSuccessMessage(null), 4000);
+        }}
+      />
     </header>
   );
 };

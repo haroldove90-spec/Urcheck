@@ -31,6 +31,7 @@ import { Sidebar } from './components/Sidebar';
 import { BottomBar } from './components/BottomBar';
 import { Footer } from './components/Footer';
 import { SplashScreen } from './components/SplashScreen';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 // Admin Views
 import { DashboardView } from './views/admin/DashboardView';
@@ -511,6 +512,9 @@ export default function App() {
         onSelectEmployeeModule={setCurrentEmployeeModule}
         pendingLeavesCount={pendingLeavesCount}
       />
+
+      {/* Offline Connectivity Indicator */}
+      <OfflineIndicator />
 
       {/* Institutional Footer */}
       <Footer />

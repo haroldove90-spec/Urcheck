@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { AdminModule, EmployeeModule, UserRole } from '../types';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { PWAInstallModal } from './PWAInstallModal';
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +17,7 @@ import {
   X,
   UserCheck,
   BookOpen,
+  DownloadCloud,
 } from 'lucide-react';
 
 interface BottomBarProps {
@@ -36,6 +39,19 @@ export const BottomBar: React.FC<BottomBarProps> = ({
 }) => {
   const isAdmin = role === 'admin';
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const { isInstallable, isInstalled, install } = usePWAInstall();
+
+  const handleInstallClick = async () => {
+    if (isInstallable) {
+      const outcome = await install();
+      if (outcome === 'accepted') {
+        setShowMoreMenu(false);
+        return;
+      }
+    }
+    setShowInstallModal(true);
+  };
 
   // For Admin: Primary bottom bar has 4 items + "Más"
   const adminPrimaryItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
@@ -110,6 +126,29 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                 );
               })}
             </div>
+
+            {/* Direct PWA App Installation button in drawer */}
+            {!isInstalled && (
+              <div className="mt-4 pt-3 border-t border-white/15">
+                <button
+                  id="bottom-drawer-install-btn"
+                  onClick={handleInstallClick}
+                  type="button"
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-white/15 hover:bg-[#069AD8] text-white transition-colors cursor-pointer border border-white/20"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <DownloadCloud className="w-5 h-5 text-[#069AD8] group-hover:text-white shrink-0" />
+                    <div className="text-left">
+                      <p className="text-xs font-bold leading-tight">Instalar Urcheck como App</p>
+                      <p className="text-[10px] text-white/70">Instalación nativa sin navegador</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold bg-[#069AD8] text-white px-2 py-0.5 rounded-md">
+                    Instalar
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -213,6 +252,12 @@ export const BottomBar: React.FC<BottomBarProps> = ({
           )}
         </div>
       </nav>
+
+      {/* PWA Install Modal from mobile bottom bar */}
+      <PWAInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+      />
     </>
   );
 };

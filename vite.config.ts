@@ -11,7 +11,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+        includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png', 'urcheckicono.png', 'urchecklogo.png'],
         manifest: {
           id: '/',
           name: 'Urcheck - Control de Asistencia y Gestión Laboral',
@@ -20,8 +20,10 @@ export default defineConfig(() => {
           theme_color: '#093244',
           background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'portrait',
           start_url: '/',
           scope: '/',
+          categories: ['business', 'productivity', 'utilities'],
           icons: [
             {
               src: '/pwa-192x192.png',
@@ -42,6 +44,9 @@ export default defineConfig(() => {
               purpose: 'maskable',
             },
           ],
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         },
         devOptions: {
           enabled: true,

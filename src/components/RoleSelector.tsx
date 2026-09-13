@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserRole } from '../types';
-import { ShieldCheck, UserCheck } from 'lucide-react';
+import { ShieldCheck, UserCheck, DownloadCloud, CheckCircle2 } from 'lucide-react';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { PWAInstallModal } from './PWAInstallModal';
 
 interface RoleSelectorProps {
   onSelectRole: (role: UserRole) => void;
@@ -20,8 +22,32 @@ const ROLES: { id: UserRole; name: string; icon: React.ComponentType<{ className
 ];
 
 export const RoleSelector: React.FC<RoleSelectorProps> = ({ onSelectRole }) => {
+  const { isInstallable, isInstalled, install } = usePWAInstall();
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  const handleInstallClick = async () => {
+    if (isInstallable) {
+      const outcome = await install();
+      if (outcome === 'accepted') {
+        setSuccessToast('¡Urcheck instalado exitosamente como App!');
+        setTimeout(() => setSuccessToast(null), 4500);
+        return;
+      }
+    }
+    setShowInstallModal(true);
+  };
+
   return (
     <div id="role-selector-container" className="min-h-screen flex flex-col justify-between bg-[#f8f9fa] p-4 sm:p-8 lg:p-12">
+      {/* Toast Notification */}
+      {successToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#1F832D] text-white text-xs sm:text-sm font-bold py-2.5 px-5 rounded-2xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-3">
+          <CheckCircle2 className="w-5 h-5" />
+          {successToast}
+        </div>
+      )}
+
       {/* Centered Content with Real-size Brand Logo Above Role Cards */}
       <div className="flex-1 flex flex-col justify-center items-center max-w-4xl w-full mx-auto py-4 sm:py-6">
         
@@ -76,10 +102,35 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({ onSelectRole }) => {
             );
           })}
         </div>
+
+        {/* Minimalist Install App Button */}
+        {!isInstalled && (
+          <div className="mt-5 sm:mt-6 flex justify-center w-full">
+            <button
+              id="btn-home-install-pwa"
+              onClick={handleInstallClick}
+              type="button"
+              className="group inline-flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#093244] hover:bg-[#069AD8] border border-[#069AD8]/30 rounded-full shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-95"
+            >
+              <DownloadCloud className="w-4 h-4 text-[#069AD8] group-hover:text-white transition-colors" />
+              <span>Instalar app</span>
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* PWA Install Guide Modal */}
+      <PWAInstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        onSuccess={() => {
+          setSuccessToast('¡Urcheck instalado con éxito!');
+          setTimeout(() => setSuccessToast(null), 4000);
+        }}
+      />
+
       {/* Institutional Footer */}
-      <div className="pt-8 text-center border-t border-neutral-200 mt-6">
+      <div className="pt-6 sm:pt-8 text-center border-t border-neutral-200 mt-4 sm:mt-6">
         <p className="text-xs sm:text-sm text-neutral-600 font-medium">
           Desarrollado por Harold Anguiano - App Design – Whatsapp:{' '}
           <a
