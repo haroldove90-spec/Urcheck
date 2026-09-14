@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   UserRole, 
   AdminModule, 
@@ -60,9 +60,15 @@ import {
   syncAllInitialCatalogToSupabase,
   purgeAllMockDataFromSupabase,
   isMockDataPurged,
-  setMockDataPurgedFlag
+  setMockDataPurgedFlag,
+  deleteEmployeeFromSupabase,
+  deleteBranchFromSupabase,
+  deleteAttendanceFromSupabase,
+  deleteDocumentFromSupabase,
+  fetchAllDataFromSupabase,
+  loadStoredSession,
+  saveStoredSession
 } from './services/dbSync';
-import { testSupabaseConnection } from './lib/supabase';
 
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
@@ -71,13 +77,27 @@ import { MyDocumentsView } from './views/employee/MyDocumentsView';
 import { MyOvertimeView } from './views/employee/MyOvertimeView';
 
 export default function App() {
-  // Global State
-  const [currentRole, setCurrentRole] = useState<UserRole | null>(null);
-  const [currentUser, setCurrentUser] = useState<UserProfile>(INITIAL_PROFILES.admin);
+  // Global State - Preserved across browser refresh
+  const [currentRole, setCurrentRole] = useState<UserRole | null>(() => {
+    const saved = loadStoredSession();
+    return saved ? saved.role : null;
+  });
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
+    const saved = loadStoredSession();
+    if (saved?.user) return saved.user;
+    if (saved?.role) return INITIAL_PROFILES[saved.role];
+    return INITIAL_PROFILES.admin;
+  });
   
-  // Navigation Modules
-  const [currentAdminModule, setCurrentAdminModule] = useState<AdminModule>('dashboard');
-  const [currentEmployeeModule, setCurrentEmployeeModule] = useState<EmployeeModule>('punch');
+  // Navigation Modules - Preserved across browser refresh
+  const [currentAdminModule, setCurrentAdminModule] = useState<AdminModule>(() => {
+    const saved = loadStoredSession();
+    return saved?.adminModule || 'dashboard';
+  });
+  const [currentEmployeeModule, setCurrentEmployeeModule] = useState<EmployeeModule>(() => {
+    const saved = loadStoredSession();
+    return saved?.employeeModule || 'punch';
+  });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   // Core Data Stores - Respect mock data purge flag
@@ -98,39 +118,109 @@ export default function App() {
   const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(() => {
     return isMockDataPurged() ? [] : INITIAL_COMPANY_DOCUMENTS;
   });
-  const [showSplash, setShowSplash] = useState(true);
 
-  // Background check: if Supabase has 0 employees, seed initial catalog ONLY if not purged
+  // Splash screen: only show when there is NO saved active session
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    const saved = loadStoredSession();
+    return !saved || !saved.role;
+  });
+
+  // DB Sync State indicators
+  const [isFetchingDb, setIsFetchingDb] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
+
+  // Persist session state to localStorage on every change
   useEffect(() => {
-    if (isMockDataPurged()) {
-      return; // Never seed sample data if user requested purge!
+    if (currentRole) {
+      saveStoredSession({
+        role: currentRole,
+        user: currentUser,
+        adminModule: currentAdminModule,
+        employeeModule: currentEmployeeModule,
+      });
+    } else {
+      saveStoredSession(null);
     }
+  }, [currentRole, currentUser, currentAdminModule, currentEmployeeModule]);
 
-    testSupabaseConnection().then((res) => {
-      if (res.success && res.allTablesReady) {
-        const empTbl = res.tables.find((t) => t.name === 'employees');
-        if (empTbl && empTbl.count === 0 && !isMockDataPurged()) {
-          syncAllInitialCatalogToSupabase(employees, branches);
+  // Pull live database state from Supabase so deleted rows in Supabase immediately disappear
+  const loadDataFromSupabase = useCallback(async () => {
+    setIsFetchingDb(true);
+    try {
+      const res = await fetchAllDataFromSupabase();
+      if (res.success) {
+        // When tables exist in Supabase, Supabase is the single source of truth!
+        if (res.employees !== undefined) {
+          setEmployees(res.employees);
         }
+        if (res.branches !== undefined && res.branches.length > 0) {
+          setBranches(res.branches);
+        }
+        if (res.attendanceRecords !== undefined) {
+          setAttendanceRecords(res.attendanceRecords);
+        }
+        if (res.leaveRequests !== undefined) {
+          setLeaveRequests(res.leaveRequests);
+        }
+        if (res.overtimeRecords !== undefined) {
+          setOvertimeRecords(res.overtimeRecords);
+        }
+        if (res.companyDocuments !== undefined) {
+          setCompanyDocuments(res.companyDocuments);
+        }
+        if (res.settings) {
+          setSettings(prev => ({
+            ...prev,
+            companyName: res.settings?.companyName || prev.companyName,
+            taxId: res.settings?.taxId || prev.taxId,
+            toleranceMinutes: res.settings?.toleranceMinutes ?? prev.toleranceMinutes,
+          }));
+        }
+        const now = new Date();
+        setLastSyncTime(now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       }
-    }).catch(() => {
-      // Non-blocking
-    });
+    } catch (err) {
+      console.warn('[App] Error fetching data from Supabase:', err);
+    } finally {
+      setIsFetchingDb(false);
+    }
   }, []);
+
+  // Fetch live Supabase data on mount and whenever tab gets focus
+  useEffect(() => {
+    loadDataFromSupabase();
+
+    const handleFocus = () => {
+      loadDataFromSupabase();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [loadDataFromSupabase]);
 
   // Role Switch Handler
   const handleSelectRole = (role: UserRole) => {
     setCurrentRole(role);
-    setCurrentUser(INITIAL_PROFILES[role]);
+    const profile = INITIAL_PROFILES[role];
+    setCurrentUser(profile);
+    const adminMod: AdminModule = 'dashboard';
+    const empMod: EmployeeModule = 'punch';
     if (role === 'admin') {
-      setCurrentAdminModule('dashboard');
+      setCurrentAdminModule(adminMod);
     } else {
-      setCurrentEmployeeModule('punch');
+      setCurrentEmployeeModule(empMod);
     }
+    saveStoredSession({
+      role,
+      user: profile,
+      adminModule: adminMod,
+      employeeModule: empMod,
+    });
   };
 
   const handleLogout = () => {
+    saveStoredSession(null);
     setCurrentRole(null);
+    setShowSplash(false);
   };
 
   // Real-time Simulated Punch for Live Reactivity testing
@@ -185,6 +275,7 @@ export default function App() {
 
   const handleDeleteEmployee = (empId: string) => {
     setEmployees(prev => prev.filter(e => e.id !== empId));
+    deleteEmployeeFromSupabase(empId);
   };
 
   // Branches Handlers
@@ -200,6 +291,7 @@ export default function App() {
 
   const handleDeleteBranch = (branchId: string) => {
     setBranches(prev => prev.filter(b => b.id !== branchId));
+    deleteBranchFromSupabase(branchId);
   };
 
   const handleToggleBranchStatus = (branchId: string) => {
@@ -302,12 +394,7 @@ export default function App() {
 
   const handlePurgeMockData = async () => {
     await purgeAllMockDataFromSupabase();
-    setAttendanceRecords([]);
-    setLeaveRequests([]);
-    setOvertimeRecords([]);
-    setCompanyDocuments([]);
-    // Remove sample employees emp-001 ... emp-008
-    setEmployees(prev => prev.filter(e => !e.id.startsWith('emp-00')));
+    await loadDataFromSupabase();
   };
 
   const handleRestoreMockData = async () => {
@@ -318,6 +405,7 @@ export default function App() {
     setOvertimeRecords(INITIAL_OVERTIME_RECORDS);
     setCompanyDocuments(INITIAL_COMPANY_DOCUMENTS);
     await syncAllInitialCatalogToSupabase(INITIAL_EMPLOYEES, INITIAL_BRANCHES);
+    await loadDataFromSupabase();
   };
 
   // Company Documents Handlers (Synchronized between Admin and Employee)
@@ -333,6 +421,7 @@ export default function App() {
 
   const handleDeleteDocument = (docId: string) => {
     setCompanyDocuments(prev => prev.filter(d => d.id !== docId));
+    deleteDocumentFromSupabase(docId);
   };
 
   const handleSignDocumentByEmployee = (docId: string, signature: DigitalSignature) => {
@@ -351,10 +440,15 @@ export default function App() {
     }));
   };
 
-  // Attendance Corroboration Handlers
+  // Attendance Corroboration & Deletion Handlers
   const handleUpdateAttendanceRecord = (updatedRecord: AttendanceRecord) => {
     setAttendanceRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
     syncAttendanceToSupabase(updatedRecord);
+  };
+
+  const handleDeleteAttendanceRecord = (recordId: string) => {
+    setAttendanceRecords(prev => prev.filter(r => r.id !== recordId));
+    deleteAttendanceFromSupabase(recordId);
   };
 
   const handleBatchCorroborateAttendance = (recordIds: string[], reviewerName: string) => {
@@ -399,6 +493,9 @@ export default function App() {
         onLogout={handleLogout} 
         employees={employees}
         branches={branches}
+        onRefreshFromSupabase={loadDataFromSupabase}
+        isRefreshing={isFetchingDb}
+        lastSyncTime={lastSyncTime}
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
@@ -443,6 +540,7 @@ export default function App() {
                   currentUser={currentUser}
                   onUpdateAttendanceRecord={handleUpdateAttendanceRecord}
                   onBatchCorroborate={handleBatchCorroborateAttendance}
+                  onDeleteAttendanceRecord={handleDeleteAttendanceRecord}
                 />
               )}
 

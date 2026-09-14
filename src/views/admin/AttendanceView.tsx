@@ -23,7 +23,8 @@ import {
   UserCheck,
   Sparkles,
   AlertCircle,
-  ChevronDown
+  ChevronDown,
+  Trash2
 } from 'lucide-react';
 
 interface AttendanceViewProps {
@@ -33,6 +34,7 @@ interface AttendanceViewProps {
   currentUser: UserProfile;
   onUpdateAttendanceRecord: (updatedRecord: AttendanceRecord) => void;
   onBatchCorroborate: (recordIds: string[], reviewerName: string) => void;
+  onDeleteAttendanceRecord?: (recordId: string) => void;
 }
 
 export const AttendanceView: React.FC<AttendanceViewProps> = ({
@@ -42,6 +44,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   currentUser,
   onUpdateAttendanceRecord,
   onBatchCorroborate,
+  onDeleteAttendanceRecord,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
@@ -643,6 +646,21 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
                             <FileCheck2 className="w-3.5 h-3.5" />
                             <span>{record.isCorroborated ? 'Editar' : 'Corroborar'}</span>
                           </button>
+
+                          {onDeleteAttendanceRecord && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`¿Deseas eliminar este registro de asistencia de ${record.employeeName}? Se eliminará permanentemente de Supabase.`)) {
+                                  onDeleteAttendanceRecord(record.id);
+                                }
+                              }}
+                              className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                              title="Eliminar registro de asistencia permanentemente"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

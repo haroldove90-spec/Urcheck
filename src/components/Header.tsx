@@ -8,6 +8,7 @@ import {
   DownloadCloud, 
   CheckCircle2, 
   Database,
+  RefreshCw,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -15,6 +16,9 @@ interface HeaderProps {
   onLogout: () => void;
   employees?: Employee[];
   branches?: Branch[];
+  onRefreshFromSupabase?: () => void;
+  isRefreshing?: boolean;
+  lastSyncTime?: string | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -22,6 +26,9 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   employees = [],
   branches = [],
+  onRefreshFromSupabase,
+  isRefreshing = false,
+  lastSyncTime,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -101,6 +108,21 @@ export const Header: React.FC<HeaderProps> = ({
                 Test
               </span>
             </button>
+
+            {/* Quick Manual Sync Button to refresh database state immediately */}
+            {onRefreshFromSupabase && (
+              <button
+                id="btn-sync-supabase-header"
+                onClick={onRefreshFromSupabase}
+                type="button"
+                disabled={isRefreshing}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-[#093244] bg-sky-50 hover:bg-sky-100 active:scale-95 border border-sky-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-60"
+                title={lastSyncTime ? `Última sincronización con Supabase: ${lastSyncTime}. Clic para refrescar datos ahora.` : 'Sincronizar datos con Supabase'}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-[#069AD8] shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline text-neutral-700 font-medium">Sincronizar</span>
+              </button>
+            )}
 
             {/* Quick App Install Button - Always accessible and visible */}
             {!isInstalled && (
