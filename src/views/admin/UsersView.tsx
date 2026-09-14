@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 import { PasswordField } from '../../components/PasswordField';
 import { ShareCredentialsModal } from '../../components/ShareCredentialsModal';
+import { CenteredFeedbackModal, FeedbackData } from '../../components/CenteredFeedbackModal';
+import { syncUserProfileToSupabase } from '../../services/dbSync';
+import { Employee } from '../../types';
 import { 
   generateSecurePassword, 
   generateUsername, 
@@ -27,12 +30,14 @@ import {
 
 interface UsersViewProps {
   onSwitchRole?: (role: UserRole) => void;
+  onAddEmployee?: (emp: Employee) => void;
 }
 
-export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
+export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole, onAddEmployee }) => {
   const [userList, setUserList] = useState<UserProfile[]>(Object.values(INITIAL_PROFILES));
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -80,15 +85,54 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
     setUserList(prev => [...prev, newUser]);
     setIsAddUserOpen(false);
 
-    // Prompt WhatsApp credentials sharing
-    setShareCredentialsData({
-      name,
-      username: finalUsername,
-      password: finalPassword,
-      roleName: roleNameMap[role],
-      branchName: branch,
-      phone: phone || '55 1234 5678',
-      portalUrl: ACCESS_PORTAL_URL,
+    // Synchronize to Supabase in real-time
+    syncUserProfileToSupabase(newUser, { phone }).then(res => {
+      if (!res.success) {
+        console.warn('[Supabase Sync User Error]:', res.error);
+      }
+    });
+
+    // Notify employee collection if provided
+    if (onAddEmployee) {
+      onAddEmployee({
+        id: newUser.id,
+        employeeCode: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
+        name: newUser.name,
+        email: newUser.email,
+        phone: phone || '55 1234 5678',
+        department: newUser.department || 'Operaciones',
+        position: newUser.position || 'Colaborador',
+        branchId: branch.toLowerCase().includes('norte') ? 'suc-02' : 'suc-01',
+        branchName: branch,
+        shift: 'Matutino (08:00 - 17:00)',
+        hireDate: new Date().toISOString().split('T')[0],
+        status: 'active',
+        avatar: newUser.avatar,
+        dossierStatus: 'complete',
+        vacationDaysLeft: 12,
+        hourlyRate: role === 'admin' ? 250 : 160,
+        documents: [],
+      });
+    }
+
+    // Set centered feedback
+    setFeedback({
+      title: '¡Usuario Guardado con Éxito!',
+      message: `El usuario "${name}" con rol ${roleNameMap[role]} ha sido registrado y sincronizado en Supabase. ¿Deseas compartir las credenciales vía WhatsApp?`,
+      type: 'success',
+      actionText: 'Compartir WhatsApp',
+      onAction: () => {
+        setShareCredentialsData({
+          name,
+          username: finalUsername,
+          password: finalPassword,
+          roleName: roleNameMap[role],
+          branchName: branch,
+          phone: phone || '55 1234 5678',
+          portalUrl: ACCESS_PORTAL_URL,
+        });
+      },
+      autoCloseMs: 5000,
     });
 
     // Reset Form
@@ -98,19 +142,27 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
     setEmail('');
     setPhone('');
     setPosition('');
-    setStatusMessage(`Usuario ${name} registrado con credenciales de acceso listas para compartir.`);
-    setTimeout(() => setStatusMessage(null), 4000);
   };
 
   const handleResetPassword = (userName: string, userRole: UserRole, userBranch: string) => {
     const tempPassword = generateSecurePassword(11);
-    setShareCredentialsData({
-      name: userName,
-      username: generateUsername(userName),
-      password: tempPassword,
-      roleName: userRole === 'admin' ? 'Administrador' : 'Empleado',
-      branchName: userBranch,
-      portalUrl: ACCESS_PORTAL_URL,
+    setFeedback({
+      title: '¡Contraseña Restablecida con Éxito!',
+      message: `Se ha generado una nueva contraseña temporal para "${userName}". ¿Deseas compartirla por WhatsApp?`,
+      type: 'info',
+      actionText: 'Compartir Clave',
+      onAction: () => {
+        setShareCredentialsData({
+          name: userName,
+          username: generateUsername(userName),
+          password: tempPassword,
+          roleName: userRole === 'admin' ? 'Administrador' : 'Empleado',
+          branchName: userBranch,
+          phone: '55 1234 5678',
+          portalUrl: ACCESS_PORTAL_URL,
+        });
+      },
+      autoCloseMs: 4500,
     });
   };
 
@@ -419,6 +471,12 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole }) => {
         isOpen={Boolean(shareCredentialsData)}
         data={shareCredentialsData}
         onClose={() => setShareCredentialsData(null)}
+      />
+
+      {/* Centered Feedback Notification Modal */}
+      <CenteredFeedbackModal
+        feedback={feedback}
+        onClose={() => setFeedback(null)}
       />
     </div>
   );

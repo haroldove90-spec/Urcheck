@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AttendanceRecord, Branch, Employee, UserProfile } from '../../types';
+import { CenteredFeedbackModal, FeedbackData } from '../../components/CenteredFeedbackModal';
 import {
   Clock,
   ScanFace,
@@ -58,13 +59,8 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   const [corroborationNotes, setCorroborationNotes] = useState('');
   const [statusOverride, setStatusOverride] = useState<'on_time' | 'late' | 'early_departure' | 'overtime'>('on_time');
 
-  // Toast / feedback message
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
+  // Feedback modal
+  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
 
   // Filtered attendance records
   const filteredRecords = useMemo(() => {
@@ -134,14 +130,24 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
 
     onUpdateAttendanceRecord(updated);
     setCorroborateRecord(null);
-    showToast(`Asistencia de ${corroborateRecord.employeeName} corroborada exitosamente.`);
+    setFeedback({
+      title: '¡Asistencia Corroborada con Éxito!',
+      message: `El marcaje de ${corroborateRecord.employeeName} fue validado y auditado por ${currentUser.name}. Los cambios quedaron sincronizados en Supabase.`,
+      type: 'success',
+      autoCloseMs: 3500,
+    });
   };
 
   // Batch corroboration
   const handleExecuteBatchCorroborate = () => {
     if (selectedIds.length === 0) return;
     onBatchCorroborate(selectedIds, currentUser.name);
-    showToast(`${selectedIds.length} asistencias han sido corroboradas en lote.`);
+    setFeedback({
+      title: '¡Corroboración Masiva Exitosa!',
+      message: `Se han corroborado y validado ${selectedIds.length} marcajes de asistencia de forma instantánea en Supabase.`,
+      type: 'success',
+      autoCloseMs: 3500,
+    });
     setSelectedIds([]);
   };
 
@@ -195,14 +201,6 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
 
   return (
     <div id="admin-attendance-corroboration-view" className="space-y-6">
-      
-      {/* Toast Alert Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0A3142] text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in slide-in-from-bottom">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          <span className="text-xs font-semibold">{toastMessage}</span>
-        </div>
-      )}
 
       {/* Header Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -905,6 +903,11 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
         </div>
       )}
 
+      {/* Centered Feedback Notification Modal */}
+      <CenteredFeedbackModal
+        feedback={feedback}
+        onClose={() => setFeedback(null)}
+      />
     </div>
   );
 };

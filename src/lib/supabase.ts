@@ -219,56 +219,189 @@ INSERT INTO public.system_settings (id, company_name, tax_id, time_zone, late_to
 VALUES ('primary', 'Urcheck BioCloud Enterprise México S.A. de C.V.', 'UBM210915HA8', 'America/Mexico_City (UTC-6)', 10, true, 60, true, true)
 ON CONFLICT (id) DO UPDATE SET updated_at = NOW();
 
--- Habilitar suscripción en tiempo real (Supabase Realtime)
-ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance_records;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.leave_requests;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.employees;
+-- ====================================================================
+-- SUSCRIPCIÓN REALTIME SEGURA (Sin error si ya existen)
+-- ====================================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+        AND schemaname = 'public' 
+        AND tablename = 'attendance_records'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance_records;
+    END IF;
 
-COMMIT;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+        AND schemaname = 'public' 
+        AND tablename = 'leave_requests'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.leave_requests;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' 
+        AND schemaname = 'public' 
+        AND tablename = 'employees'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.employees;
+    END IF;
+END $$;
 `;
 
-// Helper to test connectivity
-export async function testSupabaseConnection(): Promise<{
+export interface TableDiagnostic {
+  name: string;
+  label: string;
+  exists: boolean;
+  count: number;
+  status: 'ok' | 'missing' | 'error';
+  errorDetails?: string;
+}
+
+export interface SupabaseTestResult {
   success: boolean;
   message: string;
   latencyMs: number;
-  tablesFound?: string[];
-}> {
-  const start = performance.now();
-  try {
-    // Attempt a light select from system_settings or branches
-    const { data, error } = await supabase.from('system_settings').select('id, company_name').limit(1);
-    const latencyMs = Math.round(performance.now() - start);
+  projectUrl: string;
+  projectId: string;
+  tables: TableDiagnostic[];
+  allTablesReady: boolean;
+  writeWorking?: boolean;
+}
 
-    if (error) {
-      // If table doesn't exist yet (PGRST116 / 42P01), connection to Supabase API works, but tables need to be created!
-      if (error.code === '42P01' || error.message.includes('relation "public.system_settings" does not exist')) {
+// Helper to test thorough connectivity and table health
+export async function testSupabaseConnection(): Promise<SupabaseTestResult> {
+  const start = performance.now();
+  
+  const tablesToTest: { name: string; label: string }[] = [
+    { name: 'branches', label: 'Sucursales / Sedes' },
+    { name: 'employees', label: 'Colaboradores / Empleados' },
+    { name: 'attendance_records', label: 'Marcajes y Selfies Biométricos' },
+    { name: 'leave_requests', label: 'Permisos e Incidencias' },
+    { name: 'overtime_records', label: 'Horas Extraordinarias' },
+    { name: 'company_documents', label: 'Expedientes y Contratos Digitales' },
+    { name: 'system_settings', label: 'Parámetros del Sistema' },
+  ];
+
+  const tableDiagnostics: TableDiagnostic[] = [];
+
+  try {
+    // Run parallel checks across all 7 tables
+    const results = await Promise.allSettled(
+      tablesToTest.map(async (t) => {
+        const { count, error } = await supabase
+          .from(t.name)
+          .select('*', { count: 'exact', head: true });
+
+        if (error) {
+          const isMissing = error.code === '42P01' || error.message.includes('does not exist');
+          return {
+            name: t.name,
+            label: t.label,
+            exists: !isMissing,
+            count: 0,
+            status: isMissing ? ('missing' as const) : ('error' as const),
+            errorDetails: error.message,
+          };
+        }
+
         return {
-          success: true,
-          latencyMs,
-          message: 'Conexión con Supabase establecida exitosamente. Falta ejecutar el script SQL para crear las tablas.',
+          name: t.name,
+          label: t.label,
+          exists: true,
+          count: count ?? 0,
+          status: 'ok' as const,
         };
+      })
+    );
+
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        tableDiagnostics.push(r.value);
+      } else {
+        tableDiagnostics.push({
+          name: 'unknown',
+          label: 'Tabla',
+          exists: false,
+          count: 0,
+          status: 'error',
+          errorDetails: String(r.reason),
+        });
       }
+    }
+
+    const latencyMs = Math.round(performance.now() - start);
+    const existingCount = tableDiagnostics.filter((t) => t.status === 'ok').length;
+    const allReady = existingCount === tablesToTest.length;
+
+    let writeWorking = false;
+    // Perform a safe test write check by updating the timestamp of primary settings if existing
+    try {
+      const { error: writeErr } = await supabase
+        .from('system_settings')
+        .upsert({
+          id: 'primary',
+          updated_at: new Date().toISOString(),
+        });
+      if (!writeErr) {
+        writeWorking = true;
+      }
+    } catch {
+      writeWorking = false;
+    }
+
+    if (allReady) {
       return {
-        success: false,
+        success: true,
+        message: `¡Conexión excelente con Supabase! Las 7 tablas están activas, operativas y sincronizadas (${latencyMs}ms).`,
         latencyMs,
-        message: `Error de respuesta Supabase: ${error.message}`,
+        projectUrl: SUPABASE_URL,
+        projectId: SUPABASE_PROJECT_ID,
+        tables: tableDiagnostics,
+        allTablesReady: true,
+        writeWorking,
+      };
+    }
+
+    if (existingCount > 0) {
+      return {
+        success: true,
+        message: `Conexión con Supabase establecida (${existingCount}/7 tablas detectadas). Algunas tablas aún requieren crearse en el SQL Editor.`,
+        latencyMs,
+        projectUrl: SUPABASE_URL,
+        projectId: SUPABASE_PROJECT_ID,
+        tables: tableDiagnostics,
+        allTablesReady: false,
+        writeWorking,
       };
     }
 
     return {
       success: true,
+      message: 'Conexión con la API de Supabase exitosa, pero las tablas aún no se encuentran creadas en la base de datos.',
       latencyMs,
-      message: `Conexión en vivo con Supabase activa y autenticada (${latencyMs}ms de latencia).`,
-      tablesFound: ['system_settings'],
+      projectUrl: SUPABASE_URL,
+      projectId: SUPABASE_PROJECT_ID,
+      tables: tableDiagnostics,
+      allTablesReady: false,
+      writeWorking: false,
     };
   } catch (err: unknown) {
     const latencyMs = Math.round(performance.now() - start);
     const errMsg = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      latencyMs,
       message: `Error de red al conectar con Supabase: ${errMsg}`,
+      latencyMs,
+      projectUrl: SUPABASE_URL,
+      projectId: SUPABASE_PROJECT_ID,
+      tables: tableDiagnostics,
+      allTablesReady: false,
+      writeWorking: false,
     };
   }
 }

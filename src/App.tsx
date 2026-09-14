@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   UserRole, 
   AdminModule, 
@@ -56,8 +56,13 @@ import {
   syncBranchToSupabase, 
   syncLeaveRequestToSupabase, 
   syncOvertimeToSupabase, 
-  syncDocumentToSupabase 
+  syncDocumentToSupabase,
+  syncAllInitialCatalogToSupabase,
+  purgeAllMockDataFromSupabase,
+  isMockDataPurged,
+  setMockDataPurgedFlag
 } from './services/dbSync';
+import { testSupabaseConnection } from './lib/supabase';
 
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
@@ -75,15 +80,43 @@ export default function App() {
   const [currentEmployeeModule, setCurrentEmployeeModule] = useState<EmployeeModule>('punch');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
-  // Core Data Stores
-  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  // Core Data Stores - Respect mock data purge flag
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_EMPLOYEES;
+  });
   const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE_RECORDS);
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(INITIAL_LEAVE_REQUESTS);
-  const [overtimeRecords, setOvertimeRecords] = useState<OvertimeRecord[]>(INITIAL_OVERTIME_RECORDS);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_ATTENDANCE_RECORDS;
+  });
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_LEAVE_REQUESTS;
+  });
+  const [overtimeRecords, setOvertimeRecords] = useState<OvertimeRecord[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_OVERTIME_RECORDS;
+  });
   const [settings, setSettings] = useState<SystemSettings>(INITIAL_SETTINGS);
-  const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(INITIAL_COMPANY_DOCUMENTS);
+  const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_COMPANY_DOCUMENTS;
+  });
   const [showSplash, setShowSplash] = useState(true);
+
+  // Background check: if Supabase has 0 employees, seed initial catalog ONLY if not purged
+  useEffect(() => {
+    if (isMockDataPurged()) {
+      return; // Never seed sample data if user requested purge!
+    }
+
+    testSupabaseConnection().then((res) => {
+      if (res.success && res.allTablesReady) {
+        const empTbl = res.tables.find((t) => t.name === 'employees');
+        if (empTbl && empTbl.count === 0 && !isMockDataPurged()) {
+          syncAllInitialCatalogToSupabase(employees, branches);
+        }
+      }
+    }).catch(() => {
+      // Non-blocking
+    });
+  }, []);
 
   // Role Switch Handler
   const handleSelectRole = (role: UserRole) => {
@@ -267,6 +300,26 @@ export default function App() {
     setSettings(newSettings);
   };
 
+  const handlePurgeMockData = async () => {
+    await purgeAllMockDataFromSupabase();
+    setAttendanceRecords([]);
+    setLeaveRequests([]);
+    setOvertimeRecords([]);
+    setCompanyDocuments([]);
+    // Remove sample employees emp-001 ... emp-008
+    setEmployees(prev => prev.filter(e => !e.id.startsWith('emp-00')));
+  };
+
+  const handleRestoreMockData = async () => {
+    setMockDataPurgedFlag(false);
+    setEmployees(INITIAL_EMPLOYEES);
+    setAttendanceRecords(INITIAL_ATTENDANCE_RECORDS);
+    setLeaveRequests(INITIAL_LEAVE_REQUESTS);
+    setOvertimeRecords(INITIAL_OVERTIME_RECORDS);
+    setCompanyDocuments(INITIAL_COMPANY_DOCUMENTS);
+    await syncAllInitialCatalogToSupabase(INITIAL_EMPLOYEES, INITIAL_BRANCHES);
+  };
+
   // Company Documents Handlers (Synchronized between Admin and Employee)
   const handleAddDocument = (newDoc: CompanyDocument) => {
     setCompanyDocuments(prev => [newDoc, ...prev]);
@@ -344,6 +397,8 @@ export default function App() {
       <Header 
         currentUser={currentUser} 
         onLogout={handleLogout} 
+        employees={employees}
+        branches={branches}
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
@@ -447,7 +502,10 @@ export default function App() {
               )}
 
               {currentAdminModule === 'users' && (
-                <UsersView onSwitchRole={handleSelectRole} />
+                <UsersView 
+                  onSwitchRole={handleSelectRole} 
+                  onAddEmployee={handleAddEmployee}
+                />
               )}
 
               {currentAdminModule === 'manual' && (
@@ -458,6 +516,9 @@ export default function App() {
                 <SettingsView
                   settings={settings}
                   onUpdateSettings={handleUpdateSettings}
+                  onPurgeMockData={handlePurgeMockData}
+                  onRestoreMockData={handleRestoreMockData}
+                  isMockDataPurged={isMockDataPurged()}
                 />
               )}
             </>

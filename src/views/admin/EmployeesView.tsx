@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { PasswordField } from '../../components/PasswordField';
 import { ShareCredentialsModal } from '../../components/ShareCredentialsModal';
+import { CenteredFeedbackModal, FeedbackData } from '../../components/CenteredFeedbackModal';
 import { 
   generateSecurePassword, 
   generateUsername, 
@@ -69,6 +70,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
 
   // Credentials sharing modal
   const [shareCredentialsData, setShareCredentialsData] = useState<ShareCredentialsData | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
 
   const handleNameChange = (nameVal: string) => {
     setNewEmpName(nameVal);
@@ -122,15 +124,24 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
     onAddEmployee(newEmp);
     setIsAddModalOpen(false);
 
-    // Prompt WhatsApp credentials sharing modal
-    setShareCredentialsData({
-      name: newEmp.name,
-      username: finalUsername,
-      password: finalPassword,
-      roleName: 'Empleado',
-      branchName: targetBranch?.name || 'Sede Principal',
-      phone: newEmp.phone,
-      portalUrl: ACCESS_PORTAL_URL,
+    // Set centered feedback
+    setFeedback({
+      title: '¡Colaborador Registrado con Éxito!',
+      message: `El colaborador "${newEmp.name}" (${newEmp.employeeCode}) ha sido registrado y sincronizado en Supabase. ¿Deseas compartir sus credenciales por WhatsApp?`,
+      type: 'success',
+      actionText: 'Compartir WhatsApp',
+      onAction: () => {
+        setShareCredentialsData({
+          name: newEmp.name,
+          username: finalUsername,
+          password: finalPassword,
+          roleName: 'Empleado',
+          branchName: targetBranch?.name || 'Sede Principal',
+          phone: newEmp.phone,
+          portalUrl: ACCESS_PORTAL_URL,
+        });
+      },
+      autoCloseMs: 5000,
     });
 
     // Reset form
@@ -672,6 +683,12 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
         isOpen={Boolean(shareCredentialsData)}
         data={shareCredentialsData}
         onClose={() => setShareCredentialsData(null)}
+      />
+
+      {/* Centered Feedback Notification Modal */}
+      <CenteredFeedbackModal
+        feedback={feedback}
+        onClose={() => setFeedback(null)}
       />
     </div>
   );

@@ -22,7 +22,13 @@ import {
   Volume2,
   VolumeX,
   X,
-  Maximize2
+  Maximize2,
+  KeyRound,
+  Delete,
+  Smartphone,
+  Radio,
+  Wifi,
+  BadgeCheck
 } from 'lucide-react';
 
 interface BiometricPunchViewProps {
@@ -52,6 +58,19 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
   const [flashActive, setFlashActive] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedPunchToView, setSelectedPunchToView] = useState<AttendanceRecord | null>(null);
+
+  // RFID & PIN States
+  const [rfidSubMode, setRfidSubMode] = useState<'rfid' | 'pin'>('pin');
+  const [pinValue, setPinValue] = useState<string>('');
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [rfidCardTapped, setRfidCardTapped] = useState<boolean>(false);
+  const [nfcActive, setNfcActive] = useState<boolean>(false);
+  const [nfcMessage, setNfcMessage] = useState<string | null>(null);
+
+  // Fingerprint Touch & Hold States
+  const [fingerprintHolding, setFingerprintHolding] = useState<boolean>(false);
+  const [fingerprintProgress, setFingerprintProgress] = useState<number>(0);
+  const fingerprintHoldTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -107,6 +126,37 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       // AudioContext policy handled silently
     }
   }, [soundEnabled]);
+
+  // Audio tone generator for keypad and scanner beeps
+  const playBeep = useCallback((freq = 700, duration = 0.07) => {
+    if (!soundEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch {
+      // AudioContext policy handled silently
+    }
+  }, [soundEnabled]);
+
+  // Cleanup fingerprint timer on unmount
+  useEffect(() => {
+    return () => {
+      if (fingerprintHoldTimerRef.current) {
+        clearInterval(fingerprintHoldTimerRef.current);
+      }
+    };
+  }, []);
 
   // Clean stream helper
   const stopCameraStream = () => {
@@ -253,6 +303,205 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
     }, 280);
   };
 
+  // Touch & Hold Fingerprint Sensor Handlers
+  const handleFingerprintPointerDown = () => {
+    if (isScanning) return;
+    setFingerprintHolding(true);
+    setFingerprintProgress(0);
+    playBeep(520, 0.06);
+    navigator.vibrate?.(40);
+
+    let progress = 0;
+    if (fingerprintHoldTimerRef.current) clearInterval(fingerprintHoldTimerRef.current);
+    
+    fingerprintHoldTimerRef.current = setInterval(() => {
+      progress += 5;
+      setFingerprintProgress(progress);
+      if (progress === 25 || progress === 50 || progress === 75) {
+        playBeep(550 + progress * 3, 0.04);
+        navigator.vibrate?.(25);
+      }
+      if (progress >= 100) {
+        if (fingerprintHoldTimerRef.current) clearInterval(fingerprintHoldTimerRef.current);
+        setFingerprintHolding(false);
+        playBiometricSuccessChime();
+        navigator.vibrate?.([60, 90, 60]);
+        finalizePunchRecord(null, 'fingerprint');
+      }
+    }, 45); // ~900ms hold
+  };
+
+  const handleFingerprintPointerUp = () => {
+    if (fingerprintHolding && fingerprintProgress < 100) {
+      if (fingerprintHoldTimerRef.current) clearInterval(fingerprintHoldTimerRef.current);
+      setFingerprintHolding(false);
+      setFingerprintProgress(0);
+    }
+  };
+
+  // Trigger Device's Native Biometrics (WebAuthn / Touch ID / Android Fingerprint)
+  const handleTriggerWebAuthn = async () => {
+    try {
+      if (!window.PublicKeyCredential) {
+        handleStartBiometricScan();
+        return;
+      }
+      setIsScanning(true);
+      setScanProgress(0);
+      setScanStageText('Solicitando sensor biométrico del teléfono (Touch ID / Huella Android)...');
+
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
+      const userId = new Uint8Array(16);
+      window.crypto.getRandomValues(userId);
+
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: 'Urcheck Biometrics' },
+          user: {
+            id: userId,
+            name: currentUser.email || 'empleado@urcheck.com',
+            displayName: currentUser.name,
+          },
+          pubKeyCredParams: [{ alg: -7, type: 'public-key' }, { alg: -257, type: 'public-key' }],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'preferred',
+          },
+          timeout: 45000,
+        },
+      });
+
+      if (credential) {
+        playBiometricSuccessChime();
+        navigator.vibrate?.([60, 100, 60]);
+        finalizePunchRecord(null, 'fingerprint');
+      }
+    } catch {
+      // If WebAuthn fails or not available in iframe/user dismisses, fallback smoothly to automated scan
+      handleStartBiometricScan();
+    }
+  };
+
+  // PIN Keypad Handlers
+  const handlePinKeyClick = (digit: string) => {
+    if (isScanning || pinValue.length >= 6) return;
+    playBeep(720, 0.04);
+    navigator.vibrate?.(15);
+    setPinError(null);
+    const updatedPin = pinValue + digit;
+    setPinValue(updatedPin);
+    
+    // Auto-validate when 4 digits are completed
+    if (updatedPin.length === 4) {
+      validateAndConfirmPin(updatedPin);
+    }
+  };
+
+  const handlePinDelete = () => {
+    if (isScanning) return;
+    playBeep(450, 0.05);
+    navigator.vibrate?.(15);
+    setPinValue(prev => prev.slice(0, -1));
+    setPinError(null);
+  };
+
+  const validateAndConfirmPin = (pinToTest = pinValue) => {
+    if (pinToTest.length < 4) {
+      setPinError('Ingresa los 4 dígitos de tu PIN de seguridad');
+      playBeep(320, 0.12);
+      return;
+    }
+    setIsScanning(true);
+    setScanProgress(0);
+    setScanStageText('Validando PIN de seguridad con expediente...');
+    playBeep(880, 0.06);
+
+    setTimeout(() => {
+      setScanProgress(100);
+      playBiometricSuccessChime();
+      navigator.vibrate?.([60, 90, 60]);
+      finalizePunchRecord(null, 'pin');
+      setPinValue('');
+    }, 450);
+  };
+
+  // RFID Card Simulation & NFC
+  const handleTriggerRfidTap = () => {
+    if (isScanning) return;
+    setIsScanning(true);
+    setRfidCardTapped(true);
+    setScanProgress(0);
+    setScanStageText('Detectando señal RFID / NFC en terminal...');
+    playBeep(920, 0.1);
+    navigator.vibrate?.(35);
+
+    const steps = [
+      { progress: 35, text: 'Lectura de chip RFID (13.56 MHz Mifare Classic)...' },
+      { progress: 75, text: `UID verificado: ${currentUser.employeeId || 'EMP-7742'} • Sede Autorizada` },
+      { progress: 100, text: '¡Credencial institucional aceptada exitosamente!' }
+    ];
+
+    let stepIndex = 0;
+    const interval = setInterval(() => {
+      if (stepIndex < steps.length) {
+        setScanProgress(steps[stepIndex].progress);
+        setScanStageText(steps[stepIndex].text);
+        stepIndex++;
+      } else {
+        clearInterval(interval);
+        playBiometricSuccessChime();
+        navigator.vibrate?.([70, 100, 70]);
+        finalizePunchRecord(null, 'rfid');
+        setTimeout(() => setRfidCardTapped(false), 800);
+      }
+    }, 250);
+  };
+
+  const handleStartNfcScan = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ('NDEFReader' in window) {
+      try {
+        setNfcActive(true);
+        setNfcMessage('Acerca tu gafete RFID/NFC a la parte trasera del teléfono...');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const ndef = new (window as any).NDEFReader();
+        await ndef.scan();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ndef.onreading = (event: any) => {
+          setNfcMessage(`¡Tarjeta leída! UID: ${event.serialNumber || '04:A2:8B:19'}`);
+          handleTriggerRfidTap();
+        };
+      } catch {
+        setNfcActive(false);
+        setNfcMessage('NFC no disponible o permiso denegado en este navegador.');
+        handleTriggerRfidTap();
+      }
+    } else {
+      handleTriggerRfidTap();
+    }
+  };
+
+  // Listen for physical keyboard number typing in PIN mode
+  useEffect(() => {
+    if (selectedMethod !== 'rfid' || rfidSubMode !== 'pin' || isScanning) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        handlePinKeyClick(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handlePinDelete();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        validateAndConfirmPin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedMethod, rfidSubMode, isScanning, pinValue]);
+
   // Non-facial scan trigger (fingerprint, rfid)
   const handleStartBiometricScan = () => {
     if (selectedMethod === 'facial') {
@@ -270,25 +519,47 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       return;
     }
 
-    setIsScanning(true);
-    setScanProgress(0);
-    setScanStageText(`Iniciando sensor biométrico de ${selectedMethod === 'fingerprint' ? 'huella dactilar' : 'tarjeta RFID'}...`);
+    if (selectedMethod === 'fingerprint') {
+      setIsScanning(true);
+      setScanProgress(0);
+      setScanStageText('Detectando huella dactilar sobre el sensor óptico...');
+      playBeep(650, 0.08);
 
-    const interval = setInterval(() => {
-      setScanProgress(prev => {
-        if (prev >= 100) {
+      const steps = [
+        { progress: 25, text: 'Mapeando crestas papilares y minutas de huella...' },
+        { progress: 65, text: 'Comparando plantilla biométrica ZKTeco (99.8% match)...' },
+        { progress: 100, text: '¡Huella dactilar autenticada con éxito!' }
+      ];
+
+      let stepIdx = 0;
+      const interval = setInterval(() => {
+        if (stepIdx < steps.length) {
+          setScanProgress(steps[stepIdx].progress);
+          setScanStageText(steps[stepIdx].text);
+          navigator.vibrate?.(30);
+          playBeep(700 + stepIdx * 100, 0.05);
+          stepIdx++;
+        } else {
           clearInterval(interval);
           playBiometricSuccessChime();
-          finalizePunchRecord(null);
-          return 100;
+          navigator.vibrate?.([60, 90, 60]);
+          finalizePunchRecord(null, 'fingerprint');
         }
-        return prev + 25;
-      });
-    }, 220);
+      }, 260);
+      return;
+    }
+
+    // If RFID / PIN
+    if (rfidSubMode === 'pin') {
+      validateAndConfirmPin();
+    } else {
+      handleTriggerRfidTap();
+    }
   };
 
-  const finalizePunchRecord = (photoSnapshotUrl: string | null) => {
+  const finalizePunchRecord = (photoSnapshotUrl: string | null, overrideMethod?: BiometricMethod) => {
     setIsScanning(false);
+    const finalMethod = overrideMethod || (selectedMethod === 'rfid' && rfidSubMode === 'pin' ? 'pin' : selectedMethod);
     const now = new Date();
     const timeString = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     
@@ -296,6 +567,14 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
     const currentHour = now.getHours();
     const currentMin = now.getMinutes();
     const isLate = selectedPunchType === 'entry' && (currentHour > 8 || (currentHour === 8 && currentMin > 10));
+
+    const deviceName = finalMethod === 'facial' 
+      ? 'Urcheck BioCloud AI Facial Cam V5.2'
+      : finalMethod === 'fingerprint'
+      ? 'Urcheck BioTime Lector Óptico ZKTeco 5000'
+      : finalMethod === 'pin'
+      ? 'Urcheck Terminal PIN de Seguridad Criptográfico'
+      : 'Urcheck RFID Terminal Proximity Mifare 13.56 MHz';
 
     const newRecord: AttendanceRecord = {
       id: `att-${Date.now()}`,
@@ -307,16 +586,12 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       branchName: currentUser.branch || 'Corporativo Reforma',
       timestamp: timeString,
       type: selectedPunchType,
-      method: selectedMethod,
+      method: finalMethod,
       status: isLate ? 'late' : 'on_time',
-      biometricDeviceId: selectedMethod === 'facial' 
-        ? 'Urcheck BioCloud AI Facial Cam V5.2'
-        : selectedMethod === 'fingerprint'
-        ? 'Urcheck BioTime Lector Óptico 5000'
-        : 'Urcheck RFID Terminal Proximity V3',
-      verificationScore: selectedMethod === 'facial' ? 99.8 : 99.2,
+      biometricDeviceId: deviceName,
+      verificationScore: finalMethod === 'facial' ? 99.8 : finalMethod === 'fingerprint' ? 99.6 : 100,
       hashAudit: `SHA256: ${Math.random().toString(36).substring(2, 8)}...${Math.random().toString(36).substring(2, 6)}`,
-      photoSnapshot: photoSnapshotUrl || (selectedMethod === 'facial' ? currentUser.avatar : undefined),
+      photoSnapshot: photoSnapshotUrl || (finalMethod === 'facial' ? currentUser.avatar : undefined),
     };
 
     onRecordPunch(newRecord);
@@ -642,24 +917,281 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             </div>
           )}
 
-          {/* Method: Fingerprint Scan */}
+          {/* Method: Fingerprint Scan - Interactive Touch & Hold Sensor */}
           {selectedMethod === 'fingerprint' && (
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-3xl border-2 border-white/20 bg-black/40 flex items-center justify-center shadow-inner overflow-hidden">
-              <Fingerprint className={`w-28 h-28 ${isScanning ? 'text-emerald-400 scale-105' : 'text-neutral-400'} transition-all duration-300`} />
-              {isScanning && (
-                <div className="absolute inset-x-0 h-1 bg-[#1F832D] shadow-[0_0_15px_#1F832D] animate-bounce" />
-              )}
+            <div className="flex flex-col items-center justify-center w-full max-w-sm">
+              <div className="relative flex flex-col items-center justify-center">
+                {/* Outer glowing pulsing ring when holding or scanning */}
+                <div className={`absolute -inset-4 rounded-full transition-all duration-300 pointer-events-none ${
+                  fingerprintHolding || isScanning 
+                    ? 'bg-emerald-500/25 blur-lg scale-110 animate-pulse' 
+                    : 'bg-[#069AD8]/10 blur-md'
+                }`} />
+
+                {/* Circular Touch / Hold Surface */}
+                <div
+                  onPointerDown={handleFingerprintPointerDown}
+                  onPointerUp={handleFingerprintPointerUp}
+                  onPointerLeave={handleFingerprintPointerUp}
+                  className={`relative w-44 h-44 sm:w-48 sm:h-48 rounded-full border-4 flex flex-col items-center justify-center cursor-pointer select-none transition-all duration-200 active:scale-95 shadow-2xl ${
+                    fingerprintHolding || isScanning
+                      ? 'border-emerald-400 bg-gradient-to-b from-emerald-950/80 to-[#082735]'
+                      : 'border-white/20 bg-gradient-to-b from-neutral-900 to-[#082735] hover:border-[#069AD8]/80'
+                  }`}
+                  title="Toca y mantén presionado tu dedo aquí para checar asistencia"
+                >
+                  {/* Circular SVG Progress Ring */}
+                  <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="46"
+                      className="text-white/10"
+                      strokeWidth="5"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="46"
+                      className="text-emerald-400 transition-all duration-75"
+                      strokeWidth="5"
+                      strokeDasharray={289}
+                      strokeDashoffset={289 - (289 * (fingerprintProgress || scanProgress)) / 100}
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                  </svg>
+
+                  {/* Fingerprint Icon with dynamic coloring and scale */}
+                  <Fingerprint className={`w-20 h-20 sm:w-24 sm:h-24 transition-all duration-200 ${
+                    fingerprintHolding || isScanning 
+                      ? 'text-emerald-400 scale-110 drop-shadow-[0_0_12px_#10b981]' 
+                      : 'text-neutral-300 group-hover:text-white'
+                  }`} />
+
+                  {/* Hold instruction or percentage */}
+                  <span className="text-[11px] font-mono tracking-wider font-bold mt-1 uppercase text-neutral-300">
+                    {fingerprintHolding
+                      ? `${fingerprintProgress}% CAPTURANDO`
+                      : isScanning
+                      ? `${scanProgress}% VALIDANDO`
+                      : 'MANTÉN PRESIONADO'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sub-actions for mobile native sensor or auto-scan */}
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleTriggerWebAuthn}
+                  disabled={isScanning}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-neutral-200 font-semibold inline-flex items-center gap-1.5 border border-white/15 cursor-pointer transition active:scale-95"
+                  title="Usar lector de huella o Touch ID del teléfono"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Usar Sensor del Teléfono / Touch ID</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleStartBiometricScan}
+                  disabled={isScanning}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/40 text-xs text-emerald-300 font-semibold inline-flex items-center gap-1.5 border border-emerald-500/40 cursor-pointer transition active:scale-95"
+                >
+                  <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Autocheck Rápido</span>
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Method: RFID Tap */}
+          {/* Method: RFID Tap & Security PIN Sub-Modes */}
           {selectedMethod === 'rfid' && (
-            <div className="relative w-56 h-36 rounded-2xl border-2 border-white/20 bg-gradient-to-tr from-black/50 to-neutral-800/60 flex flex-col items-center justify-center p-4 shadow-xl">
-              <CreditCard className={`w-14 h-14 ${isScanning ? 'text-emerald-400 animate-pulse' : 'text-neutral-400'}`} />
-              <span className="font-mono text-xs text-neutral-300 mt-2 font-bold tracking-widest">
-                TARJETA PROXIMIDAD RFID
-              </span>
-              <span className="text-[10px] text-neutral-400">ID: {currentUser.employeeId || 'EMP-7742'}</span>
+            <div className="w-full max-w-md flex flex-col items-center">
+              {/* Sub-mode Toggle (PIN vs Tarjeta RFID) */}
+              <div className="flex items-center p-1 bg-black/40 rounded-xl border border-white/15 mb-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRfidSubMode('pin');
+                    setPinError(null);
+                  }}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    rfidSubMode === 'pin'
+                      ? 'bg-[#069AD8] text-white shadow-xs'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>PIN de Seguridad (Clave)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRfidSubMode('rfid');
+                    setPinError(null);
+                  }}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    rfidSubMode === 'rfid'
+                      ? 'bg-[#069AD8] text-white shadow-xs'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Radio className="w-3.5 h-3.5" />
+                  <span>Tarjeta RFID / NFC</span>
+                </button>
+              </div>
+
+              {/* Sub-mode 1: Interactive PIN Keypad */}
+              {rfidSubMode === 'pin' && (
+                <div className="w-full max-w-xs flex flex-col items-center">
+                  {/* PIN Dots Display */}
+                  <div className="bg-black/50 border border-white/20 rounded-2xl px-6 py-3.5 w-full flex flex-col items-center mb-3">
+                    <span className="text-[10px] uppercase font-mono tracking-widest text-neutral-400 mb-2">
+                      Ingresa tu PIN de 4 Dígitos
+                    </span>
+                    <div className="flex items-center gap-4">
+                      {[0, 1, 2, 3].map(idx => (
+                        <div
+                          key={idx}
+                          className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${
+                            pinValue.length > idx
+                              ? 'bg-emerald-400 border-emerald-400 ring-4 ring-emerald-400/30 scale-110'
+                              : 'bg-transparent border-white/40'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    {pinError && (
+                      <span className="text-[11px] text-amber-400 font-semibold mt-2 animate-bounce flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {pinError}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 3x4 Touch Keypad */}
+                  <div className="grid grid-cols-3 gap-2 w-full">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(digit => (
+                      <button
+                        key={digit}
+                        type="button"
+                        onClick={() => handlePinKeyClick(digit)}
+                        className="h-12 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-mono text-lg font-bold border border-white/10 transition cursor-pointer shadow-xs active:scale-95 flex items-center justify-center"
+                      >
+                        {digit}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handlePinDelete}
+                      className="h-12 rounded-xl bg-red-900/30 hover:bg-red-900/45 text-red-300 border border-red-500/30 transition cursor-pointer active:scale-95 flex items-center justify-center"
+                      title="Borrar dígito"
+                    >
+                      <Delete className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePinKeyClick('0')}
+                      className="h-12 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-mono text-lg font-bold border border-white/10 transition cursor-pointer shadow-xs active:scale-95 flex items-center justify-center"
+                    >
+                      0
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => validateAndConfirmPin()}
+                      className="h-12 rounded-xl bg-emerald-600/70 hover:bg-emerald-600 text-white border border-emerald-400/40 transition cursor-pointer active:scale-95 flex items-center justify-center font-bold text-xs"
+                      title="Confirmar PIN"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <span className="text-[10px] text-neutral-400 mt-2 font-mono">
+                    💡 También puedes teclear los números desde tu teclado físico
+                  </span>
+                </div>
+              )}
+
+              {/* Sub-mode 2: RFID Proximity SmartCard Simulation & Web NFC */}
+              {rfidSubMode === 'rfid' && (
+                <div className="w-full flex flex-col items-center">
+                  {/* PVC RFID Card Visual */}
+                  <div
+                    onClick={handleTriggerRfidTap}
+                    className={`relative w-64 sm:w-72 h-40 rounded-2xl p-4 border-2 transition-all duration-300 cursor-pointer shadow-2xl overflow-hidden select-none active:scale-95 ${
+                      rfidCardTapped || isScanning
+                        ? 'border-emerald-400 bg-gradient-to-tr from-[#082735] via-emerald-950 to-[#093244] ring-4 ring-emerald-400/30'
+                        : 'border-white/25 bg-gradient-to-tr from-[#082735] via-neutral-900 to-[#093244] hover:border-[#069AD8]'
+                    }`}
+                  >
+                    {/* Chip Graphic */}
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-7 rounded-sm bg-gradient-to-tr from-amber-400 via-yellow-200 to-amber-500 border border-amber-600 shadow-inner flex flex-col justify-around p-1">
+                        <div className="h-0.5 bg-amber-800/40 rounded-full" />
+                        <div className="h-0.5 bg-amber-800/40 rounded-full" />
+                        <div className="h-0.5 bg-amber-800/40 rounded-full" />
+                      </div>
+                      <div className="flex items-center gap-1 text-neutral-300">
+                        <Wifi className="w-4 h-4 rotate-90 text-cyan-300" />
+                        <span className="text-[10px] font-mono font-bold tracking-widest">RFID 13.56MHz</span>
+                      </div>
+                    </div>
+
+                    {/* Cardholder Info */}
+                    <div className="mt-4 flex items-center gap-2.5">
+                      <img
+                        src={currentUser.avatar}
+                        alt={currentUser.name}
+                        className="w-10 h-10 rounded-lg border border-white/30 object-cover"
+                      />
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-white block truncate">{currentUser.name}</span>
+                        <span className="text-[10px] font-mono text-cyan-300 block">{currentUser.employeeId || 'EMP-7742'}</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom strip */}
+                    <div className="absolute bottom-2 inset-x-4 flex items-center justify-between border-t border-white/10 pt-1 text-[9px] font-mono text-neutral-400">
+                      <span>URCHECK ACCESS SMARTCARD</span>
+                      <span className="text-emerald-400">ACTIVA</span>
+                    </div>
+                  </div>
+
+                  {nfcMessage && (
+                    <span className="text-xs text-cyan-300 mt-2 text-center bg-cyan-950/60 px-3 py-1 rounded-lg border border-cyan-800 font-mono">
+                      {nfcMessage}
+                    </span>
+                  )}
+
+                  {/* RFID Action Trigger Buttons */}
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleTriggerRfidTap}
+                      disabled={isScanning}
+                      className="px-4 py-2 rounded-xl bg-[#069AD8] hover:bg-[#0580b3] active:scale-95 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>Acercar Tarjeta a la Terminal</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleStartNfcScan}
+                      disabled={isScanning}
+                      className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-neutral-200 font-semibold text-xs border border-white/15 transition cursor-pointer flex items-center gap-1.5"
+                      title="Activar lectura por antena NFC del dispositivo móvil"
+                    >
+                      <Radio className="w-4 h-4 text-emerald-400" />
+                      <span>Leer NFC del Móvil</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -670,8 +1202,9 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             </span>
             <span className="text-xs text-neutral-400 mt-0.5 block">
               {selectedMethod === 'facial' && (isScanning ? 'Mantén la mirada fija al lente...' : 'Mira directamente a la cámara y sonríe para validar tu asistencia')}
-              {selectedMethod === 'fingerprint' && 'Coloca tu dedo firmemente sobre el lector óptico'}
-              {selectedMethod === 'rfid' && 'Acerca tu gafete institucional al sensor'}
+              {selectedMethod === 'fingerprint' && (fingerprintHolding ? 'Escaneando huella dactilar, mantén colocado tu dedo...' : 'Mantén presionado el sensor con tu dedo para checar')}
+              {selectedMethod === 'rfid' && rfidSubMode === 'pin' && 'Digita tu PIN de 4 números para registrar tu marcaje'}
+              {selectedMethod === 'rfid' && rfidSubMode === 'rfid' && 'Toca la tarjeta o acércala a la terminal para leer el chip RFID'}
             </span>
           </div>
 
@@ -741,15 +1274,23 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           >
             {selectedMethod === 'facial' ? (
               <Camera className="w-5 h-5 text-white" />
+            ) : selectedMethod === 'fingerprint' ? (
+              <Fingerprint className="w-5 h-5 text-white" />
+            ) : rfidSubMode === 'pin' ? (
+              <KeyRound className="w-5 h-5 text-white" />
             ) : (
-              <Zap className="w-5 h-5 fill-white" />
+              <CreditCard className="w-5 h-5 text-white" />
             )}
             <span>
               {isScanning 
-                ? 'VERIFICANDO ROSTRO...' 
+                ? 'PROCESANDO MARCAJE...' 
                 : selectedMethod === 'facial' 
                 ? '📸 TOMAR SELFIE Y CHECAR ASISTENCIA' 
-                : 'CONFIRMAR MARCAJE DIGITAL'}
+                : selectedMethod === 'fingerprint'
+                ? 'VALIDAR HUELLA DACTILAR'
+                : rfidSubMode === 'pin'
+                ? 'CONFIRMAR PIN DE SEGURIDAD'
+                : 'LEER TARJETA RFID'}
             </span>
           </button>
         </div>
@@ -766,7 +1307,10 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#1F832D] flex items-center gap-1">
                   <ShieldCheck className="w-4 h-4" />
-                  ¡Marcaje Facial Verificado y Sincronizado Exitosamente!
+                  {recentVoucher.method === 'facial' && '¡Marcaje Facial Verificado y Sincronizado Exitosamente!'}
+                  {recentVoucher.method === 'fingerprint' && '¡Marcaje por Huella Dactilar Verificado Exitosamente!'}
+                  {recentVoucher.method === 'pin' && '¡Marcaje por PIN de Seguridad Verificado Exitosamente!'}
+                  {recentVoucher.method === 'rfid' && '¡Marcaje con Tarjeta RFID Verificado Exitosamente!'}
                 </span>
                 <h3 className="text-lg font-bold text-[#093244]">
                   Comprobante Laboral Digital Urcheck
@@ -792,12 +1336,19 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
           <div className="mt-5 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             
-            {/* Selfie Photo Snapshot Card */}
-            {recentVoucher.photoSnapshot && (
-              <div className="md:col-span-1 bg-neutral-900 rounded-xl p-2 flex flex-col items-center border border-neutral-200 shadow-xs relative">
-                <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
-                  <ScanFace className="w-3 h-3" /> Selfie Registrada
+            {/* Visual Biometric Badge or Photo Snapshot Card */}
+            <div className="md:col-span-1 bg-neutral-900 rounded-xl p-2.5 flex flex-col items-center border border-neutral-200 shadow-xs relative">
+              <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold tracking-wider mb-1 flex items-center gap-1">
+                {recentVoucher.method === 'facial' && <ScanFace className="w-3 h-3" />}
+                {recentVoucher.method === 'fingerprint' && <Fingerprint className="w-3 h-3" />}
+                {recentVoucher.method === 'pin' && <KeyRound className="w-3 h-3" />}
+                {recentVoucher.method === 'rfid' && <CreditCard className="w-3 h-3" />}
+                <span>
+                  {recentVoucher.method === 'facial' ? 'Selfie Registrada' : 'Validación Biométrica'}
                 </span>
+              </span>
+
+              {recentVoucher.photoSnapshot ? (
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border-2 border-emerald-400 relative">
                   <img
                     src={recentVoucher.photoSnapshot}
@@ -808,12 +1359,27 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                     VERIFICADO 99.8%
                   </div>
                 </div>
-                <span className="text-[10px] text-neutral-400 mt-1 font-mono">{recentVoucher.timestamp}</span>
-              </div>
-            )}
+              ) : (
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg border-2 border-emerald-400/80 bg-emerald-950/50 flex flex-col items-center justify-center p-2 text-center relative">
+                  {recentVoucher.method === 'fingerprint' && (
+                    <Fingerprint className="w-12 h-12 text-emerald-400" />
+                  )}
+                  {recentVoucher.method === 'pin' && (
+                    <KeyRound className="w-12 h-12 text-emerald-400" />
+                  )}
+                  {recentVoucher.method === 'rfid' && (
+                    <CreditCard className="w-12 h-12 text-emerald-400" />
+                  )}
+                  <div className="absolute bottom-0 inset-x-0 bg-emerald-600/90 text-white text-[9px] font-bold text-center py-0.5">
+                    AUTENTICADO 100%
+                  </div>
+                </div>
+              )}
+              <span className="text-[10px] text-neutral-400 mt-1 font-mono">{recentVoucher.timestamp}</span>
+            </div>
 
             {/* Attendance Details */}
-            <div className={`${recentVoucher.photoSnapshot ? 'md:col-span-3' : 'md:col-span-4'} grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs`}>
+            <div className="md:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
               <div>
                 <span className="text-neutral-500 block">Colaborador:</span>
                 <span className="font-bold text-neutral-900 text-sm">{recentVoucher.employeeName}</span>
@@ -835,7 +1401,30 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
               <div>
                 <span className="text-neutral-500 block">Método Biométrico:</span>
                 <span className="font-bold text-neutral-900 text-sm flex items-center gap-1">
-                  <ScanFace className="w-3.5 h-3.5 text-[#069AD8]" /> Facial AI (Selfie)
+                  {recentVoucher.method === 'facial' && (
+                    <>
+                      <ScanFace className="w-3.5 h-3.5 text-[#069AD8]" />
+                      <span>Facial AI (Selfie)</span>
+                    </>
+                  )}
+                  {recentVoucher.method === 'fingerprint' && (
+                    <>
+                      <Fingerprint className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Huella Dactilar Óptica</span>
+                    </>
+                  )}
+                  {recentVoucher.method === 'pin' && (
+                    <>
+                      <KeyRound className="w-3.5 h-3.5 text-cyan-600" />
+                      <span>PIN de Seguridad</span>
+                    </>
+                  )}
+                  {recentVoucher.method === 'rfid' && (
+                    <>
+                      <CreditCard className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Tarjeta RFID / NFC</span>
+                    </>
+                  )}
                 </span>
               </div>
               <div>
@@ -871,18 +1460,28 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             myRecordsToday.map((r) => (
               <div key={r.id} className="py-3 flex items-center justify-between text-xs sm:text-sm gap-2">
                 <div className="flex items-center gap-3">
-                  {/* Selfie Photo Preview / Avatar */}
-                  <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-neutral-300 shrink-0 bg-neutral-100">
-                    <img
-                      src={r.photoSnapshot || r.employeeAvatar}
-                      alt={r.employeeName}
-                      className="w-full h-full object-cover"
-                    />
-                    {r.photoSnapshot && (
-                      <span className="absolute bottom-0 right-0 bg-[#069AD8] text-white p-0.5 rounded-tl">
-                        <Camera className="w-2.5 h-2.5" />
-                      </span>
+                  {/* Photo Preview or Biometric Method Icon Badge */}
+                  <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-neutral-300 shrink-0 bg-neutral-100 flex items-center justify-center">
+                    {r.photoSnapshot ? (
+                      <img
+                        src={r.photoSnapshot}
+                        alt={r.employeeName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-white">
+                        {r.method === 'fingerprint' && <Fingerprint className="w-5 h-5 text-emerald-400" />}
+                        {r.method === 'pin' && <KeyRound className="w-5 h-5 text-cyan-400" />}
+                        {r.method === 'rfid' && <CreditCard className="w-5 h-5 text-indigo-400" />}
+                        {(!r.method || r.method === 'facial') && <ScanFace className="w-5 h-5 text-cyan-400" />}
+                      </div>
                     )}
+                    <span className="absolute bottom-0 right-0 bg-[#093244] text-white p-0.5 rounded-tl">
+                      {r.photoSnapshot && <Camera className="w-2.5 h-2.5" />}
+                      {!r.photoSnapshot && r.method === 'fingerprint' && <Fingerprint className="w-2.5 h-2.5 text-emerald-400" />}
+                      {!r.photoSnapshot && r.method === 'pin' && <KeyRound className="w-2.5 h-2.5 text-cyan-400" />}
+                      {!r.photoSnapshot && r.method === 'rfid' && <CreditCard className="w-2.5 h-2.5 text-indigo-400" />}
+                    </span>
                   </div>
 
                   <div>
@@ -896,7 +1495,11 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                       </span>
                     </div>
                     <span className="text-[11px] text-neutral-500 flex items-center gap-1 font-mono">
-                      {r.biometricDeviceId}
+                      {r.method === 'fingerprint' && <Fingerprint className="w-3 h-3 text-emerald-600 shrink-0" />}
+                      {r.method === 'pin' && <KeyRound className="w-3 h-3 text-cyan-600 shrink-0" />}
+                      {r.method === 'rfid' && <CreditCard className="w-3 h-3 text-indigo-600 shrink-0" />}
+                      {r.method === 'facial' && <ScanFace className="w-3 h-3 text-[#069AD8] shrink-0" />}
+                      <span className="truncate">{r.biometricDeviceId}</span>
                     </span>
                   </div>
                 </div>

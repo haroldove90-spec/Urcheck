@@ -24,6 +24,7 @@ import { CompanyDocument, DigitalSignature, Employee, UserProfile } from '../../
 import { DigitalSignatureModal } from '../../components/DigitalSignatureModal';
 import { DocumentViewerModal } from '../../components/DocumentViewerModal';
 import { downloadCertifiedDocument } from '../../utils/documentUtils';
+import { CenteredFeedbackModal, FeedbackData } from '../../components/CenteredFeedbackModal';
 
 interface DocumentsViewProps {
   documents: CompanyDocument[];
@@ -51,6 +52,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const [viewingDoc, setViewingDoc] = useState<CompanyDocument | null>(null);
   const [signingDoc, setSigningDoc] = useState<CompanyDocument | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
 
   // Upload Form State
   const [newTitle, setNewTitle] = useState('');
@@ -61,7 +63,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     'PRIMERA. OBJETO: El colaborador desempeñará las funciones encomendadas conforme al perfil de puesto.\nSEGUNDA. CUMPLIMIENTO: Se mantendrá apego irrestricto a los reglamentos y normatividad interna.\nTERCERA. VIGENCIA Y FIRMA: Este documento adquiere validez jurídica inmediata al estamparse las firmas digitales.'
   );
   const [selectedFileName, setSelectedFileName] = useState<string>('');
-  const [adminSignsNow, setAdminSignsNow] = useState(true);
+  const [adminSignsNow, setAdminSignsNow] = useState(false);
 
   // Quick stats
   const totalDocs = documents.length;
@@ -142,14 +144,22 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     setSelectedFileName('');
 
     if (adminSignsNow) {
-      // Automatically prompt admin to sign the newly created document
-      setSigningDoc(newDoc);
-      setToastMessage(`Documento "${newDoc.title}" registrado. Procede a estampar tu firma patronal.`);
+      setFeedback({
+        title: '¡Documento Registrado con Éxito!',
+        message: `El archivo "${newDoc.title}" fue registrado. ¿Deseas firmarlo ahora como Administrador?`,
+        type: 'success',
+        actionText: 'Estampar Firma Ahora',
+        onAction: () => setSigningDoc(newDoc),
+        autoCloseMs: 5000,
+      });
     } else {
-      setToastMessage(`Documento "${newDoc.title}" subido y sincronizado con el colaborador.`);
+      setFeedback({
+        title: '¡Documento Guardado con Éxito!',
+        message: `El archivo "${newDoc.title}" fue subido correctamente y sincronizado en el expediente central y Supabase.`,
+        type: 'success',
+        autoCloseMs: 3500,
+      });
     }
-
-    setTimeout(() => setToastMessage(null), 4500);
   };
 
   const handleAdminSignatureSaved = (sig: DigitalSignature) => {
@@ -169,8 +179,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     }
 
     setSigningDoc(null);
-    setToastMessage(`Firma patronal estampada con éxito en "${updated.title}". Sincronizado en tiempo real.`);
-    setTimeout(() => setToastMessage(null), 4000);
+    setFeedback({
+      title: '¡Firma Patronal Guardada con Éxito!',
+      message: `La firma digital institucional fue estampada en "${updated.title}" y respaldada con hash SHA-256 en Supabase.`,
+      type: 'success',
+      autoCloseMs: 3500,
+    });
   };
 
   const handleDelete = (docId: string, title: string) => {
@@ -646,6 +660,12 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         signerRole="admin"
         signerTitle={currentUser.position || 'Directora de Recursos Humanos'}
         onConfirmSignature={handleAdminSignatureSaved}
+      />
+
+      {/* Centered Feedback Notification Modal */}
+      <CenteredFeedbackModal
+        feedback={feedback}
+        onClose={() => setFeedback(null)}
       />
 
     </div>
