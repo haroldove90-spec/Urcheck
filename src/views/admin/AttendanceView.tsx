@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { AttendanceRecord, Branch, Employee, UserProfile } from '../../types';
+import { AttendanceRecord, Branch, Employee, UserProfile, IncidentJustification } from '../../types';
+import { INITIAL_JUSTIFICATIONS } from '../../data/mockData';
 import { CenteredFeedbackModal, FeedbackData } from '../../components/CenteredFeedbackModal';
 import {
   Clock,
@@ -24,7 +25,9 @@ import {
   Sparkles,
   AlertCircle,
   ChevronDown,
-  Trash2
+  Trash2,
+  FileText,
+  Plus
 } from 'lucide-react';
 
 interface AttendanceViewProps {
@@ -56,6 +59,16 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   // Selected records for batch actions
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  // Sub-tabs: Attendance records vs Justifications
+  const [activeViewTab, setActiveViewTab] = useState<'attendance' | 'justifications'>('attendance');
+  const [justificationsList, setJustificationsList] = useState<IncidentJustification[]>(INITIAL_JUSTIFICATIONS);
+  const [showNewJustModal, setShowNewJustModal] = useState(false);
+  const [justEmpId, setJustEmpId] = useState(employees[0]?.id || '');
+  const [justDate, setJustDate] = useState(new Date().toISOString().split('T')[0]);
+  const [justIncidentType, setJustIncidentType] = useState<IncidentJustification['incidentType']>('retardo');
+  const [justCategory, setJustCategory] = useState<IncidentJustification['reasonCategory']>('salud_imss');
+  const [justReason, setJustReason] = useState('');
+
   // Modals
   const [inspectRecord, setInspectRecord] = useState<AttendanceRecord | null>(null);
   const [corroborateRecord, setCorroborateRecord] = useState<AttendanceRecord | null>(null);
@@ -64,6 +77,93 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
 
   // Feedback modal
   const [feedback, setFeedback] = useState<FeedbackData | null>(null);
+
+  // Handlers for Justifications
+  const handleApproveJustification = (id: string) => {
+    setJustificationsList(prev => prev.map(j => {
+      if (j.id === id) {
+        return {
+          ...j,
+          status: 'approved',
+          reviewedBy: currentUser.name,
+          reviewedAt: new Date().toLocaleString('es-MX'),
+          resolutionNotes: 'Aprobado y justificado por Recursos Humanos.',
+        };
+      }
+      return j;
+    }));
+
+    const targetJust = justificationsList.find(j => j.id === id);
+    if (targetJust && targetJust.attendanceRecordId) {
+      const record = attendanceRecords.find(r => r.id === targetJust.attendanceRecordId);
+      if (record) {
+        onUpdateAttendanceRecord({
+          ...record,
+          status: 'on_time',
+          isCorroborated: true,
+          corroboratedBy: currentUser.name,
+          corroboratedAt: new Date().toLocaleString('es-MX'),
+          corroborationNotes: `Incidencia justificada: ${targetJust.reasonDescription}`,
+        });
+      }
+    }
+
+    setFeedback({
+      title: '¡Justificante Aprobado!',
+      message: 'La justificación fue autorizada con éxito. La incidencia queda justificada en el expediente laboral y la pre-nómina.',
+      type: 'success',
+      autoCloseMs: 3500,
+    });
+  };
+
+  const handleRejectJustification = (id: string) => {
+    setJustificationsList(prev => prev.map(j => {
+      if (j.id === id) {
+        return {
+          ...j,
+          status: 'rejected',
+          reviewedBy: currentUser.name,
+          reviewedAt: new Date().toLocaleString('es-MX'),
+          resolutionNotes: 'Rechazado: Comprobante o motivo no procedente.',
+        };
+      }
+      return j;
+    }));
+
+    setFeedback({
+      title: 'Justificante Rechazado',
+      message: 'Se denegó la justificación. La incidencia persiste en el historial.',
+      type: 'warning',
+      autoCloseMs: 3000,
+    });
+  };
+
+  const handleCreateNewJustification = (e: React.FormEvent) => {
+    e.preventDefault();
+    const emp = employees.find(e => e.id === justEmpId);
+    const newEntry: IncidentJustification = {
+      id: `just-${Date.now()}`,
+      employeeId: justEmpId,
+      employeeName: emp?.name || 'Colaborador',
+      employeeCode: emp?.employeeId || 'EMP-000',
+      incidentDate: justDate,
+      incidentType: justIncidentType,
+      reasonCategory: justCategory,
+      reasonDescription: justReason || 'Justificación reportada por colaborador',
+      attachmentName: 'comprobante_oficial.pdf',
+      status: 'pending',
+      createdAt: new Date().toLocaleString('es-MX'),
+    };
+    setJustificationsList(prev => [newEntry, ...prev]);
+    setShowNewJustModal(false);
+    setJustReason('');
+    setFeedback({
+      title: 'Justificante Registrado',
+      message: 'Se ha registrado la solicitud de justificante para validación de RRHH.',
+      type: 'success',
+      autoCloseMs: 3000,
+    });
+  };
 
   // Filtered attendance records
   const filteredRecords = useMemo(() => {
@@ -246,7 +346,57 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
         </div>
       </div>
 
-      {/* Metric Dashboard Cards */}
+      {/* Sub-navigation tabs: Attendance records vs Justifications */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveViewTab('attendance')}
+            type="button"
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
+              activeViewTab === 'attendance'
+                ? 'bg-[#0A3142] text-white shadow-xs'
+                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Marcajes Biométricos ({attendanceRecords.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveViewTab('justifications')}
+            type="button"
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-2 ${
+              activeViewTab === 'justifications'
+                ? 'bg-[#0A3142] text-white shadow-xs'
+                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Justificación de Incidencias</span>
+            {justificationsList.filter(j => j.status === 'pending').length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                {justificationsList.filter(j => j.status === 'pending').length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeViewTab === 'justifications' && (
+          <button
+            type="button"
+            onClick={() => setShowNewJustModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#0871A0] hover:bg-[#065a80] text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nueva Justificación</span>
+          </button>
+        )}
+      </div>
+
+      {/* VIEW 1: Marcajes Biométricos */}
+      {activeViewTab === 'attendance' && (
+        <>
+          {/* Metric Dashboard Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
           <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block mb-1">
@@ -677,6 +827,276 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
           </table>
         </div>
       </div>
+      </>
+      )}
+
+      {/* VIEW 2: Módulo de Justificación de Incidencias (Retardos y Faltas) */}
+      {activeViewTab === 'justifications' && (
+        <div className="space-y-6">
+          {/* 2-Column Mobile Metrics */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 block mb-1">
+                Total Justificaciones
+              </span>
+              <span className="text-2xl font-black text-[#0A3142]">
+                {justificationsList.length}
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5">Histórico acumulado</span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 block mb-1">
+                Pendientes de Revisión
+              </span>
+              <span className="text-2xl font-black text-amber-600">
+                {justificationsList.filter(j => j.status === 'pending').length}
+              </span>
+              <span className="text-[10px] text-amber-700/80 block mt-0.5">Requieren dictamen</span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#138128] block mb-1">
+                Aprobadas por RRHH
+              </span>
+              <span className="text-2xl font-black text-[#138128]">
+                {justificationsList.filter(j => j.status === 'approved').length}
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5">Sin descuento en nómina</span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 block mb-1">
+                Rechazadas / Improcedentes
+              </span>
+              <span className="text-2xl font-black text-rose-600">
+                {justificationsList.filter(j => j.status === 'rejected').length}
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5">Con deducción aplicada</span>
+            </div>
+          </div>
+
+          {/* Justifications List Table */}
+          <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-neutral-200 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-[#0A3142] text-base">
+                  Bandeja de Justificantes Laborales
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Valida certificados médicos de IMSS, incidencias de transporte o emergencias reportadas.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-neutral-700">
+                <thead className="bg-neutral-50 border-b border-neutral-200 text-neutral-500 font-bold uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4">Colaborador</th>
+                    <th className="py-3 px-4">Fecha Incidencia</th>
+                    <th className="py-3 px-4">Tipo Incidencia</th>
+                    <th className="py-3 px-4">Categoría y Motivo</th>
+                    <th className="py-3 px-4">Comprobante</th>
+                    <th className="py-3 px-4">Estatus</th>
+                    <th className="py-3 px-4 text-right">Dictamen RRHH</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-200">
+                  {justificationsList.map((just) => (
+                    <tr key={just.id} className="hover:bg-neutral-50/70 transition">
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-neutral-900 block">{just.employeeName}</span>
+                        <span className="text-[11px] font-mono text-neutral-500">{just.employeeCode}</span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-medium text-neutral-800">
+                        {just.incidentDate}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                          just.incidentType === 'retardo'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}>
+                          {just.incidentType === 'retardo' ? 'Retardo' : 'Falta Injustificada'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 max-w-xs">
+                        <span className="text-xs font-bold text-[#0A3142] block capitalize">
+                          {just.reasonCategory.replace('_', ' ')}
+                        </span>
+                        <p className="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">
+                          {just.reasonDescription}
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {just.attachmentName ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[#0871A0] bg-[#0871A0]/10 px-2 py-0.5 rounded-md">
+                            <FileText className="w-3 h-3" />
+                            {just.attachmentName}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-neutral-400 italic">Sin comprobante</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {just.status === 'pending' && (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1 w-fit">
+                            <Clock className="w-3 h-3" /> En Revisión
+                          </span>
+                        )}
+                        {just.status === 'approved' && (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 w-fit">
+                            <CheckCircle2 className="w-3 h-3" /> Justificado
+                          </span>
+                        )}
+                        {just.status === 'rejected' && (
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 flex items-center gap-1 w-fit">
+                            <X className="w-3 h-3" /> Rechazado
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        {just.status === 'pending' ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleApproveJustification(just.id)}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 transition cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Aprobar</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRejectJustification(just.id)}
+                              className="px-3 py-1.5 rounded-lg border border-neutral-300 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 text-neutral-600 font-bold text-xs flex items-center gap-1 transition cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              <span>Rechazar</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-neutral-500 text-right">
+                            <span className="font-bold block text-neutral-700">{just.reviewedBy}</span>
+                            <span>{just.reviewedAt}</span>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Nueva Justificación */}
+      {showNewJustModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#0871A0]" />
+                <h3 className="font-bold text-[#0A3142] text-base">
+                  Registrar Justificante Laboral
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNewJustModal(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNewJustification} className="space-y-3.5 text-xs">
+              <div>
+                <label className="font-bold text-neutral-700 block mb-1">Colaborador:</label>
+                <select
+                  value={justEmpId}
+                  onChange={(e) => setJustEmpId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:border-[#0871A0] focus:outline-none"
+                >
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} ({emp.employeeId})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-neutral-700 block mb-1">Fecha Incidencia:</label>
+                  <input
+                    type="date"
+                    value={justDate}
+                    onChange={(e) => setJustDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:border-[#0871A0] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-neutral-700 block mb-1">Tipo Incidencia:</label>
+                  <select
+                    value={justIncidentType}
+                    onChange={(e) => setJustIncidentType(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:border-[#0871A0] focus:outline-none"
+                  >
+                    <option value="retardo">Retardo</option>
+                    <option value="falta_injustificada">Falta Injustificada</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-neutral-700 block mb-1">Categoría Motivo:</label>
+                <select
+                  value={justCategory}
+                  onChange={(e) => setJustCategory(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:border-[#0871A0] focus:outline-none"
+                >
+                  <option value="salud_imss">Incapacidad / Cita Médica IMSS</option>
+                  <option value="transporte_vialidad">Falla Mecánica / Tráfico Mayor</option>
+                  <option value="fuerza_mayor">Fuerza Mayor / Familiar</option>
+                  <option value="tramite_oficial">Trámite Oficial (INE, SAT, Jurídico)</option>
+                  <option value="otro">Otro Motivo</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-bold text-neutral-700 block mb-1">Explicación / Causa:</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Detalla el motivo y número de folio o comprobante..."
+                  value={justReason}
+                  onChange={(e) => setJustReason(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:border-[#0871A0] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200">
+                <button
+                  type="button"
+                  onClick={() => setShowNewJustModal(false)}
+                  className="px-4 py-2 rounded-xl border border-neutral-300 font-bold text-neutral-600 hover:bg-neutral-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#0871A0] hover:bg-[#065a80] text-white font-bold"
+                >
+                  Guardar Justificante
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal 1: Corroborate / Validate Attendance Record */}
       {corroborateRecord && (

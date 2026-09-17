@@ -9,6 +9,11 @@ import {
   CheckCircle2, 
   Database,
   RefreshCw,
+  Bell,
+  AlertTriangle,
+  Clock,
+  ShieldAlert,
+  X
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -35,6 +40,41 @@ export const Header: React.FC<HeaderProps> = ({
   const [showSupabaseModal, setShowSupabaseModal] = useState(false);
   const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
 
+  // Absenteeism & Operational Alerts
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [alerts, setAlerts] = useState([
+    {
+      id: 'al-1',
+      title: 'Ausentismo Crítico Detectado',
+      message: 'Carlos Ramírez Morales ha acumulado 2 faltas consecutivas no justifcadas en Sede Central.',
+      severity: 'critical' as const,
+      timestamp: 'Hoy 09:30 AM',
+      unread: true,
+    },
+    {
+      id: 'al-2',
+      title: 'Reiteración de Retardos',
+      message: 'Ana Luisa Gómez registra 3 retardos en la presente catorcena. Se recomienda apercibimiento.',
+      severity: 'warning' as const,
+      timestamp: 'Hoy 08:45 AM',
+      unread: true,
+    },
+    {
+      id: 'al-3',
+      title: 'Justificante Médico Recibido',
+      message: 'Roberto Méndez adjuntó certificado de incapacidad IMSS (Folio ST-4921).',
+      severity: 'info' as const,
+      timestamp: 'Ayer 17:10 PM',
+      unread: false,
+    },
+  ]);
+
+  const unreadAlertsCount = alerts.filter(a => a.unread).length;
+
+  const handleMarkAllRead = () => {
+    setAlerts(prev => prev.map(a => ({ ...a, unread: false })));
+  };
+
   const handleInstallClick = async () => {
     if (isInstallable) {
       const outcome = await install();
@@ -52,90 +92,168 @@ export const Header: React.FC<HeaderProps> = ({
       id="main-institutional-header"
       className="sticky top-0 z-30 bg-white border-b border-neutral-200 shadow-xs"
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 gap-2">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-13 sm:h-16 md:h-18 gap-1.5 sm:gap-3">
           
-          {/* System Logo: Urcheck - Real-size, unencapsulated, pristine aspect ratio */}
+          {/* System Logo: Urcheck - Optimized responsive size */}
           <div className="flex items-center shrink-0 py-1">
             <img 
               id="header-urcheck-logo"
               src="https://ljymwaifrkaedgmpdpwv.supabase.co/storage/v1/object/public/logo/urchecklogo.png" 
               alt="Urcheck" 
-              className="h-8 sm:h-9 md:h-10 w-auto max-w-[180px] sm:max-w-[240px] object-contain cursor-pointer"
+              className="h-6 sm:h-8 md:h-9 w-auto max-w-[105px] xs:max-w-[125px] sm:max-w-[220px] object-contain cursor-pointer"
               referrerPolicy="no-referrer"
             />
           </div>
 
-          {/* Right Actions: Role identification, Install button, Logout */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3 shrink-0">
+          {/* Right Actions: Compact & ultra-responsive layout */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-2.5 shrink-0">
             
             {/* Active Role Identification Badge */}
             <div 
               id="active-role-badge"
               title={`${currentUser.name} (${currentUser.roleName})`}
-              className="flex items-center gap-1.5 sm:gap-2.5 px-1.5 sm:px-3 py-1 rounded-full bg-[#093244]/5 border border-[#069AD8]/20 max-w-[150px] sm:max-w-[220px] md:max-w-none"
+              className="flex items-center gap-1 sm:gap-2 p-1 sm:px-2.5 sm:py-1 rounded-full bg-[#093244]/5 border border-[#069AD8]/20 shrink-0"
             >
               <div className="relative shrink-0">
                 <img 
                   src={currentUser.avatar} 
                   alt={currentUser.name} 
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#069AD8] shadow-2xs"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#069AD8] shadow-2xs"
                 />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#1F832D] border-2 border-white" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#1F832D] border-2 border-white" />
               </div>
-              <div className="hidden xs:flex flex-col text-left min-w-0">
+              <div className="hidden sm:flex flex-col text-left min-w-0 max-w-[110px] md:max-w-[160px]">
                 <span className="text-xs sm:text-sm font-bold text-[#093244] leading-tight truncate">
                   {currentUser.name.split(' ').slice(0, 2).join(' ')}
                 </span>
-                <span className="text-[9px] sm:text-[10px] md:text-[11px] font-semibold text-[#069AD8] leading-none truncate">
+                <span className="text-[9px] sm:text-[10px] font-semibold text-[#069AD8] leading-none truncate">
                   {currentUser.role === 'admin' ? 'Administrador' : 'Empleado'}
                 </span>
               </div>
             </div>
 
-            {/* Supabase Realtime Database Test Button - Always visible to verify connection */}
+            {/* Absenteeism & Incidents Notifications Bell */}
+            <div className="relative">
+              <button
+                id="btn-alerts-bell"
+                type="button"
+                onClick={() => setShowNotifications(prev => !prev)}
+                className="relative inline-flex items-center justify-center p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-neutral-100 hover:bg-neutral-200 active:scale-95 border border-neutral-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+                title="Alertas de Ausentismo y Avisos Operativos"
+              >
+                <Bell className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />
+                {unreadAlertsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                    {unreadAlertsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown panel */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+                    <div className="flex items-center gap-1.5">
+                      <ShieldAlert className="w-4 h-4 text-[#069AD8]" />
+                      <span className="font-bold text-xs text-[#093244]">Alertas de Ausentismo</span>
+                      {unreadAlertsCount > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black">
+                          {unreadAlertsCount} nuevas
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {unreadAlertsCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleMarkAllRead}
+                          className="text-[10px] font-semibold text-[#069AD8] hover:underline cursor-pointer"
+                        >
+                          Marcar leídas
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowNotifications(false)}
+                        className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-400 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {alerts.map(a => (
+                      <div
+                        key={a.id}
+                        className={`p-2.5 rounded-xl border text-xs transition ${
+                          a.unread
+                            ? 'bg-amber-50/50 border-amber-200'
+                            : 'bg-neutral-50/60 border-neutral-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-1.5 font-bold text-neutral-900 text-[11px]">
+                            {a.severity === 'critical' && <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />}
+                            {a.severity === 'warning' && <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                            {a.severity === 'info' && <CheckCircle2 className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />}
+                            <span>{a.title}</span>
+                          </div>
+                          <span className="text-[9px] text-neutral-400 font-mono shrink-0">{a.timestamp}</span>
+                        </div>
+                        <p className="text-[11px] text-neutral-600 mt-1 leading-snug">{a.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Supabase Realtime Database Test Button */}
             <button
               id="btn-test-supabase-header"
               onClick={() => setShowSupabaseModal(true)}
               type="button"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-[#093244] bg-emerald-50 hover:bg-emerald-100/80 active:scale-95 border border-emerald-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-[#093244] bg-emerald-50 hover:bg-emerald-100/80 active:scale-95 border border-emerald-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
               title="Probar conexión en vivo con Supabase Database"
             >
-              <Database className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="hidden sm:inline text-neutral-700">Supabase</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider">
+              <div className="relative flex items-center justify-center">
+                <Database className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <span className="hidden md:inline text-neutral-700">Supabase</span>
+              <span className="hidden sm:inline-block px-1 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-extrabold uppercase tracking-wider">
                 Test
               </span>
             </button>
 
-            {/* Quick Manual Sync Button to refresh database state immediately */}
+            {/* Quick Manual Sync Button */}
             {onRefreshFromSupabase && (
               <button
                 id="btn-sync-supabase-header"
                 onClick={onRefreshFromSupabase}
                 type="button"
                 disabled={isRefreshing}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-[#093244] bg-sky-50 hover:bg-sky-100 active:scale-95 border border-sky-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-sky-50 hover:bg-sky-100 active:scale-95 border border-sky-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-60"
                 title={lastSyncTime ? `Última sincronización con Supabase: ${lastSyncTime}. Clic para refrescar datos ahora.` : 'Sincronizar datos con Supabase'}
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#069AD8] shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline text-neutral-700 font-medium">Sincronizar</span>
+                <span className="hidden lg:inline text-neutral-700 font-medium">Sincronizar</span>
               </button>
             )}
 
-            {/* Quick App Install Button - Always accessible and visible */}
+            {/* Quick App Install Button */}
             {!isInstalled && (
               <button
                 id="btn-pwa-install"
                 onClick={handleInstallClick}
                 type="button"
-                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0 border border-[#069AD8]/40"
+                className="inline-flex items-center justify-center gap-1 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0 border border-[#069AD8]/40"
                 title="Instalar Urcheck directamente en tu dispositivo como App móvil"
               >
-                <DownloadCloud className="w-4 h-4 text-[#069AD8] group-hover:text-white shrink-0 animate-pulse" />
-                <span className="hidden sm:inline">Instalar App</span>
-                <span className="sm:hidden text-[11px]">Instalar</span>
+                <DownloadCloud className="w-3.5 h-3.5 text-[#069AD8] group-hover:text-white shrink-0 animate-pulse" />
+                <span className="hidden sm:inline text-xs">Instalar</span>
               </button>
             )}
 
@@ -144,10 +262,10 @@ export const Header: React.FC<HeaderProps> = ({
               id="btn-logout"
               onClick={onLogout}
               type="button"
-              className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-medium text-neutral-700 hover:text-[#093244] bg-white hover:bg-neutral-100 border border-neutral-300 rounded-xl transition-colors cursor-pointer shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-neutral-700 hover:text-[#093244] bg-white hover:bg-neutral-100 border border-neutral-300 rounded-xl transition-colors cursor-pointer shrink-0"
               title="Cerrar sesión o cambiar de rol"
             >
-              <LogOut className="w-4 h-4 text-[#069AD8] shrink-0" />
+              <LogOut className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />
               <span className="hidden lg:inline">Salir</span>
             </button>
           </div>

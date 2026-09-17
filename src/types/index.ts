@@ -5,6 +5,8 @@ export type UserRole =
 export type AdminModule = 
   | 'dashboard'
   | 'attendance'
+  | 'payroll'
+  | 'shifts'
   | 'employees'
   | 'branches'
   | 'leaves'
@@ -12,6 +14,7 @@ export type AdminModule =
   | 'reports'
   | 'users'
   | 'documents'
+  | 'audit'
   | 'manual'
   | 'settings';
 
@@ -230,4 +233,84 @@ export interface AppNotification {
   read: boolean;
   actionModule?: EmployeeModule;
 }
+
+export interface Shift {
+  id: string;
+  name: string;
+  code: string;
+  type: 'matutino' | 'vespertino' | 'nocturno' | 'mixto' | 'operativo_12x24' | 'administrativo';
+  startTime: string; // e.g. "08:00"
+  endTime: string;   // e.g. "17:00"
+  lunchBreakMinutes: number;
+  toleranceMinutes: number;
+  workingDays: string[]; // ['Lun', 'Mar', 'Mie', 'Jue', 'Vie']
+  assignedEmployeesCount: number;
+  description: string;
+  color: string;
+}
+
+export interface IncidentJustification {
+  id: string;
+  attendanceRecordId?: string;
+  employeeId: string;
+  employeeName: string;
+  employeeCode?: string;
+  incidentType: 'retardo' | 'falta' | 'salida_anticipada' | 'falta_injustificada';
+  date?: string;
+  incidentDate?: string;
+  reasonCategory: 'salud_imss' | 'transporte' | 'transporte_vialidad' | 'tramite_oficial' | 'familiar' | 'fuerza_mayor' | 'otro';
+  reasonDescription: string;
+  attachmentName?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt?: string;
+  createdAt?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  resolutionNotes?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actorId: string;
+  actorName: string;
+  actorRole: UserRole;
+  action: string;
+  module: string;
+  details: string;
+  ipAddress?: string;
+  severity: 'info' | 'warning' | 'success' | 'critical';
+}
+
+export interface OfficialHoliday {
+  id: string;
+  date: string; // YYYY-MM-DD
+  name: string;
+  isStatutoryLFT: boolean; // Obligatorio por Ley Federal del Trabajo
+  multiplierRate: number; // 2x or 3x
+}
+
+export interface PayrollRecord {
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  position: string;
+  department: string;
+  dailyRate: number;
+  hourlyRate: number;
+  workedDays: number;
+  expectedDays: number;
+  overtimeHours: number;
+  overtimePay: number;
+  lateOccurrences: number;
+  lateMinutes: number;
+  lateDeduction: number;
+  unexcusedAbsences: number;
+  excusedAbsences: number;
+  absenceDeduction: number;
+  grossPay: number;
+  netPay: number;
+  status: 'audit_ok' | 'has_incidents' | 'paid';
+}
+
 

@@ -82,6 +82,45 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('es-MX'));
 
+  // Unattended Kiosk Mode State (Tablet Reception / Wall mount)
+  const [isKioskMode, setIsKioskMode] = useState(false);
+  const [showKioskPinModal, setShowKioskPinModal] = useState(false);
+  const [kioskPinInput, setKioskPinInput] = useState('');
+  const [kioskPinError, setKioskPinError] = useState<string | null>(null);
+  const [kioskCountdown, setKioskCountdown] = useState<number | null>(null);
+
+  // Kiosk auto-reset effect after punch
+  useEffect(() => {
+    if (!isKioskMode || !recentVoucher) {
+      setKioskCountdown(null);
+      return;
+    }
+    setKioskCountdown(5);
+    const interval = setInterval(() => {
+      setKioskCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          setRecentVoucher(null);
+          setCapturedSelfie(null);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isKioskMode, recentVoucher]);
+
+  const handleUnlockKiosk = () => {
+    if (kioskPinInput === '1234') {
+      setIsKioskMode(false);
+      setShowKioskPinModal(false);
+      setKioskPinInput('');
+      setKioskPinError(null);
+    } else {
+      setKioskPinError('PIN incorrecto. (PIN demo: 1234)');
+    }
+  };
+
   // Live clock
   useEffect(() => {
     const timer = setInterval(() => {
@@ -613,6 +652,35 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
         onChange={handleDevicePhotoUpload}
       />
 
+      {/* Kiosk Mode Top Floating Notice Bar (if active) */}
+      {isKioskMode && (
+        <div className="bg-[#093244] text-white px-4 py-2.5 rounded-2xl flex items-center justify-between shadow-lg border border-[#069AD8]/40 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div>
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block">
+                Modo Kiosco Desatendido Activo (Tablet / Pared)
+              </span>
+              <span className="text-[11px] text-neutral-300">
+                La terminal se reinicia automáticamente tras cada marcaje para el siguiente colaborador.
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setKioskPinInput('');
+              setKioskPinError(null);
+              setShowKioskPinModal(true);
+            }}
+            type="button"
+            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition cursor-pointer border border-white/20 shrink-0"
+          >
+            Salir de Kiosco (PIN)
+          </button>
+        </div>
+      )}
+
       {/* Live Biometric Clock & Server Time Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div>
@@ -628,13 +696,27 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
           </p>
         </div>
 
-        <div className="bg-[#093244] text-white px-5 py-3 rounded-2xl border border-[#093244] shadow-md text-center">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-300 block">
-            Hora Oficial Servidor
-          </span>
-          <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider text-emerald-400">
-            {currentTime}
-          </span>
+        <div className="flex items-center gap-3">
+          {!isKioskMode && (
+            <button
+              onClick={() => setIsKioskMode(true)}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#093244] bg-neutral-100 hover:bg-neutral-200 rounded-xl transition cursor-pointer"
+              title="Activar modo Kiosco para dejar una tablet fija en la entrada"
+            >
+              <Maximize2 className="w-3.5 h-3.5 text-[#069AD8]" />
+              <span className="hidden sm:inline">Modo Kiosco</span>
+            </button>
+          )}
+
+          <div className="bg-[#093244] text-white px-5 py-3 rounded-2xl border border-[#093244] shadow-md text-center shrink-0">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-300 block">
+              Hora Oficial Servidor
+            </span>
+            <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider text-emerald-400">
+              {currentTime}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1327,6 +1409,29 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       {/* Digital Receipt / Comprobante Inmediato con Selfie Capturada */}
       {recentVoucher && (
         <div className="bg-white rounded-2xl border-2 border-[#1F832D] p-6 shadow-md animate-in fade-in">
+          {/* Kiosk countdown auto-reset banner */}
+          {isKioskMode && kioskCountdown !== null && (
+            <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                <Clock className="w-4 h-4 animate-spin text-emerald-600" />
+                <span>
+                  Modo Kiosco: Preparando terminal para el siguiente colaborador en{' '}
+                  <span className="font-mono text-base font-black text-[#093244]">{kioskCountdown}s</span>...
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecentVoucher(null);
+                  setCapturedSelfie(null);
+                }}
+                className="px-3 py-1 bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold rounded-lg transition cursor-pointer"
+              >
+                Siguiente Marcaje Ahora →
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-4 border-b border-neutral-200 gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-[#1F832D]/10 text-[#1F832D] flex items-center justify-center shrink-0">
@@ -1620,6 +1725,60 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                 className="mt-4 w-full py-2.5 rounded-xl bg-[#093244] text-white font-bold text-xs hover:bg-[#082735] transition cursor-pointer"
               >
                 Cerrar Visualización
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Supervisor PIN Modal to Exit Kiosk Mode */}
+      {showKioskPinModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-[#093244]/10 text-[#093244] flex items-center justify-center mx-auto">
+              <KeyRound className="w-6 h-6 text-[#069AD8]" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#093244]">
+                Desactivar Modo Kiosco
+              </h3>
+              <p className="text-xs text-neutral-500 mt-1">
+                Ingresa el PIN de seguridad del supervisor (PIN de demostración: <span className="font-mono font-bold text-[#093244]">1234</span>)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <input
+                type="password"
+                maxLength={6}
+                autoFocus
+                placeholder="PIN"
+                value={kioskPinInput}
+                onChange={(e) => setKioskPinInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleUnlockKiosk();
+                }}
+                className="w-full text-center tracking-widest text-2xl font-mono py-2.5 px-4 rounded-xl border-2 border-neutral-300 focus:border-[#069AD8] focus:outline-none"
+              />
+              {kioskPinError && (
+                <p className="text-xs text-rose-600 font-semibold">{kioskPinError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowKioskPinModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-neutral-300 text-xs font-bold text-neutral-700 hover:bg-neutral-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleUnlockKiosk}
+                className="flex-1 py-2.5 rounded-xl bg-[#093244] text-white text-xs font-bold hover:bg-[#082735]"
+              >
+                Desbloquear
               </button>
             </div>
           </div>

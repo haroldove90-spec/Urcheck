@@ -19,7 +19,10 @@ import {
   Smartphone, 
   Sparkles, 
   AlertCircle,
-  X
+  X,
+  Printer,
+  Building2,
+  QrCode
 } from 'lucide-react';
 import { DigitalSignatureModal } from '../../components/DigitalSignatureModal';
 import { DocumentViewerModal } from '../../components/DocumentViewerModal';
@@ -52,6 +55,7 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({
   const [signingDoc, setSigningDoc] = useState<CompanyDocument | null>(null);
   const [activeUploadDocId, setActiveUploadDocId] = useState<string | null>(null);
   const [toastFeedback, setToastFeedback] = useState<string | null>(null);
+  const [showConstanciaModal, setShowConstanciaModal] = useState(false);
 
   // Filter company documents targeted to this employee or to 'all'
   const myCompanyDocs = companyDocuments.filter(doc => 
@@ -130,19 +134,31 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({
           </p>
         </div>
 
-        {/* Mobile & Signatures Counter */}
-        <div className="bg-[#0A3142] text-white p-4 rounded-2xl border border-[#0A3142] flex items-center gap-4 shrink-0 shadow-xs">
-          <div className="text-center">
-            <span className="text-[10px] text-neutral-300 uppercase font-bold block">
-              Firmados
-            </span>
-            <span className="text-2xl font-black text-emerald-400">
-              {signedContractsCount}/{myCompanyDocs.length}
-            </span>
-          </div>
-          <div className="text-xs text-neutral-200 border-l border-white/20 pl-3 leading-tight">
-            <span className="block font-semibold">Sincronizado con RRHH</span>
-            <span className="text-[11px] text-neutral-300">Firma táctil móvil activa</span>
+        {/* Mobile & Signatures Counter & Action */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          <button
+            onClick={() => setShowConstanciaModal(true)}
+            type="button"
+            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white hover:bg-neutral-50 text-[#0A3142] border-2 border-[#0871A0]/40 shadow-xs font-bold text-xs sm:text-sm transition active:scale-95 cursor-pointer"
+            title="Generar constancia laboral oficial con membrete y sello digital"
+          >
+            <FileText className="w-4 h-4 text-[#0871A0]" />
+            <span>Generar Constancia Laboral</span>
+          </button>
+
+          <div className="bg-[#0A3142] text-white p-4 rounded-2xl border border-[#0A3142] flex items-center gap-4 shrink-0 shadow-xs">
+            <div className="text-center">
+              <span className="text-[10px] text-neutral-300 uppercase font-bold block">
+                Firmados
+              </span>
+              <span className="text-2xl font-black text-emerald-400">
+                {signedContractsCount}/{myCompanyDocs.length}
+              </span>
+            </div>
+            <div className="text-xs text-neutral-200 border-l border-white/20 pl-3 leading-tight">
+              <span className="block font-semibold">Sincronizado con RRHH</span>
+              <span className="text-[11px] text-neutral-300">Firma táctil móvil activa</span>
+            </div>
           </div>
         </div>
       </div>
@@ -521,6 +537,158 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({
         signerTitle={currentUser.position || 'Colaborador'}
         onConfirmSignature={handleEmployeeSignatureSaved}
       />
+
+      {/* Official Certified Constancia Laboral / Carta Patronal Modal */}
+      {showConstanciaModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto animate-in fade-in zoom-in-95">
+            
+            {/* Modal Controls Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-neutral-200">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#0871A0]">
+                <ShieldCheck className="w-4 h-4" />
+                <span>Documento Oficial Certificado con Validez Legal</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 rounded-xl border border-neutral-300 text-xs font-bold text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5 text-[#0871A0]" />
+                  <span>Imprimir / PDF</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConstanciaModal(false)}
+                  className="p-1 rounded-xl text-neutral-400 hover:text-neutral-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Official Printed Document Paper Letterhead */}
+            <div className="border border-neutral-200 p-6 sm:p-8 rounded-2xl bg-neutral-50/40 text-neutral-800 space-y-6 font-serif">
+              
+              {/* Company Letterhead */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-300 pb-4 font-sans">
+                <div>
+                  <h3 className="text-base font-black text-[#0A3142] tracking-wide uppercase">
+                    Grupo Industrial y Tecnológico Mexicano S.A. de C.V.
+                  </h3>
+                  <p className="text-[11px] text-neutral-500 font-mono mt-0.5">
+                    RFC: GIT980415-K44 • Reg. Patronal IMSS: Y58-39201-10-8
+                  </p>
+                  <p className="text-[11px] text-neutral-500">
+                    Paseo de la Reforma No. 412, Piso 18, Col. Juárez, Cuauhtémoc, CDMX
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-bold text-[#0871A0] block font-mono">
+                    FOLIO: CONST-2026-094
+                  </span>
+                  <span className="text-[11px] text-neutral-500 block">
+                    Ciudad de México, {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="font-sans">
+                <span className="text-xs font-black tracking-wider text-neutral-900 uppercase block">
+                  ASUNTO: CONSTANCIA LABORAL Y CARTA PATRONAL
+                </span>
+                <span className="text-xs font-bold text-neutral-600 block mt-1">
+                  A QUIEN CORRESPONDA:
+                </span>
+              </div>
+
+              {/* Main Body */}
+              <div className="text-xs sm:text-sm text-neutral-700 leading-relaxed text-justify space-y-3 font-sans">
+                <p>
+                  Por medio de la presente, la Dirección de Capital Humano de <span className="font-bold text-[#0A3142]">Grupo Industrial y Tecnológico Mexicano S.A. de C.V.</span> hace constar que el(la) C. <span className="font-bold text-[#0A3142] uppercase">{currentUser.name}</span>, con número de empleado <span className="font-mono font-bold text-neutral-900">{currentUser.employeeId || 'EMP-7742'}</span>, labora en nuestra organización desempeñando el puesto de:
+                </p>
+
+                <div className="p-3 rounded-xl bg-white border border-neutral-200 text-xs font-sans grid grid-cols-2 gap-2 my-2">
+                  <div>
+                    <span className="text-neutral-500 block">Puesto / Función:</span>
+                    <span className="font-bold text-[#0A3142]">{currentUser.position || 'Especialista de Operaciones'}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block">Departamento:</span>
+                    <span className="font-bold text-neutral-900">{currentUser.department || 'Operaciones'}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block">Fecha de Ingreso:</span>
+                    <span className="font-bold text-neutral-900 font-mono">15 de Enero de 2023</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-500 block">Tipo de Contrato:</span>
+                    <span className="font-bold text-emerald-700">Por Tiempo Indeterminado (Planta)</span>
+                  </div>
+                </div>
+
+                <p>
+                  Se expide la presente constancia a petición de la parte interesada para los fines legales, bancarios o trámites personales que al interesado(a) convengan, en la Ciudad de México.
+                </p>
+              </div>
+
+              {/* Digital Signatures & QR Code Stamp */}
+              <div className="pt-4 border-t border-neutral-300 flex flex-col sm:flex-row items-center justify-between gap-6 font-sans">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 bg-white border border-neutral-300 rounded-xl p-1.5 flex items-center justify-center shrink-0 shadow-2xs">
+                    <QrCode className="w-full h-full text-[#0A3142]" />
+                  </div>
+                  <div className="text-[10px] text-neutral-500 font-mono leading-tight">
+                    <span className="font-bold text-emerald-700 block mb-0.5">SELLO DIGITAL DE VALIDEZ</span>
+                    <span>HASH: SHA256: 7f8a...390e</span>
+                    <span className="block mt-0.5">TIMBRADO: {new Date().toISOString()}</span>
+                    <span>Verificable en urcheck.mx/verify</span>
+                  </div>
+                </div>
+
+                <div className="text-center font-sans">
+                  <div className="w-44 border-b border-neutral-400 pb-1 mx-auto">
+                    <span className="font-serif italic font-bold text-neutral-600 text-xs block">
+                      Fernanda Soto Vargas
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-[#0A3142] block mt-1">
+                    Lic. Fernanda Soto Vargas
+                  </span>
+                  <span className="text-[10px] text-neutral-500 block">
+                    Directora General de Capital Humano
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConstanciaModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-neutral-300 text-xs font-bold text-neutral-600 hover:bg-neutral-100"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.print();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-[#0A3142] text-white text-xs font-bold hover:bg-[#082735] flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Download className="w-4 h-4" />
+                <span>Descargar Constancia Oficial</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
