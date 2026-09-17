@@ -61,35 +61,35 @@ export const OvertimeView: React.FC<OvertimeViewProps> = ({
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
+      {/* KPI Cards - 2 Columns on Mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
             Horas Pendientes
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-600">{totalHoursPending} hrs</span>
-            <span className="text-xs text-neutral-500">({pending.length} registros)</span>
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-amber-600">{totalHoursPending} hrs</span>
+            <span className="text-[11px] sm:text-xs text-neutral-500">({pending.length})</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
-            Horas Aprobadas para Nómina
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Horas Aprobadas
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#138128]">{totalHoursApproved} hrs</span>
-            <span className="text-xs text-neutral-500">({approved.length} validadas)</span>
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#138128]">{totalHoursApproved} hrs</span>
+            <span className="text-[11px] sm:text-xs text-neutral-500">({approved.length})</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
+        <div className="col-span-2 sm:col-span-1 bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
             Total a Dispersar (MXN)
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#0A3142]">${totalPayrollCost.toLocaleString('es-MX')}</span>
-            <span className="text-xs font-semibold text-[#138128]">Tarifa Ley x2.0</span>
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-[#0A3142]">${totalPayrollCost.toLocaleString('es-MX')}</span>
+            <span className="text-[11px] sm:text-xs font-bold text-[#138128]">Tarifa Ley x2.0</span>
           </div>
         </div>
       </div>

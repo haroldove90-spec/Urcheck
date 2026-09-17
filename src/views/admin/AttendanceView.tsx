@@ -446,8 +446,8 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
 
       {/* Attendance Records Table */}
       <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left text-xs sm:text-sm whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="bg-neutral-50 border-b border-neutral-200 text-neutral-500 font-bold uppercase text-[10px] sm:text-[11px]">
                 <th className="py-3 px-3 w-10 text-center">

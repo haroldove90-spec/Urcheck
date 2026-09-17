@@ -214,8 +214,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
 
         {/* Report Sample Data */}
-        <div className="mt-5 overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="mt-5 overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left text-xs whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="bg-neutral-100 text-neutral-700 font-bold uppercase text-[10px] border-b border-neutral-300">
                 <th className="py-2.5 px-3">Código</th>

@@ -17,6 +17,7 @@ import {
   LogOut,
   UserCheck,
   BookOpen,
+  Bell,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +30,7 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   pendingLeavesCount?: number;
   pendingOvertimeCount?: number;
+  unreadNotificationsCount?: number;
   onLogout: () => void;
 }
 
@@ -42,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   pendingLeavesCount = 0,
   pendingOvertimeCount = 0,
+  unreadNotificationsCount = 0,
   onLogout,
 }) => {
   const isAdmin = role === 'admin';
@@ -60,8 +63,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  const employeeNavItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  const employeeNavItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje Biométrico', icon: Fingerprint },
+    { id: 'notifications', label: 'Notificaciones', icon: Bell, badge: unreadNotificationsCount },
     { id: 'leaves', label: 'Permisos y Vacaciones', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente / Docs', icon: FileText },
     { id: 'overtime', label: 'Horas extra', icon: Clock },
@@ -143,6 +147,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#069AD8]' : 'text-neutral-500'}`} />
                 {!isCollapsed && (
                   <span className="truncate flex-1 text-left">{item.label}</span>
+                )}
+                {!isCollapsed && Boolean(item.badge && item.badge > 0) && (
+                  <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-[#1F832D] text-white">
+                    {item.badge}
+                  </span>
                 )}
               </button>
             );

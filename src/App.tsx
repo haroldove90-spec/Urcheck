@@ -11,7 +11,8 @@ import {
   OvertimeRecord, 
   SystemSettings,
   CompanyDocument,
-  DigitalSignature
+  DigitalSignature,
+  AppNotification
 } from './types';
 import { 
   INITIAL_PROFILES, 
@@ -23,6 +24,7 @@ import {
   INITIAL_SETTINGS 
 } from './data/mockData';
 import { INITIAL_COMPANY_DOCUMENTS } from './utils/documentUtils';
+import { playSystemNotificationSound } from './utils/audioSystem';
 
 // Layout Components
 import { RoleSelector } from './components/RoleSelector';
@@ -72,6 +74,7 @@ import {
 
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
+import { EmployeeNotificationsView } from './views/employee/EmployeeNotificationsView';
 import { MyLeavesView } from './views/employee/MyLeavesView';
 import { MyDocumentsView } from './views/employee/MyDocumentsView';
 import { MyOvertimeView } from './views/employee/MyOvertimeView';
@@ -118,6 +121,40 @@ export default function App() {
   const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(() => {
     return isMockDataPurged() ? [] : INITIAL_COMPANY_DOCUMENTS;
   });
+
+  // Notifications State for Employees
+  const [notifications, setNotifications] = useState<AppNotification[]>([
+    {
+      id: 'notif-1',
+      targetEmployeeId: 'all',
+      title: '¡Bienvenido al Portal Biométrico Urcheck!',
+      message: 'Tu terminal móvil y reconocimiento facial están activos. Recuerda checar tu entrada y salida diariamente.',
+      type: 'system',
+      timestamp: 'Hoy, 08:00 AM',
+      read: false,
+      actionModule: 'punch',
+    },
+    {
+      id: 'notif-2',
+      targetEmployeeId: 'all',
+      title: 'Contrato y Políticas Pendientes de Firma',
+      message: 'Recursos Humanos ha cargado un nuevo documento laboral. Por favor fírmalo digitalmente con tu trazo desde el móvil.',
+      type: 'document',
+      timestamp: 'Ayer, 04:30 PM',
+      read: false,
+      actionModule: 'documents',
+    },
+    {
+      id: 'notif-3',
+      targetEmployeeId: 'all',
+      title: 'Marcaje Biométrico Corroborado',
+      message: 'Tus registros de asistencia de la semana fueron auditados y certificados por RRHH con sello digital SHA-256.',
+      type: 'attendance',
+      timestamp: '15 Sept, 10:15 AM',
+      read: true,
+      actionModule: 'punch',
+    }
+  ]);
 
   // Splash screen: only show when there is NO saved active session
   const [showSplash, setShowSplash] = useState<boolean>(() => {
@@ -260,6 +297,20 @@ export default function App() {
   const handleRecordPunch = (newRecord: AttendanceRecord) => {
     setAttendanceRecords(prev => [newRecord, ...prev]);
     syncAttendanceToSupabase(newRecord);
+
+    // Notify employee with sound
+    const newNotif: AppNotification = {
+      id: `notif-${Date.now()}`,
+      targetEmployeeId: newRecord.employeeId,
+      title: `Marcaje ${newRecord.type === 'entry' ? 'de Entrada' : newRecord.type === 'exit' ? 'de Salida' : 'de Almuerzo'} Registrado`,
+      message: `Tu asistencia a las ${newRecord.timestamp} ha sido sellada biométricamente (${newRecord.method === 'facial' ? 'Reconocimiento Facial' : newRecord.method === 'fingerprint' ? 'Huella Digital' : 'Tarjeta RFID'}) y sincronizada.`,
+      type: 'attendance',
+      timestamp: 'Justo ahora',
+      read: false,
+      actionModule: 'punch',
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+    playSystemNotificationSound();
   };
 
   // Employees Handlers
@@ -481,7 +532,21 @@ export default function App() {
 
   const pendingLeavesCount = leaveRequests.filter(r => r.status === 'pending').length;
   const pendingOvertimeCount = overtimeRecords.filter(r => r.status === 'pending').length;
+  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
   const isAdmin = currentRole === 'admin';
+
+  // Notification actions
+  const handleMarkNotificationAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#069AD8] selection:text-white">
@@ -512,6 +577,7 @@ export default function App() {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           pendingLeavesCount={pendingLeavesCount}
           pendingOvertimeCount={pendingOvertimeCount}
+          unreadNotificationsCount={unreadNotificationsCount}
           onLogout={handleLogout}
         />
 
@@ -630,6 +696,16 @@ export default function App() {
                 />
               )}
 
+              {currentEmployeeModule === 'notifications' && (
+                <EmployeeNotificationsView
+                  notifications={notifications}
+                  onMarkAsRead={handleMarkNotificationAsRead}
+                  onMarkAllAsRead={handleMarkAllNotificationsAsRead}
+                  onClearAll={handleClearAllNotifications}
+                  onNavigateModule={(mod) => setCurrentEmployeeModule(mod)}
+                />
+              )}
+
               {currentEmployeeModule === 'leaves' && (
                 <MyLeavesView
                   currentUser={currentUser}
@@ -670,6 +746,7 @@ export default function App() {
         onSelectAdminModule={setCurrentAdminModule}
         onSelectEmployeeModule={setCurrentEmployeeModule}
         pendingLeavesCount={pendingLeavesCount}
+        unreadNotificationsCount={unreadNotificationsCount}
       />
 
       {/* Offline Connectivity Indicator */}

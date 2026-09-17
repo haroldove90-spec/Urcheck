@@ -186,6 +186,11 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
     onUpdateEmployee(updatedEmp);
   };
 
+  const totalEmployees = employees.length;
+  const completeDossiers = employees.filter(e => e.dossierStatus === 'complete').length;
+  const pendingDossiers = employees.filter(e => e.dossierStatus === 'pending').length;
+  const activeEmployees = employees.filter(e => e.status === 'active').length;
+
   return (
     <div id="admin-employees-view" className="space-y-6">
       
@@ -209,6 +214,49 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
           <Plus className="w-4 h-4" />
           <span>Alta de Colaborador</span>
         </button>
+      </div>
+
+      {/* 2-Column Mobile KPI Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Total Colaboradores
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#093244]">{totalEmployees}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">plantilla</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#1F832D] block leading-tight">
+            Expedientes 100%
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#1F832D]">{completeDossiers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">completos</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-600 block leading-tight">
+            Expedientes Incompletos
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-amber-600">{pendingDossiers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">en revisión</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#069AD8] block leading-tight">
+            Personal Activo
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#069AD8]">{activeEmployees}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">en nómina</span>
+          </div>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -258,8 +306,8 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
 
       {/* Employees Table */}
       <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left border-collapse text-xs sm:text-sm whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="bg-neutral-50 text-neutral-600 font-bold uppercase tracking-wider text-[11px] border-b border-neutral-200">
                 <th className="py-3 px-4">Colaborador</th>

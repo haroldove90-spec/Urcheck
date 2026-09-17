@@ -318,8 +318,8 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
 
       {/* 4. Documents Table */}
       <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left border-collapse whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50/75 text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Documento / Código</th>

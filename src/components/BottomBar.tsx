@@ -18,6 +18,7 @@ import {
   UserCheck,
   BookOpen,
   DownloadCloud,
+  Bell,
 } from 'lucide-react';
 
 interface BottomBarProps {
@@ -27,6 +28,7 @@ interface BottomBarProps {
   onSelectAdminModule: (module: AdminModule) => void;
   onSelectEmployeeModule: (module: EmployeeModule) => void;
   pendingLeavesCount?: number;
+  unreadNotificationsCount?: number;
 }
 
 export const BottomBar: React.FC<BottomBarProps> = ({
@@ -36,6 +38,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   onSelectAdminModule,
   onSelectEmployeeModule,
   pendingLeavesCount = 0,
+  unreadNotificationsCount = 0,
 }) => {
   const isAdmin = role === 'admin';
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -71,13 +74,13 @@ export const BottomBar: React.FC<BottomBarProps> = ({
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  // For Employee: Modules including Manual
-  const employeeItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  // For Employee: Primary 5 items on bottom bar
+  const employeeItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje', icon: Fingerprint },
+    { id: 'notifications', label: 'Avisos', icon: Bell, badge: unreadNotificationsCount },
     { id: 'leaves', label: 'Permisos', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente', icon: FileText },
     { id: 'overtime', label: 'H. Extra', icon: Clock },
-    { id: 'manual', label: 'Manual', icon: BookOpen },
   ];
 
   return (
@@ -234,8 +237,15 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     type="button"
                     className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
                   >
-                    <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className="relative">
+                      <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                      {Boolean(item.badge && item.badge > 0) && (
+                        <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#1F832D] text-white text-[9px] font-black flex items-center justify-center border border-[#093244]">
+                          {item.badge}
+                        </span>
+                      )}
                     </div>
                     <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[58px] ${
                       isActive ? 'text-white font-bold' : 'text-white/70 font-medium'

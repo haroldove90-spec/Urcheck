@@ -28,8 +28,10 @@ import {
   Smartphone,
   Radio,
   Wifi,
-  BadgeCheck
+  BadgeCheck,
+  AlertTriangle
 } from 'lucide-react';
+import { playSystemNotificationSound, playSystemNegativeSound } from '../../utils/audioSystem';
 
 interface BiometricPunchViewProps {
   currentUser: UserProfile;
@@ -58,6 +60,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
   const [flashActive, setFlashActive] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedPunchToView, setSelectedPunchToView] = useState<AttendanceRecord | null>(null);
+  const [biometricError, setBiometricError] = useState<string | null>(null);
 
   // RFID & PIN States
   const [rfidSubMode, setRfidSubMode] = useState<'rfid' | 'pin'>('pin');
@@ -87,44 +90,16 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Audio confirmation chime using Web Audio API
+  // Audio confirmation chime using official notification sound file
   const playBiometricSuccessChime = useCallback(() => {
     if (!soundEnabled) return;
-    try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      const gain = ctx.createGain();
+    playSystemNotificationSound();
+  }, [soundEnabled]);
 
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc1.type = 'sine';
-      osc2.type = 'triangle';
-
-      const now = ctx.currentTime;
-      // Melodic double chime: F#5 -> B5
-      osc1.frequency.setValueAtTime(740, now);
-      osc1.frequency.exponentialRampToValueAtTime(987.77, now + 0.12);
-
-      osc2.frequency.setValueAtTime(370, now);
-      osc2.frequency.exponentialRampToValueAtTime(493.88, now + 0.12);
-
-      gain.gain.setValueAtTime(0.01, now);
-      gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-      osc1.start(now);
-      osc2.start(now);
-      osc1.stop(now + 0.45);
-      osc2.stop(now + 0.45);
-    } catch {
-      // AudioContext policy handled silently
-    }
+  // Audio failure sound using official negative sound file
+  const playBiometricNegativeSound = useCallback(() => {
+    if (!soundEnabled) return;
+    playSystemNegativeSound();
   }, [soundEnabled]);
 
   // Audio tone generator for keypad and scanner beeps
@@ -378,10 +353,28 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
         navigator.vibrate?.([60, 100, 60]);
         finalizePunchRecord(null, 'fingerprint');
       }
-    } catch {
-      // If WebAuthn fails or not available in iframe/user dismisses, fallback smoothly to automated scan
+    } catch (err: unknown) {
+      // If WebAuthn was cancelled, not allowed or user verification failed
+      console.warn('WebAuthn native biometric reading:', err);
+      // Fallback smoothly to standard verification
       handleStartBiometricScan();
     }
+  };
+
+  // Simulate or trigger biometric rejection / failure with requested negative sound
+  const handleTriggerSimulatedFailure = (customMsg?: string) => {
+    setIsScanning(false);
+    playBiometricNegativeSound();
+    navigator.vibrate?.([150, 100, 150]);
+    const message = customMsg || (
+      selectedMethod === 'facial'
+        ? 'No se pudo validar el rostro. Rostro no coincide con el expediente o iluminación insuficiente.'
+        : selectedMethod === 'fingerprint'
+        ? 'No se pudo leer la huella dactilar. Presión insuficiente o sensor sucio. Intenta de nuevo.'
+        : 'Código de acceso o credencial no reconocida por el sistema.'
+    );
+    setBiometricError(message);
+    setTimeout(() => setBiometricError(null), 6000);
   };
 
   // PIN Keypad Handlers
@@ -410,7 +403,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
   const validateAndConfirmPin = (pinToTest = pinValue) => {
     if (pinToTest.length < 4) {
       setPinError('Ingresa los 4 dígitos de tu PIN de seguridad');
-      playBeep(320, 0.12);
+      playBiometricNegativeSound();
       return;
     }
     setIsScanning(true);
@@ -802,6 +795,28 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Biometric Error / Negative result alert banner with sound notification */}
+        {biometricError && (
+          <div className="mt-4 p-4 rounded-xl bg-rose-950/80 border border-rose-500/70 text-rose-100 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-rose-600/30 text-rose-300 shrink-0">
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <strong className="block text-rose-200 font-bold">Resultado Negativo de Lectura</strong>
+                <span className="text-xs text-rose-300/90">{biometricError}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBiometricError(null)}
+              className="p-1 rounded-lg hover:bg-white/10 text-rose-300"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Camera error / fallback notification banner */}
         {selectedMethod === 'facial' && cameraError && (
@@ -1292,6 +1307,19 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                 ? 'CONFIRMAR PIN DE SEGURIDAD'
                 : 'LEER TARJETA RFID'}
             </span>
+          </button>
+
+          {/* Quick simulation button to verify failure negative sound requested by user */}
+          <button
+            type="button"
+            onClick={() => handleTriggerSimulatedFailure()}
+            disabled={isScanning}
+            className="px-3.5 py-3 rounded-xl bg-white/5 hover:bg-rose-950/40 text-rose-300 hover:text-rose-200 border border-white/10 hover:border-rose-500/40 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+            title="Probar sonido negativo oficial cuando no se puede leer rostro, huella o resultado fallido"
+          >
+            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <span className="hidden sm:inline">Probar Sonido Negativo</span>
+            <span className="sm:hidden">Error Test</span>
           </button>
         </div>
       </div>

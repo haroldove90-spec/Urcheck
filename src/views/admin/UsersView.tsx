@@ -176,6 +176,11 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole, onAddEmploye
     }));
   };
 
+  const totalUsers = userList.length;
+  const adminUsers = userList.filter(u => u.role === 'admin').length;
+  const employeeUsers = userList.filter(u => u.role === 'employee').length;
+  const activeUsers = userList.filter(u => u.status === 'active').length;
+
   return (
     <div id="admin-users-view" className="space-y-6">
       
@@ -187,7 +192,7 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole, onAddEmploye
             Administración de Usuarios y Credenciales
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-            Configuración de perfiles, roles institucionales, contraseñas seguras y envío de accesos por WhatsApp
+            Configuración de perfiles, roles institucionales, contraseñas seguras y accesos
           </p>
         </div>
 
@@ -204,6 +209,49 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole, onAddEmploye
         </button>
       </div>
 
+      {/* 2-Column Mobile KPI Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Total Cuentas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#093244]">{totalUsers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">accesos</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#069AD8] block leading-tight">
+            Administradores
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#069AD8]">{adminUsers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">RRHH</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#1F832D] block leading-tight">
+            Empleados Móvil
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#1F832D]">{employeeUsers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">colaboradores</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Cuentas Activas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-neutral-800">{activeUsers}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">vigentes</span>
+          </div>
+        </div>
+      </div>
+
       {statusMessage && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -213,8 +261,8 @@ export const UsersView: React.FC<UsersViewProps> = ({ onSwitchRole, onAddEmploye
 
       {/* Users Table Card */}
       <div className="bg-white rounded-2xl border border-neutral-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left border-collapse whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50/75 text-[11px] font-bold text-neutral-600 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Usuario / Colaborador</th>

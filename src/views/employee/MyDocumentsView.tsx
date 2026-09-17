@@ -147,6 +147,51 @@ export const MyDocumentsView: React.FC<MyDocumentsViewProps> = ({
         </div>
       </div>
 
+      {/* 2-Column Mobile KPI Metrics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Contratos Empresa
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#0A3142]">{myCompanyDocs.length}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">oficiales</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#138128] block leading-tight">
+            Firmados 100%
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#138128]">{signedContractsCount}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">vigentes</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-600 block leading-tight">
+            Pendientes de Firma
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-amber-600">
+              {myCompanyDocs.length - signedContractsCount}
+            </span>
+            <span className="text-[11px] text-neutral-500 font-semibold">requeridos</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#0871A0] block leading-tight">
+            Expediente Personal
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#0871A0]">{personalDocs.length}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">requisitos</span>
+          </div>
+        </div>
+      </div>
+
       {/* Toast Feedback */}
       {toastFeedback && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold p-3.5 rounded-2xl flex items-center gap-2 animate-in fade-in">

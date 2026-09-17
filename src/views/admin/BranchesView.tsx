@@ -176,6 +176,11 @@ export const BranchesView: React.FC<BranchesViewProps> = ({
     }, 900);
   };
 
+  const totalBranches = branches.length;
+  const onlineBiometrics = branches.filter(b => b.biometricStatus === 'online').length;
+  const activeBranches = branches.filter(b => b.status === 'active' && b.isActive !== false).length;
+  const totalBranchEmployees = branches.reduce((acc, curr) => acc + (curr.employeeCount || 0), 0);
+
   return (
     <div id="admin-branches-view" className="space-y-6">
       
@@ -199,6 +204,49 @@ export const BranchesView: React.FC<BranchesViewProps> = ({
           <Plus className="w-4 h-4" />
           <span>Agregar Sucursal</span>
         </button>
+      </div>
+
+      {/* 2-Column Mobile KPI Metrics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Sedes Registradas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#0A3142]">{totalBranches}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">sucursales</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#138128] block leading-tight">
+            Terminales Online
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#138128]">{onlineBiometrics}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">conectados</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#0871A0] block leading-tight">
+            Sedes Operativas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#0871A0]">{activeBranches}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">activas</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Personal en Sedes
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-neutral-800">{totalBranchEmployees}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">asignados</span>
+          </div>
+        </div>
       </div>
 
       {notification && (

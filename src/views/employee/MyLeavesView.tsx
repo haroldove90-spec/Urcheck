@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { LeaveRequest, UserProfile } from '../../types';
 import { 
   CalendarCheck, 
@@ -31,6 +31,20 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
   const [reason, setReason] = useState('');
   const [attachmentName, setAttachmentName] = useState<string | null>(null);
   const [submittedFeedback, setSubmittedFeedback] = useState<string | null>(null);
+
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleForm = () => {
+    if (!isFormOpen) {
+      setIsFormOpen(true);
+      // Auto-scroll to make the form visible immediately on mobile and all devices
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    } else {
+      setIsFormOpen(false);
+    }
+  };
 
   const myRequests = leaveRequests.filter(r => r.employeeId === currentUser.id);
 
@@ -87,9 +101,9 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
         </div>
 
         <button
-          onClick={() => setIsFormOpen(!isFormOpen)}
+          onClick={handleToggleForm}
           type="button"
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] rounded-xl shadow-xs transition cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-[#0A3142] hover:bg-[#082735] active:scale-95 rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>{isFormOpen ? 'Cerrar Formulario' : 'Nueva Solicitud'}</span>
@@ -103,48 +117,56 @@ export const MyLeavesView: React.FC<MyLeavesViewProps> = ({
         </div>
       )}
 
-      {/* Balance Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
-            Días Vacacionales Disponibles
+      {/* Balance Cards - Exactly 2 columns on mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Vacaciones Disponibles
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-[#138128]">12</span>
-            <span className="text-xs text-neutral-500 font-semibold">días ley vigentes</span>
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-4xl font-black text-[#138128]">12</span>
+            <span className="text-[11px] sm:text-xs text-neutral-500 font-semibold">días ley</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
-            Días Disfrutados Este Año
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Días Disfrutados
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-[#0A3142]">4</span>
-            <span className="text-xs text-neutral-500 font-semibold">días aprobados</span>
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-4xl font-black text-[#0A3142]">4</span>
+            <span className="text-[11px] sm:text-xs text-neutral-500 font-semibold">aprobados</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-600">
+        <div className="col-span-2 sm:col-span-1 bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
             Solicitudes en Revisión
           </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-amber-600">
+          <div className="mt-2 flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-2xl sm:text-4xl font-black text-amber-600">
               {myRequests.filter(r => r.status === 'pending').length}
             </span>
-            <span className="text-xs text-neutral-500 font-semibold">esperando visto bueno</span>
+            <span className="text-[11px] sm:text-xs text-neutral-500 font-semibold">en dictamen</span>
           </div>
         </div>
       </div>
 
-      {/* Form Card */}
+      {/* Form Card with auto-scroll target */}
       {isFormOpen && (
-        <div className="bg-white rounded-2xl border-2 border-[#0871A0] p-6 shadow-md animate-in fade-in">
-          <h3 className="text-base font-bold text-[#0A3142] mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#0871A0]" />
-            Tramitar Nueva Solicitud de Permiso o Vacaciones
-          </h3>
+        <div 
+          ref={formRef} 
+          className="scroll-mt-24 bg-white rounded-2xl border-2 border-[#0871A0] p-5 sm:p-6 shadow-md animate-in fade-in transition-all ring-4 ring-[#0871A0]/10"
+        >
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-neutral-200">
+            <h3 className="text-sm sm:text-base font-bold text-[#0A3142] flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#0871A0]" />
+              Tramitar Nueva Solicitud de Permiso o Vacaciones
+            </h3>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#0871A0]/10 text-[#0871A0]">
+              Formulario Activo
+            </span>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
             <div>

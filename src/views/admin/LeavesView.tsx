@@ -54,19 +54,64 @@ export const LeavesView: React.FC<LeavesViewProps> = ({
             Gestión de Permisos, Vacaciones e Incidencias
           </h2>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-            Recepción, revisión y aprobación o rechazo de solicitudes de días de descanso, faltas e incidencias
+            Recepción, revisión y dictamen oficial de solicitudes de descanso e incidencias
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-600" />
-            <span>{pendingCount} Pendientes de firma</span>
+            <span>{pendingCount} Pendientes</span>
           </div>
 
           <div className="px-3.5 py-1.5 rounded-xl bg-[#138128]/10 border border-[#138128]/30 text-[#138128] text-xs font-bold flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#138128]" />
-            <span>{approvedCount} Aprobadas este mes</span>
+            <span>{approvedCount} Aprobadas</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2-Column Mobile KPI Metrics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-neutral-600 block leading-tight">
+            Total Solicitudes
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#0A3142]">{leaveRequests.length}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">trámites</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-600 block leading-tight">
+            Por Dictaminar
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-amber-600">{pendingCount}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">firmas</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#138128] block leading-tight">
+            Aprobadas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-[#138128]">{approvedCount}</span>
+            <span className="text-[11px] text-neutral-500 font-semibold">autorizadas</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xs">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-rose-600 block leading-tight">
+            Rechazadas
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-black text-rose-600">
+              {leaveRequests.filter(r => r.status === 'rejected').length}
+            </span>
+            <span className="text-[11px] text-neutral-500 font-semibold">denegadas</span>
           </div>
         </div>
       </div>

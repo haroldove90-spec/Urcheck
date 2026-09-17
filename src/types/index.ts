@@ -17,6 +17,7 @@ export type AdminModule =
 
 export type EmployeeModule = 
   | 'punch'
+  | 'notifications'
   | 'leaves'
   | 'documents'
   | 'overtime'
@@ -216,3 +217,17 @@ export interface SystemSettings {
   defaultShiftEnd: string;
   biometricConfig: BiometricHardwareConfig;
 }
+
+export type NotificationType = 'attendance' | 'document' | 'leave' | 'overtime' | 'system';
+
+export interface AppNotification {
+  id: string;
+  targetEmployeeId: string; // 'all' or specific employeeId
+  title: string;
+  message: string;
+  type: NotificationType;
+  timestamp: string;
+  read: boolean;
+  actionModule?: EmployeeModule;
+}
+

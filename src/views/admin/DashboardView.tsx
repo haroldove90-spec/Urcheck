@@ -305,8 +305,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Table / List */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full text-left border-collapse text-xs sm:text-sm whitespace-nowrap sm:whitespace-normal">
             <thead>
               <tr className="bg-[#0A3142]/5 text-[#0A3142] font-bold uppercase tracking-wider text-[11px] border-b border-neutral-200">
                 <th className="py-3 px-4">Colaborador</th>
