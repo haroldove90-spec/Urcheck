@@ -24,9 +24,12 @@ import {
   Database,
   DollarSign,
   CalendarDays,
-  AlertTriangle
+  AlertTriangle,
+  FileCheck,
+  Sparkles
 } from 'lucide-react';
 import { UserRole } from '../../types';
+import { generateSystemDocumentationPDF } from '../../utils/generateSystemPDF';
 
 interface UserManualViewProps {
   currentRole: UserRole;
@@ -406,16 +409,41 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
 
   const activeSection = manualSections.find((s) => s.id === activeSectionId) || manualSections[0];
 
-  // Function to print / generate PDF
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Generate and download the official multi-page executive PDF
+  const handleDownloadSystemPDF = () => {
+    try {
+      setIsGeneratingPDF(true);
+      setTimeout(() => {
+        generateSystemDocumentationPDF({
+          companyName: 'Urcheck BioCloud Enterprise',
+        });
+        setIsGeneratingPDF(false);
+      }, 150);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Function to print / generate browser print view
   const handlePrintPDF = () => {
     window.print();
   };
 
-  // Function to download structured text/markdown manual
+  // Function to download structured text/markdown manual (ready for Word copy-paste)
   const handleDownloadTextManual = () => {
-    let content = `# MANUAL DE OPERACIÓN OFICIAL - URCHECK BIOCLOUD ENTERPRISE\n`;
-    content += `Fecha de Generación: ${new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}\n`;
-    content += `Sistema: Urcheck BioCloud v5.2 (Control Biométrico de Asistencia y Expediente Digital)\n\n`;
+    let content = `# DOCUMENTACIÓN TÉCNICA Y MANUAL DE OPERACIÓN OFICIAL\n`;
+    content += `SISTEMA: URCHECK BIOCLOUD ENTERPRISE v5.2\n`;
+    content += `FECHA DE EMISIÓN: ${new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}\n\n`;
+    content += `=========================================================================\n\n`;
+    content += `## 1. RESUMEN DEL SISTEMA\n`;
+    content += `Urcheck BioCloud es un sistema integral de control biométrico de asistencia, gestión de incidencias, pre-nómina y expediente digital. Diseñado con arquitectura reactiva de alta disponibilidad, persistencia en la nube y verificación visual en tiempo real.\n\n`;
+    content += `## 2. ROLES DEL SISTEMA\n`;
+    content += `- ROL EMPLEADO (COLABORADOR): Terminal checadora (facial con selfie, huella, RFID y PIN), consulta de avisos, solicitud de permisos con justificantes, registro de horas extras, expediente digital y gafete QR.\n`;
+    content += `- ROL ADMINISTRADOR (RECURSOS HUMANOS): Tablero de control con métricas en vivo, pase de lista en tiempo real, corroboración de fotos selfies, gestión de colaboradores, sucursales con geocercas GPS, configuración de turnos y pre-nómina automatizada.\n`;
+    content += `- ROL MODO KIOSCO: Terminal táctil desatendida para sucursales con pantalla completa y reinicio automático.\n\n`;
     content += `=========================================================================\n\n`;
 
     manualSections.forEach((sec) => {
@@ -444,7 +472,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Manual_Operacion_Urcheck_BioCloud_${new Date().toISOString().split('T')[0]}.md`;
+    link.download = `Documentacion_Roles_Funciones_Urcheck_BioCloud_${new Date().toISOString().split('T')[0]}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -454,9 +482,9 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
     <div id="user-manual-view" className="space-y-6">
       
       {/* Header Banner with Action Buttons */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#093244] text-white flex items-center gap-1">
               <BookOpen className="w-3.5 h-3.5 text-[#069AD8]" />
               Centro de Ayuda y Documentación
@@ -464,38 +492,84 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1F832D]/10 text-[#1F832D]">
               Versión Oficial v5.2
             </span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#069AD8]/10 text-[#069AD8]">
+              Descargable en PDF
+            </span>
           </div>
           <h1 className="text-2xl font-black text-[#093244]">
-            Manual de Operación de Urcheck BioCloud
+            Manual y Documentación Oficial de Urcheck BioCloud
           </h1>
           <p className="text-neutral-500 text-xs sm:text-sm mt-0.5">
-            Guía de usuario interactiva y descargable para Administradores de Recursos Humanos y Colaboradores.
+            Especificaciones del sistema, checklist de funciones por rol, flujo de trabajo y manual de operación.
           </p>
         </div>
 
         {/* Action Buttons: PDF & Document Download */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            id="btn-download-system-pdf"
+            type="button"
+            disabled={isGeneratingPDF}
+            onClick={handleDownloadSystemPDF}
+            className="px-4 py-2.5 rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-60"
+            title="Descargar documento oficial en PDF con las características del programa, roles, funciones y workflow"
+          >
+            <FileCheck className="w-4 h-4 text-emerald-200" />
+            <span>{isGeneratingPDF ? 'Generando PDF...' : 'Descargar PDF del Sistema (Roles y Funciones)'}</span>
+          </button>
+
           <button
             id="btn-download-manual-pdf"
             type="button"
             onClick={handlePrintPDF}
-            className="px-4 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm"
-            title="Generar y descargar archivo PDF del manual completo"
+            className="px-3.5 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+            title="Imprimir o exportar vista de pantalla completa en PDF"
           >
-            <Download className="w-4 h-4" />
-            <span>Descargar Manual en PDF</span>
+            <Printer className="w-4 h-4" />
+            <span className="hidden sm:inline">Imprimir Manual</span>
           </button>
 
           <button
             type="button"
             onClick={handleDownloadTextManual}
             className="px-3.5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
-            title="Descargar versión en texto / markdown"
+            title="Descargar texto estructurado para copiar y pegar en Word"
           >
             <FileText className="w-4 h-4 text-[#069AD8]" />
-            <span>Descargar .DOC / .MD</span>
+            <span className="hidden sm:inline">Copiar a Word (.DOC/.MD)</span>
+            <span className="sm:hidden">Word (.DOC)</span>
           </button>
         </div>
+      </div>
+
+      {/* Featured Callout Banner for Direct PDF Download */}
+      <div className="bg-gradient-to-r from-[#093244] to-[#0d4761] rounded-2xl p-5 text-white shadow-md border border-[#069AD8]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-[#069AD8]/20 border border-[#069AD8]/40 flex items-center justify-center shrink-0">
+            <Download className="w-6 h-6 text-[#069AD8]" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <span>PDF Oficial del Sistema Disponible para Descarga</span>
+              <span className="px-2 py-0.5 rounded-md bg-[#1F832D] text-white text-[10px] font-black uppercase tracking-wider">
+                Completo
+              </span>
+            </h3>
+            <p className="text-xs text-neutral-300 mt-0.5 leading-snug">
+              Incluye el checklist completo de funciones por rol (Empleado, Administrador, Kiosco), el flujo de trabajo operativo y la ficha técnica de arquitectura y seguridad.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleDownloadSystemPDF}
+          disabled={isGeneratingPDF}
+          type="button"
+          className="px-5 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#0584b8] active:scale-95 text-white font-black text-xs transition cursor-pointer shrink-0 flex items-center gap-2 shadow-md border border-white/20 disabled:opacity-60"
+        >
+          <Download className="w-4 h-4" />
+          <span>{isGeneratingPDF ? 'Generando...' : 'Descargar PDF Ahora'}</span>
+        </button>
       </div>
 
       {/* Search and Audience Filter */}

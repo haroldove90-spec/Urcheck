@@ -17,8 +17,10 @@ import {
   Search,
   Camera,
   Eye,
-  X
+  X,
+  FileDown
 } from 'lucide-react';
+import { generateSystemDocumentationPDF } from '../../utils/generateSystemPDF';
 
 interface DashboardViewProps {
   employees: Employee[];
@@ -91,6 +93,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            id="btn-download-dashboard-pdf"
+            onClick={() => generateSystemDocumentationPDF()}
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white shadow-xs transition cursor-pointer"
+            title="Descargar documento PDF oficial con roles, funciones y especificaciones"
+          >
+            <FileDown className="w-4 h-4 text-emerald-100" />
+            <span>Descargar PDF Sistema</span>
+          </button>
+
           <button
             id="btn-simulate-punch"
             onClick={onAddSimulatedPunch}
