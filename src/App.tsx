@@ -52,6 +52,7 @@ import { AuditLogView } from './views/admin/AuditLogView';
 
 // Common / Universal Views
 import { UserManualView } from './views/common/UserManualView';
+import { UserProfileView } from './views/common/UserProfileView';
 
 // Supabase Sync Services
 import { 
@@ -494,6 +495,43 @@ export default function App() {
     }));
   };
 
+  // User Profile Update (photo upload, personal data, and bidirectional sync)
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+    setCurrentUser(updatedProfile);
+
+    // Save updated profile to persistent session
+    if (currentRole) {
+      saveStoredSession({
+        role: currentRole,
+        adminModule: currentAdminModule,
+        employeeModule: currentEmployeeModule,
+        user: updatedProfile,
+      });
+    }
+
+    // Bidirectional sync with employee catalog if matching
+    setEmployees(prev => prev.map(emp => {
+      const isMatching = (updatedProfile.employeeId && emp.employeeCode === updatedProfile.employeeId) ||
+                         (emp.email.toLowerCase() === updatedProfile.email.toLowerCase()) ||
+                         (emp.id === updatedProfile.id);
+      if (isMatching) {
+        const updatedEmp: Employee = {
+          ...emp,
+          name: updatedProfile.name,
+          email: updatedProfile.email,
+          phone: updatedProfile.phone || emp.phone,
+          avatar: updatedProfile.avatar,
+          position: updatedProfile.position || emp.position,
+          department: updatedProfile.department || emp.department,
+          branchName: updatedProfile.branch || emp.branchName,
+        };
+        syncEmployeeToSupabase(updatedEmp);
+        return updatedEmp;
+      }
+      return emp;
+    }));
+  };
+
   // Attendance Corroboration & Deletion Handlers
   const handleUpdateAttendanceRecord = (updatedRecord: AttendanceRecord) => {
     setAttendanceRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
@@ -559,6 +597,13 @@ export default function App() {
       <Header 
         currentUser={currentUser} 
         onLogout={handleLogout} 
+        onOpenProfile={() => {
+          if (currentRole === 'admin') {
+            setCurrentAdminModule('profile');
+          } else {
+            setCurrentEmployeeModule('profile');
+          }
+        }}
         employees={employees}
         branches={branches}
         onRefreshFromSupabase={loadDataFromSupabase}
@@ -697,6 +742,15 @@ export default function App() {
                 <UserManualView currentRole={currentRole} />
               )}
 
+              {currentAdminModule === 'profile' && (
+                <UserProfileView
+                  currentUser={currentUser}
+                  onUpdateProfile={handleUpdateProfile}
+                  branches={branches}
+                  allEmployees={employees}
+                />
+              )}
+
               {currentAdminModule === 'settings' && (
                 <SettingsView
                   settings={settings}
@@ -714,6 +768,15 @@ export default function App() {
                   currentUser={currentUser}
                   attendanceRecords={attendanceRecords}
                   onRecordPunch={handleRecordPunch}
+                />
+              )}
+
+              {currentEmployeeModule === 'profile' && (
+                <UserProfileView
+                  currentUser={currentUser}
+                  onUpdateProfile={handleUpdateProfile}
+                  branches={branches}
+                  allEmployees={employees}
                 />
               )}
 

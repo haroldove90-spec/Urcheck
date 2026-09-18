@@ -16,6 +16,7 @@ export type AdminModule =
   | 'documents'
   | 'audit'
   | 'manual'
+  | 'profile'
   | 'settings';
 
 export type EmployeeModule = 
@@ -24,6 +25,7 @@ export type EmployeeModule =
   | 'leaves'
   | 'documents'
   | 'overtime'
+  | 'profile'
   | 'manual';
 
 export interface DigitalSignature {
@@ -76,6 +78,13 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  bio?: string;
+  birthDate?: string;
+  curpOrTaxId?: string;
   role: UserRole;
   roleName: string;
   avatar: string;
@@ -83,6 +92,9 @@ export interface UserProfile {
   department: string;
   branch: string;
   employeeId?: string;
+  rfidCode?: string;
+  pinCode?: string;
+  biometricEnrolled?: boolean;
   status: 'active' | 'inactive';
 }
 

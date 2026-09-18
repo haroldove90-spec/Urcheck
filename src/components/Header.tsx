@@ -19,6 +19,7 @@ import {
 interface HeaderProps {
   currentUser: UserProfile;
   onLogout: () => void;
+  onOpenProfile?: () => void;
   employees?: Employee[];
   branches?: Branch[];
   onRefreshFromSupabase?: () => void;
@@ -29,6 +30,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ 
   currentUser, 
   onLogout,
+  onOpenProfile,
   employees = [],
   branches = [],
   onRefreshFromSupabase,
@@ -109,11 +111,13 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Actions: Compact & ultra-responsive layout */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             
-            {/* Active Role Identification Badge */}
-            <div 
+            {/* Active Role Identification Badge / User Profile Trigger */}
+            <button 
               id="active-role-badge"
-              title={`${currentUser.name} (${currentUser.roleName})`}
-              className="flex items-center gap-1 sm:gap-2 p-1 sm:px-2.5 sm:py-1 rounded-full bg-[#093244]/5 border border-[#069AD8]/20 shrink-0"
+              type="button"
+              onClick={onOpenProfile}
+              title={`Mi Perfil: ${currentUser.name} (${currentUser.roleName}) - Clic para ver y editar`}
+              className="flex items-center gap-1 sm:gap-2 p-1 sm:px-2.5 sm:py-1 rounded-full bg-[#093244]/5 hover:bg-[#093244]/10 active:scale-95 border border-[#069AD8]/20 shrink-0 cursor-pointer transition-all"
             >
               <div className="relative shrink-0">
                 <img 
@@ -131,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentUser.role === 'admin' ? 'Administrador' : 'Empleado'}
                 </span>
               </div>
-            </div>
+            </button>
 
             {/* Absenteeism & Incidents Notifications Bell */}
             <div className="relative">
@@ -150,9 +154,15 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
               </button>
 
-              {/* Dropdown panel */}
+              {/* Dropdown panel - Perfectly centered on mobile and docked on desktop */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-sm sm:w-96 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
+                <>
+                  {/* Backdrop on mobile for closing */}
+                  <div
+                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs sm:hidden"
+                    onClick={() => setShowNotifications(false)}
+                  />
+                  <div className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
                   <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
                     <div className="flex items-center gap-1.5">
                       <ShieldAlert className="w-4 h-4 text-[#069AD8]" />
@@ -207,6 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                     ))}
                   </div>
                 </div>
+                </>
               )}
             </div>
 

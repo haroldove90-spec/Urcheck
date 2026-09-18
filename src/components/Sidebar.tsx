@@ -21,6 +21,7 @@ import {
   DollarSign,
   CalendarDays,
   ShieldCheck,
+  User,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -65,12 +66,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
     { id: 'audit', label: 'Auditoría', icon: ShieldCheck },
     { id: 'users', label: 'Usuarios', icon: UserCog },
+    { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
   const employeeNavItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje Biométrico', icon: Fingerprint },
+    { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'notifications', label: 'Notificaciones', icon: Bell, badge: unreadNotificationsCount },
     { id: 'leaves', label: 'Permisos y Vacaciones', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente / Docs', icon: FileText },

@@ -22,6 +22,7 @@ import {
   DollarSign,
   CalendarDays,
   ShieldCheck,
+  User,
 } from 'lucide-react';
 
 interface BottomBarProps {
@@ -76,24 +77,29 @@ export const BottomBar: React.FC<BottomBarProps> = ({
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
     { id: 'audit', label: 'Auditoría', icon: ShieldCheck },
     { id: 'users', label: 'Usuarios', icon: UserCog },
+    { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  // For Employee: Items on mobile bottom bar
-  const employeeItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
+  // For Employee: 4 primary items + "Más"
+  const employeePrimaryItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje', icon: Fingerprint },
+    { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'notifications', label: 'Avisos', icon: Bell, badge: unreadNotificationsCount },
     { id: 'leaves', label: 'Permisos', icon: CalendarCheck },
+  ];
+
+  const employeeSecondaryItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'documents', label: 'Expediente', icon: FileText },
-    { id: 'overtime', label: 'H. Extra', icon: Clock },
-    { id: 'manual', label: 'Manual', icon: BookOpen },
+    { id: 'overtime', label: 'Horas Extra', icon: Clock },
+    { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
   ];
 
   return (
     <>
-      {/* "Más" Sheet Drawer for secondary admin items on mobile */}
-      {showMoreMenu && isAdmin && (
+      {/* "Más" Sheet Drawer for secondary modules on mobile */}
+      {showMoreMenu && (
         <div 
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs md:hidden flex flex-col justify-end"
           onClick={() => setShowMoreMenu(false)}
@@ -103,38 +109,63 @@ export const BottomBar: React.FC<BottomBarProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-white/15 mb-4">
-              <span className="text-sm font-bold text-white">Más Módulos de Administración</span>
+              <span className="text-sm font-bold text-white">
+                {isAdmin ? 'Más Módulos de Administración' : 'Más Módulos y Herramientas'}
+              </span>
               <button 
                 onClick={() => setShowMoreMenu(false)}
-                className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10"
+                className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 cursor-pointer"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              {adminSecondaryItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentAdminModule === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onSelectAdminModule(item.id);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
-                      isActive 
-                        ? 'bg-[#069AD8] text-white border-white/30 font-bold shadow-sm' 
-                        : 'bg-white/10 text-white/90 border-white/15 hover:bg-white/15'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 text-white shrink-0" />
-                    <span className="text-xs font-semibold text-white">{item.label}</span>
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+              {isAdmin
+                ? adminSecondaryItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentAdminModule === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onSelectAdminModule(item.id);
+                          setShowMoreMenu(false);
+                        }}
+                        type="button"
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isActive 
+                            ? 'bg-[#069AD8] text-white border-white/30 font-bold shadow-sm' 
+                            : 'bg-white/10 text-white/90 border-white/15 hover:bg-white/15'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 text-white shrink-0" />
+                        <span className="text-xs font-semibold text-white">{item.label}</span>
+                      </button>
+                    );
+                  })
+                : employeeSecondaryItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentEmployeeModule === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onSelectEmployeeModule(item.id);
+                          setShowMoreMenu(false);
+                        }}
+                        type="button"
+                        className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isActive 
+                            ? 'bg-[#069AD8] text-white border-white/30 font-bold shadow-sm' 
+                            : 'bg-white/10 text-white/90 border-white/15 hover:bg-white/15'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 text-white shrink-0" />
+                        <span className="text-xs font-semibold text-white">{item.label}</span>
+                      </button>
+                    );
+                  })}
             </div>
 
             {/* Direct PWA App Installation button in drawer */}
@@ -168,7 +199,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
         id="mobile-bottom-bar"
         className="fixed bottom-0 inset-x-0 bg-[#093244] border-t border-[#069AD8]/30 z-40 md:hidden shadow-2xl safe-area-pb overflow-hidden"
       >
-        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-6'} h-16 max-w-lg mx-auto px-1`}>
+        <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
           {isAdmin ? (
             <>
               {adminPrimaryItems.map((item) => {
@@ -231,9 +262,9 @@ export const BottomBar: React.FC<BottomBarProps> = ({
               </button>
             </>
           ) : (
-            // Employee view: 6 items evenly distributed in the 6-column grid
+            // Employee view: 4 primary items + "Más" drawer button
             <>
-              {employeeItems.map((item) => {
+              {employeePrimaryItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentEmployeeModule === item.id;
                 return (
@@ -242,29 +273,55 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     id={`bottom-nav-emp-${item.id}`}
                     onClick={() => onSelectEmployeeModule(item.id)}
                     type="button"
-                    className="flex flex-col items-center justify-center relative py-1 px-0.5 transition-all cursor-pointer group"
+                    className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
                   >
                     <div className="relative">
                       <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        <Icon className="w-5 h-5 text-white" />
                       </div>
                       {Boolean(item.badge && item.badge > 0) && (
-                        <span className="absolute -top-1 -right-2 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1F832D] text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center border border-[#093244]">
+                        <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#1F832D] text-white text-[9px] font-black flex items-center justify-center border border-[#093244]">
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`text-[8.5px] xs:text-[9.5px] sm:text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[48px] xs:max-w-[58px] ${
+                    <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[58px] ${
                       isActive ? 'text-white font-bold' : 'text-white/70 font-medium'
                     }`}>
                       {item.label}
                     </span>
                     {isActive && (
-                      <span className="absolute bottom-1 w-4 sm:w-5 h-0.5 rounded-full bg-white" />
+                      <span className="absolute bottom-1 w-5 h-0.5 rounded-full bg-white" />
                     )}
                   </button>
                 );
               })}
+
+              {/* Employee More button */}
+              <button
+                id="bottom-nav-emp-more"
+                onClick={() => setShowMoreMenu(true)}
+                type="button"
+                className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
+              >
+                <div className={`p-1 rounded-xl transition-all ${
+                  employeeSecondaryItems.some(item => item.id === currentEmployeeModule)
+                    ? 'bg-[#069AD8] shadow-xs'
+                    : 'group-hover:bg-white/10'
+                }`}>
+                  <MoreHorizontal className="w-5 h-5 text-white" />
+                </div>
+                <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate ${
+                  employeeSecondaryItems.some(item => item.id === currentEmployeeModule)
+                    ? 'text-white font-bold'
+                    : 'text-white/70 font-medium'
+                }`}>
+                  Más
+                </span>
+                {employeeSecondaryItems.some(item => item.id === currentEmployeeModule) && (
+                  <span className="absolute bottom-1 w-5 h-0.5 rounded-full bg-white" />
+                )}
+              </button>
             </>
           )}
         </div>
