@@ -18,6 +18,9 @@ import {
   UserCheck,
   BookOpen,
   Bell,
+  DollarSign,
+  CalendarDays,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,14 +55,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminNavItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
     { id: 'attendance', label: 'Asistencias', icon: UserCheck },
+    { id: 'payroll', label: 'Pre-Nómina', icon: DollarSign },
+    { id: 'shifts', label: 'Turnos y Horarios', icon: CalendarDays },
     { id: 'employees', label: 'Empleados', icon: Users },
     { id: 'documents', label: 'Mis Documentos', icon: FileText },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
     { id: 'leaves', label: 'Permisos y Vacaciones', icon: CalendarCheck, badge: pendingLeavesCount },
     { id: 'overtime', label: 'Horas extra', icon: Clock, badge: pendingOvertimeCount },
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
+    { id: 'audit', label: 'Auditoría', icon: ShieldCheck },
     { id: 'users', label: 'Usuarios', icon: UserCog },
-    { id: 'manual', label: 'Manual de Operación', icon: BookOpen },
+    { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 

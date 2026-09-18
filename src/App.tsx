@@ -46,6 +46,9 @@ import { OvertimeView } from './views/admin/OvertimeView';
 import { ReportsView } from './views/admin/ReportsView';
 import { UsersView } from './views/admin/UsersView';
 import { SettingsView } from './views/admin/SettingsView';
+import { PayrollView } from './views/admin/PayrollView';
+import { ShiftsView } from './views/admin/ShiftsView';
+import { AuditLogView } from './views/admin/AuditLogView';
 
 // Common / Universal Views
 import { UserManualView } from './views/common/UserManualView';
@@ -549,7 +552,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#069AD8] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#f8f9fa] text-neutral-900 selection:bg-[#069AD8] selection:text-white w-full max-w-full overflow-x-hidden">
       {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       
       {/* 1. Unified Institutional Header */}
@@ -564,7 +567,7 @@ export default function App() {
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
-      <div className="flex-1 flex w-full">
+      <div className="flex-1 flex w-full min-w-0 max-w-full overflow-x-hidden">
         
         {/* Desktop Sidebar Navigation */}
         <Sidebar
@@ -584,7 +587,7 @@ export default function App() {
         {/* Main Content Area (Clean, no redundant duplicate horizontal tabs) */}
         <main 
           id="main-content-viewport"
-          className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-12"
+          className="flex-1 min-w-0 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-12 overflow-x-hidden"
         >
           {isAdmin ? (
             <>
@@ -670,6 +673,24 @@ export default function App() {
                   onSwitchRole={handleSelectRole} 
                   onAddEmployee={handleAddEmployee}
                 />
+              )}
+
+              {currentAdminModule === 'payroll' && (
+                <PayrollView
+                  attendanceRecords={attendanceRecords}
+                  employees={employees}
+                  overtimeRecords={overtimeRecords}
+                />
+              )}
+
+              {currentAdminModule === 'shifts' && (
+                <ShiftsView
+                  employees={employees}
+                />
+              )}
+
+              {currentAdminModule === 'audit' && (
+                <AuditLogView />
               )}
 
               {currentAdminModule === 'manual' && (

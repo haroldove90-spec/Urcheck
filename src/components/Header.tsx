@@ -92,8 +92,8 @@ export const Header: React.FC<HeaderProps> = ({
       id="main-institutional-header"
       className="sticky top-0 z-30 bg-white border-b border-neutral-200 shadow-xs"
     >
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-13 sm:h-16 md:h-18 gap-1.5 sm:gap-3">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 w-full">
+        <div className="flex items-center justify-between h-13 sm:h-16 md:h-18 gap-1.5 sm:gap-3 w-full">
           
           {/* System Logo: Urcheck - Optimized responsive size */}
           <div className="flex items-center shrink-0 py-1">
@@ -101,13 +101,13 @@ export const Header: React.FC<HeaderProps> = ({
               id="header-urcheck-logo"
               src="https://ljymwaifrkaedgmpdpwv.supabase.co/storage/v1/object/public/logo/urchecklogo.png" 
               alt="Urcheck" 
-              className="h-6 sm:h-8 md:h-9 w-auto max-w-[105px] xs:max-w-[125px] sm:max-w-[220px] object-contain cursor-pointer"
+              className="h-6 sm:h-8 md:h-9 w-auto max-w-[85px] xs:max-w-[110px] sm:max-w-[200px] object-contain cursor-pointer"
               referrerPolicy="no-referrer"
             />
           </div>
 
           {/* Right Actions: Compact & ultra-responsive layout */}
-          <div className="flex items-center gap-1 sm:gap-2 md:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             
             {/* Active Role Identification Badge */}
             <div 
@@ -152,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Dropdown panel */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-sm sm:w-96 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
                   <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
                     <div className="flex items-center gap-1.5">
                       <ShieldAlert className="w-4 h-4 text-[#069AD8]" />
@@ -210,12 +210,12 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Supabase Realtime Database Test Button */}
+            {/* Supabase Realtime Database Test Button - hidden on mobile, visible from sm */}
             <button
               id="btn-test-supabase-header"
               onClick={() => setShowSupabaseModal(true)}
               type="button"
-              className="inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-[#093244] bg-emerald-50 hover:bg-emerald-100/80 active:scale-95 border border-emerald-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+              className="hidden sm:inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-[#093244] bg-emerald-50 hover:bg-emerald-100/80 active:scale-95 border border-emerald-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
               title="Probar conexión en vivo con Supabase Database"
             >
               <div className="relative flex items-center justify-center">
@@ -228,14 +228,14 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-            {/* Quick Manual Sync Button */}
+            {/* Quick Manual Sync Button - hidden on mobile, visible from sm */}
             {onRefreshFromSupabase && (
               <button
                 id="btn-sync-supabase-header"
                 onClick={onRefreshFromSupabase}
                 type="button"
                 disabled={isRefreshing}
-                className="inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-sky-50 hover:bg-sky-100 active:scale-95 border border-sky-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-60"
+                className="hidden sm:inline-flex items-center justify-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-sky-50 hover:bg-sky-100 active:scale-95 border border-sky-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-60"
                 title={lastSyncTime ? `Última sincronización con Supabase: ${lastSyncTime}. Clic para refrescar datos ahora.` : 'Sincronizar datos con Supabase'}
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-[#069AD8] shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -243,13 +243,13 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            {/* Quick App Install Button */}
+            {/* Quick App Install Button - hidden on mobile, visible from sm (available in bottom bar on mobile) */}
             {!isInstalled && (
               <button
                 id="btn-pwa-install"
                 onClick={handleInstallClick}
                 type="button"
-                className="inline-flex items-center justify-center gap-1 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0 border border-[#069AD8]/40"
+                className="hidden sm:inline-flex items-center justify-center gap-1 p-1.5 sm:px-3 sm:py-1.5 text-xs font-bold text-white bg-[#093244] hover:bg-[#069AD8] active:scale-95 transition-all rounded-xl shadow-xs cursor-pointer shrink-0 border border-[#069AD8]/40"
                 title="Instalar Urcheck directamente en tu dispositivo como App móvil"
               >
                 <DownloadCloud className="w-3.5 h-3.5 text-[#069AD8] group-hover:text-white shrink-0 animate-pulse" />

@@ -19,6 +19,9 @@ import {
   BookOpen,
   DownloadCloud,
   Bell,
+  DollarSign,
+  CalendarDays,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface BottomBarProps {
@@ -65,22 +68,26 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   ];
 
   const adminSecondaryItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'payroll', label: 'Pre-Nómina', icon: DollarSign },
+    { id: 'shifts', label: 'Turnos y Horas', icon: CalendarDays },
     { id: 'documents', label: 'Documentos', icon: FileText },
     { id: 'overtime', label: 'Horas Extra', icon: Clock },
     { id: 'branches', label: 'Sucursales', icon: Building2 },
     { id: 'reports', label: 'Reportes', icon: FileBarChart },
+    { id: 'audit', label: 'Auditoría', icon: ShieldCheck },
     { id: 'users', label: 'Usuarios', icon: UserCog },
-    { id: 'manual', label: 'Manual de Uso', icon: BookOpen },
+    { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  // For Employee: Primary 5 items on bottom bar
+  // For Employee: Items on mobile bottom bar
   const employeeItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje', icon: Fingerprint },
     { id: 'notifications', label: 'Avisos', icon: Bell, badge: unreadNotificationsCount },
     { id: 'leaves', label: 'Permisos', icon: CalendarCheck },
     { id: 'documents', label: 'Expediente', icon: FileText },
     { id: 'overtime', label: 'H. Extra', icon: Clock },
+    { id: 'manual', label: 'Manual', icon: BookOpen },
   ];
 
   return (
@@ -161,7 +168,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
         id="mobile-bottom-bar"
         className="fixed bottom-0 inset-x-0 bg-[#093244] border-t border-[#069AD8]/30 z-40 md:hidden shadow-2xl safe-area-pb overflow-hidden"
       >
-        <div className="grid grid-cols-5 h-16 max-w-lg mx-auto px-1">
+        <div className={`grid ${isAdmin ? 'grid-cols-5' : 'grid-cols-6'} h-16 max-w-lg mx-auto px-1`}>
           {isAdmin ? (
             <>
               {adminPrimaryItems.map((item) => {
@@ -224,7 +231,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
               </button>
             </>
           ) : (
-            // Employee view: 5 items evenly distributed in the 5-column grid
+            // Employee view: 6 items evenly distributed in the 6-column grid
             <>
               {employeeItems.map((item) => {
                 const Icon = item.icon;
@@ -235,25 +242,25 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     id={`bottom-nav-emp-${item.id}`}
                     onClick={() => onSelectEmployeeModule(item.id)}
                     type="button"
-                    className="flex flex-col items-center justify-center relative py-1 transition-all cursor-pointer group"
+                    className="flex flex-col items-center justify-center relative py-1 px-0.5 transition-all cursor-pointer group"
                   >
                     <div className="relative">
                       <div className={`p-1 rounded-xl transition-all ${isActive ? 'bg-[#069AD8] shadow-xs' : 'group-hover:bg-white/10'}`}>
-                        <Icon className="w-5 h-5 text-white" />
+                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
                       {Boolean(item.badge && item.badge > 0) && (
-                        <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#1F832D] text-white text-[9px] font-black flex items-center justify-center border border-[#093244]">
+                        <span className="absolute -top-1 -right-2 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1F832D] text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center border border-[#093244]">
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[58px] ${
+                    <span className={`text-[8.5px] xs:text-[9.5px] sm:text-[10px] mt-0.5 tracking-tight leading-none truncate max-w-[48px] xs:max-w-[58px] ${
                       isActive ? 'text-white font-bold' : 'text-white/70 font-medium'
                     }`}>
                       {item.label}
                     </span>
                     {isActive && (
-                      <span className="absolute bottom-1 w-5 h-0.5 rounded-full bg-white" />
+                      <span className="absolute bottom-1 w-4 sm:w-5 h-0.5 rounded-full bg-white" />
                     )}
                   </button>
                 );

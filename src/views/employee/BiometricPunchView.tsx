@@ -682,21 +682,21 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       )}
 
       {/* Live Biometric Clock & Server Time Banner */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-[#069AD8] flex items-center justify-center sm:justify-start gap-1.5 mb-1">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-center sm:text-left w-full">
+        <div className="min-w-0 w-full sm:w-auto">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#069AD8] flex items-center justify-center sm:justify-start gap-1.5 mb-1">
             <span className="w-2 h-2 rounded-full bg-[#1F832D] animate-ping" />
             Terminal Checadora Urcheck BioCloud Activa
           </span>
-          <h2 className="text-xl sm:text-2xl font-black text-[#093244]">
+          <h2 className="text-lg sm:text-2xl font-black text-[#093244] truncate">
             Registro Oficial de Asistencia
           </h2>
-          <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-neutral-500 mt-0.5 break-words">
             {currentUser.branch} • Reconocimiento biométrico facial en tiempo real
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
           {!isKioskMode && (
             <button
               onClick={() => setIsKioskMode(true)}
@@ -706,14 +706,15 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             >
               <Maximize2 className="w-3.5 h-3.5 text-[#069AD8]" />
               <span className="hidden sm:inline">Modo Kiosco</span>
+              <span className="sm:hidden">Kiosco</span>
             </button>
           )}
 
-          <div className="bg-[#093244] text-white px-5 py-3 rounded-2xl border border-[#093244] shadow-md text-center shrink-0">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-300 block">
+          <div className="bg-[#093244] text-white px-3.5 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl border border-[#093244] shadow-md text-center shrink-0">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-neutral-300 block">
               Hora Oficial Servidor
             </span>
-            <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider text-emerald-400">
+            <span className="font-mono text-xl sm:text-3xl font-black tracking-wider text-emerald-400">
               {currentTime}
             </span>
           </div>
@@ -721,12 +722,12 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       </div>
 
       {/* Step 1: Select Event Punch Type */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs">
-        <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-3">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-5 shadow-xs w-full">
+        <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2.5 sm:mb-3">
           1. Selecciona el Tipo de Marcaje
         </label>
         
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { id: 'entry', label: 'Entrada a Laborar', icon: '🟢', color: 'border-emerald-500 bg-emerald-50/50' },
             { id: 'lunch_out', label: 'Salida Almuerzo', icon: '🟡', color: 'border-amber-500 bg-amber-50/50' },
@@ -737,14 +738,14 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
               key={evt.id}
               onClick={() => setSelectedPunchType(evt.id as PunchType)}
               type="button"
-              className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1.5 ${
+              className={`p-2.5 sm:p-3 rounded-xl border-2 text-center transition-all cursor-pointer font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1 leading-tight ${
                 selectedPunchType === evt.id
                   ? `${evt.color} text-neutral-900 shadow-xs scale-102 ring-2 ring-[#069AD8] ring-offset-1`
                   : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300'
               }`}
             >
-              <span className="text-xl">{evt.icon}</span>
-              <span>{evt.label}</span>
+              <span className="text-lg sm:text-xl">{evt.icon}</span>
+              <span className="truncate max-w-full">{evt.label}</span>
             </button>
           ))}
         </div>
@@ -842,7 +843,7 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
       </div>
 
       {/* Step 3: Interactive Biometric Scanner Device with Live Camera */}
-      <div className="bg-[#093244] rounded-3xl p-6 sm:p-8 text-white shadow-2xl border-4 border-[#082735] relative overflow-hidden">
+      <div className="bg-[#093244] rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-white shadow-2xl border-2 sm:border-4 border-[#082735] relative overflow-hidden w-full max-w-full">
         
         {/* Flash effect overlay */}
         {flashActive && (
@@ -850,27 +851,27 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
         )}
 
         {/* Decorative Hardware Header */}
-        <div className="flex flex-wrap items-center justify-between pb-4 border-b border-white/10 gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#1F832D] animate-pulse" />
-            <span className="text-xs font-mono tracking-wider uppercase text-neutral-300">
+        <div className="flex flex-wrap items-center justify-between pb-3 sm:pb-4 border-b border-white/10 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#1F832D] animate-pulse shrink-0" />
+            <span className="text-[11px] sm:text-xs font-mono tracking-wider uppercase text-neutral-300 truncate">
               Terminal: Urcheck BioCloud Multi-Sensor V5.2
             </span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {selectedMethod === 'facial' && (
               <button
                 type="button"
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 title={soundEnabled ? 'Silenciar confirmación acústica' : 'Activar confirmación acústica'}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-neutral-300 transition"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-neutral-300 transition cursor-pointer"
               >
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-neutral-400" />}
               </button>
             )}
 
-            <span className="text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded border border-emerald-800">
+            <span className="text-[10px] sm:text-xs font-mono text-emerald-400 bg-emerald-950/80 px-2 sm:px-2.5 py-0.5 rounded border border-emerald-800">
               {selectedMethod === 'facial' 
                 ? (cameraActive ? 'CÁMARA EN VIVO' : 'CÁMARA INACTIVA')
                 : 'SENSOR ONLINE'}
@@ -880,20 +881,20 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
         {/* Biometric Error / Negative result alert banner with sound notification */}
         {biometricError && (
-          <div className="mt-4 p-4 rounded-xl bg-rose-950/80 border border-rose-500/70 text-rose-100 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-rose-600/30 text-rose-300 shrink-0">
-                <AlertTriangle className="w-5 h-5 text-rose-400" />
+          <div className="mt-4 p-3 sm:p-4 rounded-xl bg-rose-950/80 border border-rose-500/70 text-rose-100 text-xs sm:text-sm flex items-center justify-between gap-3 animate-in fade-in w-full">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-rose-600/30 text-rose-300 shrink-0">
+                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
               </div>
-              <div>
-                <strong className="block text-rose-200 font-bold">Resultado Negativo de Lectura</strong>
-                <span className="text-xs text-rose-300/90">{biometricError}</span>
+              <div className="min-w-0">
+                <strong className="block text-rose-200 font-bold text-xs sm:text-sm">Resultado Negativo de Lectura</strong>
+                <span className="text-[11px] sm:text-xs text-rose-300/90 break-words">{biometricError}</span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setBiometricError(null)}
-              className="p-1 rounded-lg hover:bg-white/10 text-rose-300"
+              className="p-1 rounded-lg hover:bg-white/10 text-rose-300 shrink-0 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -902,36 +903,38 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
 
         {/* Camera error / fallback notification banner */}
         {selectedMethod === 'facial' && cameraError && (
-          <div className="mt-4 p-3.5 rounded-xl bg-amber-950/80 border border-amber-600/60 text-amber-200 text-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-              <span>{cameraError}</span>
+          <div className="mt-4 p-3 sm:p-3.5 rounded-xl bg-amber-950/80 border border-amber-600/60 text-amber-200 text-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="break-words leading-tight">{cameraError}</span>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-auto">
               <button
                 type="button"
                 onClick={startCamera}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold flex items-center gap-1 border border-amber-500/40 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-semibold flex items-center gap-1 border border-amber-500/40 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Reintentar
               </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 rounded-lg bg-white text-neutral-900 text-xs font-bold flex items-center gap-1 hover:bg-neutral-100 cursor-pointer shadow-xs"
+                className="px-2.5 py-1.5 rounded-lg bg-white text-neutral-900 text-xs font-bold flex items-center gap-1 hover:bg-neutral-100 cursor-pointer shadow-xs"
               >
-                <Camera className="w-3.5 h-3.5 text-[#069AD8]" /> Tomar Foto del Dispositivo
+                <Camera className="w-3.5 h-3.5 text-[#069AD8]" />
+                <span className="hidden xs:inline">Tomar Foto</span>
+                <span className="xs:hidden">Foto</span>
               </button>
             </div>
           </div>
         )}
 
         {/* Biometric Interactive Center Stage */}
-        <div className="my-8 flex flex-col items-center justify-center">
+        <div className="my-6 sm:my-8 flex flex-col items-center justify-center w-full">
           
           {/* Method: Facial Scan with Live Video Stream & HUD */}
           {selectedMethod === 'facial' && (
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl border-4 border-[#069AD8] p-2 flex items-center justify-center bg-black/60 overflow-hidden shadow-2xl">
+            <div className="relative w-52 h-52 xs:w-60 xs:h-60 sm:w-72 sm:h-72 rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-[#069AD8] p-1.5 sm:p-2 flex items-center justify-center bg-black/60 overflow-hidden shadow-2xl">
               
               {/* Live Video Element */}
               {cameraActive ? (
@@ -1317,10 +1320,10 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 border-t border-white/10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 pt-4 border-t border-white/10 w-full">
           
           {selectedMethod === 'facial' && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 w-full sm:w-auto">
               <button
                 onClick={() => {
                   if (cameraActive) {
@@ -1331,10 +1334,11 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                   }
                 }}
                 type="button"
-                className="px-3 py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
               >
                 {cameraActive ? <CameraOff className="w-3.5 h-3.5 text-amber-400" /> : <Camera className="w-3.5 h-3.5 text-emerald-400" />}
-                <span>{cameraActive ? 'Pausar Cámara' : 'Reactivar Cámara'}</span>
+                <span className="hidden xs:inline">{cameraActive ? 'Pausar Cámara' : 'Reactivar Cámara'}</span>
+                <span className="xs:hidden">{cameraActive ? 'Pausar' : 'Activar'}</span>
               </button>
 
               <button
@@ -1342,21 +1346,23 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
                   setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
                 }}
                 type="button"
-                className="px-3 py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
                 title="Cambiar entre cámara frontal y trasera"
               >
                 <SwitchCamera className="w-3.5 h-3.5 text-[#069AD8]" />
                 <span className="hidden sm:inline">{facingMode === 'user' ? 'Cámara Frontal' : 'Cámara Trasera'}</span>
+                <span className="sm:hidden">Girar</span>
               </button>
 
               <button
                 onClick={() => fileInputRef.current?.click()}
                 type="button"
-                className="px-3 py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-white/20 text-xs font-semibold text-neutral-200 hover:bg-white/10 transition cursor-pointer inline-flex items-center gap-1.5"
                 title="Subir o tomar selfie desde la cámara del teléfono"
               >
                 <Camera className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="hidden sm:inline">Foto Dispositivo</span>
+                <span className="sm:hidden">Subir</span>
               </button>
             </div>
           )}
@@ -1367,22 +1373,22 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             onClick={handleStartBiometricScan}
             disabled={isScanning}
             type="button"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#1F832D] hover:bg-[#0e661f] active:scale-95 text-white font-black text-sm tracking-wide shadow-lg shadow-black/40 transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-[#1F832D] hover:bg-[#0e661f] active:scale-95 text-white font-black text-xs sm:text-sm tracking-wide shadow-lg shadow-black/40 transition-all cursor-pointer flex items-center justify-center gap-2 text-center"
           >
             {selectedMethod === 'facial' ? (
-              <Camera className="w-5 h-5 text-white" />
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
             ) : selectedMethod === 'fingerprint' ? (
-              <Fingerprint className="w-5 h-5 text-white" />
+              <Fingerprint className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
             ) : rfidSubMode === 'pin' ? (
-              <KeyRound className="w-5 h-5 text-white" />
+              <KeyRound className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
             ) : (
-              <CreditCard className="w-5 h-5 text-white" />
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white shrink-0" />
             )}
-            <span>
+            <span className="truncate max-w-full">
               {isScanning 
-                ? 'PROCESANDO MARCAJE...' 
+                ? 'PROCESANDO...' 
                 : selectedMethod === 'facial' 
-                ? '📸 TOMAR SELFIE Y CHECAR ASISTENCIA' 
+                ? '📸 TOMAR SELFIE Y CHECAR' 
                 : selectedMethod === 'fingerprint'
                 ? 'VALIDAR HUELLA DACTILAR'
                 : rfidSubMode === 'pin'
@@ -1396,10 +1402,10 @@ export const BiometricPunchView: React.FC<BiometricPunchViewProps> = ({
             type="button"
             onClick={() => handleTriggerSimulatedFailure()}
             disabled={isScanning}
-            className="px-3.5 py-3 rounded-xl bg-white/5 hover:bg-rose-950/40 text-rose-300 hover:text-rose-200 border border-white/10 hover:border-rose-500/40 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+            className="w-full sm:w-auto justify-center px-3 py-2 sm:py-3 rounded-xl bg-white/5 hover:bg-rose-950/40 text-rose-300 hover:text-rose-200 border border-white/10 hover:border-rose-500/40 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
             title="Probar sonido negativo oficial cuando no se puede leer rostro, huella o resultado fallido"
           >
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
             <span className="hidden sm:inline">Probar Sonido Negativo</span>
             <span className="sm:hidden">Error Test</span>
           </button>

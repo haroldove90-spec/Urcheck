@@ -21,7 +21,10 @@ import {
   Camera,
   Activity,
   Award,
-  Database
+  Database,
+  DollarSign,
+  CalendarDays,
+  AlertTriangle
 } from 'lucide-react';
 import { UserRole } from '../../types';
 
@@ -260,6 +263,126 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             q: '¿Qué pasa si no ejecuto el script SQL de inmediato?',
             a: 'La aplicación continuará funcionando en modo híbrido con persistencia local en memoria y navegador, y comenzará a sincronizar automáticamente con Supabase en cuanto las tablas sean creadas en su proyecto.',
           },
+        ],
+      },
+    },
+    {
+      id: 'kiosk-mode',
+      title: '10. Modo Kiosco Desatendido con Bloqueo de Supervisor (PIN)',
+      subtitle: 'Configuración de terminal fija para entradas de planta con reseteo automático de 5 segundos.',
+      icon: Smartphone,
+      roleAudience: 'both',
+      content: {
+        summary: 'Convierte cualquier tablet o PC instalada en recepción o accesos en una terminal checadora comunitaria sin sesión abierta de un usuario particular.',
+        steps: [
+          'Paso 1: Ingrese al módulo "Marcaje Biométrico".',
+          'Paso 2: Active el interruptor "Modo Kiosco Desatendido" situado arriba del visor de cámara.',
+          'Paso 3: El sistema fijará la cámara en modo continuo. Cada colaborador que llega coloca su rostro, presiona Checar Asistencia y se genera su comprobante.',
+          'Paso 4: Tras registrar la asistencia, se activará una cuenta regresiva de 5 segundos que borra la selfie y deja la cámara lista para el siguiente colaborador.',
+          'Paso 5: Para salir del Modo Kiosco, presione "Desactivar Kiosco" e introduzca el PIN de Supervisor (PIN por defecto: 1234).',
+        ],
+        tips: [
+          'El modo Kiosco impide que los colaboradores accedan a la configuración u otros expedientes privados.',
+          'Si la cámara pierde foco, el botón "Reiniciar Visor" reactiva el escaneo biométrico de inmediato.',
+        ],
+      },
+    },
+    {
+      id: 'payroll-matrix',
+      title: '11. Matriz de Pre-Nómina, Deducciones y Cálculo Quincenal',
+      subtitle: 'Cálculo de sueldo bruto, horas extra, descuentos por retardos/faltas y exportación CSV.',
+      icon: DollarSign,
+      roleAudience: 'admin',
+      content: {
+        summary: 'Procesa el cruce de asistencias reales contra el tabulador de sueldos para entregar una pre-nómina transparente con percepciones y deducciones calculadas al centavo.',
+        steps: [
+          'Paso 1: Ingrese a "Pre-Nómina" desde el menú lateral o menú móvil.',
+          'Paso 2: Seleccione el periodo de liquidación (Quincena 1 o Quincena 2) y el año correspondiente.',
+          'Paso 3: Revise el desglose por colaborador: Días laborados, Sueldo Base, Percepción por Horas Extra, Deducción por Retardos y Deducción por Faltas.',
+          'Paso 4: Verifique el "Neto Estimado a Pagar" consolidado.',
+          'Paso 5: Presione "Exportar Pre-Nómina CSV" para descargar el archivo estructurado listo para timbrado o dispersión bancaria.',
+        ],
+        tips: [
+          'Las faltas debidamente justificadas mediante dictamen de RRHH no generarán descuento en esta matriz.',
+        ],
+      },
+    },
+    {
+      id: 'shifts-holidays',
+      title: '12. Gestión de Turnos, Horarios y Días Feriados Oficiales (LFT)',
+      subtitle: 'Configuración de turnos rotativos, tolerancias de entrada y calendario de descansos obligatorios.',
+      icon: CalendarDays,
+      roleAudience: 'admin',
+      content: {
+        summary: 'Administre los turnos laborales de la organización (Matutino, Vespertino, Nocturno, Mixto y 12x24) y calendarice los descansos obligatorios marcados por la Ley Federal del Trabajo.',
+        steps: [
+          'Paso 1: Diríjase a "Turnos y Horarios".',
+          'Paso 2: En la pestaña "Plantilla de Turnos", consulte los horarios activos, minutos de tolerancia y minutos de colación.',
+          'Paso 3: Asigne colaboradores a turnos específicos con el botón de asignación rápida.',
+          'Paso 4: Cambie a la pestaña "Calendario de Días Feriados Oficiales" para verificar los días de asueto legal.',
+          'Paso 5: Agregue días feriados institucionales o de contrato colectivo con el botón "+ Registrar Día Feriado".',
+        ],
+        tips: [
+          'Los días feriados oficiales registrados automáticamente eximen de marcaje a los colaboradores asignados sin computar falta.',
+        ],
+      },
+    },
+    {
+      id: 'incident-justifications',
+      title: '13. Módulo de Justificación de Incidencias (Retardos y Faltas)',
+      subtitle: 'Recepción de justificantes médicos del IMSS, averías de transporte y dictamen de RRHH.',
+      icon: AlertTriangle,
+      roleAudience: 'both',
+      content: {
+        summary: 'Permite tramitar y validar comprobantes de incidencias para evitar deducciones injustificadas en la nómina.',
+        steps: [
+          'Paso 1 (Administrador): Ingrese a "Asistencias" y seleccione la pestaña "Justificación de Incidencias".',
+          'Paso 2: Presione "+ Nuevo Justificante" para registrar una causa justificada a nombre de un colaborador.',
+          'Paso 3: Seleccione la categoría: Incapacidad IMSS, Transporte/Vialidad, Trámite Oficial o Fuerza Mayor.',
+          'Paso 4: En la tabla de justificantes, presione "Aprobar" para anular el retardo/falta o "Rechazar" si no procede.',
+          'Paso 5: El estado de la asistencia se actualizará instantáneamente a "Justificado".',
+        ],
+        tips: [
+          'Los colaboradores pueden consultar sus justificantes aprobados en su módulo de expediente laboral.',
+        ],
+      },
+    },
+    {
+      id: 'constancias-cartas',
+      title: '14. Generador de Constancias Laborales y Cartas Patronales',
+      subtitle: 'Emisión con membrete oficial, sello digital SHA-256, validación QR e impresión directa en PDF.',
+      icon: FileText,
+      roleAudience: 'both',
+      content: {
+        summary: 'Genera cartas patronales y constancias de trabajo para trámites de visa, créditos hipotecarios o bancarios con timbrado criptográfico seguro.',
+        steps: [
+          'Paso 1: Ingrese al módulo "Mis Documentos" (en Administrador) o "Expediente / Docs" (en Empleado).',
+          'Paso 2: Presione el botón "Generar Constancia Laboral".',
+          'Paso 3: Elija el tipo de documento (Carta Patronal de Antigüedad o Constancia de Ingresos).',
+          'Paso 4: Revise la vista previa con membrete corporativo, datos del colaborador, salario integrado y código QR de validación.',
+          'Paso 5: Presione "Imprimir / Guardar en PDF" para obtener el documento oficial sellado.',
+        ],
+        tips: [
+          'Cualquier entidad bancaria o consulado puede escanear el código QR para validar la autenticidad del folio patronal.',
+        ],
+      },
+    },
+    {
+      id: 'audit-trail',
+      title: '15. Bitácora de Auditoría del Sistema y Trazabilidad Forense',
+      subtitle: 'Registro inmutable de marcajes, firmas, corroboraciones y cambios con severidad y actor.',
+      icon: ShieldCheck,
+      roleAudience: 'admin',
+      content: {
+        summary: 'Supervise en tiempo real cada acción ejecutada en el sistema para garantizar transparencia y cumplimiento legal ante inspecciones de la STPS.',
+        steps: [
+          'Paso 1: Ingrese a "Auditoría" en el menú de navegación.',
+          'Paso 2: Filtre por severidad (Informativa, Éxito, Advertencia o Crítica).',
+          'Paso 3: Busque eventos específicos por nombre de colaborador, módulo o tipo de acción.',
+          'Paso 4: Inspeccione la dirección IP, fecha, hora y detalles técnicos del registro.',
+        ],
+        tips: [
+          'Los registros de auditoría son inmutables para garantizar validez probatoria.',
         ],
       },
     },
