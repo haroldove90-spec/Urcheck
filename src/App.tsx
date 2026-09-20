@@ -27,6 +27,7 @@ import { INITIAL_COMPANY_DOCUMENTS } from './utils/documentUtils';
 import { playSystemNotificationSound } from './utils/audioSystem';
 
 // Layout Components
+import { LoginForm } from './components/LoginForm';
 import { RoleSelector } from './components/RoleSelector';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -238,10 +239,10 @@ export default function App() {
     return () => window.removeEventListener('focus', handleFocus);
   }, [loadDataFromSupabase]);
 
-  // Role Switch Handler
-  const handleSelectRole = (role: UserRole) => {
+  // Role & Authentication Handler
+  const handleSelectRole = (role: UserRole, customUser?: UserProfile) => {
     setCurrentRole(role);
-    const profile = INITIAL_PROFILES[role];
+    const profile = customUser || INITIAL_PROFILES[role];
     setCurrentUser(profile);
     const adminMod: AdminModule = 'dashboard';
     const empMod: EmployeeModule = 'punch';
@@ -561,12 +562,12 @@ export default function App() {
     syncBatchAttendanceCorroboration(recordIds, reviewerName, nowStr, notes);
   };
 
-  // If no role is selected yet, render the clean role selection screen
+  // If no role is selected yet, render the institutional login form
   if (!currentRole) {
     return (
       <>
         {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
-        <RoleSelector onSelectRole={handleSelectRole} />
+        <LoginForm onLogin={handleSelectRole} employees={employees} />
       </>
     );
   }

@@ -16,7 +16,7 @@ export const INITIAL_PROFILES: Record<string, UserProfile> = {
   admin: {
     id: 'usr-admin-01',
     name: 'Fernanda Soto Vargas',
-    email: 'fernanda.soto@urcheck.com',
+    email: 'admin@urcheck.com',
     phone: '+52 55 4920 1823',
     address: 'Av. Insurgentes Sur 1450, Del Valle, Benito Juárez, CDMX',
     emergencyContact: 'Roberto Soto (Hermano)',
@@ -38,7 +38,7 @@ export const INITIAL_PROFILES: Record<string, UserProfile> = {
   employee: {
     id: 'emp-001',
     name: 'Carlos Mendoza Ortiz',
-    email: 'carlos.mendoza@urcheck.com',
+    email: 'empleado@urcheck.com',
     phone: '+52 55 3189 7420',
     address: 'Calle Colima 184, Roma Norte, Cuauhtémoc, CDMX',
     emergencyContact: 'Elena Ortiz Morales (Madre)',
