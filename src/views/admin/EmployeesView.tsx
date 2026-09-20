@@ -41,8 +41,8 @@ interface EmployeesViewProps {
 }
 
 export const EmployeesView: React.FC<EmployeesViewProps> = ({
-  employees,
-  branches,
+  employees = [],
+  branches = [],
   onAddEmployee,
   onUpdateEmployee,
   onDeleteEmployee,
@@ -158,7 +158,8 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
   const handleUpdateDocumentStatus = (docId: string, newStatus: DocumentStatus) => {
     if (!inspectingDossierEmp) return;
 
-    const updatedDocs = inspectingDossierEmp.documents.map(d => {
+    const docs = inspectingDossierEmp.documents || [];
+    const updatedDocs = docs.map(d => {
       if (d.id === docId) {
         return {
           ...d,
@@ -490,7 +491,7 @@ export const EmployeesView: React.FC<EmployeesViewProps> = ({
               </div>
 
               <div className="divide-y divide-neutral-100 border border-neutral-200 rounded-xl overflow-hidden">
-                {inspectingDossierEmp.documents.map((doc) => (
+                {(inspectingDossierEmp.documents || []).map((doc) => (
                   <div key={doc.id} className="p-3.5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-neutral-50">
                     <div className="flex items-start gap-2.5">
                       <FileText className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />

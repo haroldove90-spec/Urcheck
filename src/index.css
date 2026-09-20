@@ -20,4 +20,24 @@
   * {
     box-sizing: border-box;
   }
+
+  /* Custom visible scrollbar for sidebar navigation */
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: #069AD8;
+  }
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, Employee, Branch } from '../types';
+import { UserProfile, Employee, Branch, AdminModule, EmployeeModule } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { PWAInstallModal } from './PWAInstallModal';
 import { SupabaseConnectionModal } from './SupabaseConnectionModal';
@@ -13,7 +13,25 @@ import {
   AlertTriangle,
   Clock,
   ShieldAlert,
-  X
+  X,
+  LayoutGrid,
+  Search,
+  LayoutDashboard,
+  UserCheck,
+  DollarSign,
+  CalendarDays,
+  Users,
+  FileText,
+  Building2,
+  CalendarCheck,
+  FileBarChart,
+  ShieldCheck,
+  UserCog,
+  User,
+  BookOpen,
+  Settings,
+  Fingerprint,
+  ChevronDown
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -25,6 +43,12 @@ interface HeaderProps {
   onRefreshFromSupabase?: () => void;
   isRefreshing?: boolean;
   lastSyncTime?: string | null;
+  onSelectAdminModule?: (module: AdminModule) => void;
+  onSelectEmployeeModule?: (module: EmployeeModule) => void;
+  currentAdminModule?: AdminModule;
+  currentEmployeeModule?: EmployeeModule;
+  pendingLeavesCount?: number;
+  pendingOvertimeCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -36,11 +60,64 @@ export const Header: React.FC<HeaderProps> = ({
   onRefreshFromSupabase,
   isRefreshing = false,
   lastSyncTime,
+  onSelectAdminModule,
+  onSelectEmployeeModule,
+  currentAdminModule,
+  currentEmployeeModule,
+  pendingLeavesCount = 0,
+  pendingOvertimeCount = 0,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [showSupabaseModal, setShowSupabaseModal] = useState(false);
   const [installSuccessMessage, setInstallSuccessMessage] = useState<string | null>(null);
+  const [showModulesMenu, setShowModulesMenu] = useState(false);
+  const [moduleSearch, setModuleSearch] = useState('');
+
+  const isAdmin = currentUser.role === 'admin';
+
+  // 15 Admin Modules Definition
+  const adminModulesList: {
+    id: AdminModule;
+    label: string;
+    group: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+  }[] = [
+    { id: 'dashboard', label: 'Inicio / Monitoreo', group: 'Operación', description: 'Métricas en tiempo real y terminales', icon: LayoutDashboard },
+    { id: 'attendance', label: 'Asistencias en Vivo', group: 'Operación', description: 'Registro con foto, retardos y bitácora', icon: UserCheck },
+    { id: 'shifts', label: 'Turnos y Horarios', group: 'Operación', description: 'Jornadas matutinas, vespertinas y nocturnas', icon: CalendarDays },
+    { id: 'employees', label: 'Empleados', group: 'Operación', description: 'Padrón activo, datos laborales y contratos', icon: Users },
+    { id: 'branches', label: 'Sucursales y Sedes', group: 'Operación', description: 'Sedes y hardware ZKTeco biométrico', icon: Building2 },
+    { id: 'payroll', label: 'Pre-Nómina', group: 'Nómina & RRHH', description: 'Cálculo de horas, retardos y deducciones', icon: DollarSign },
+    { id: 'leaves', label: 'Permisos y Vacaciones', group: 'Nómina & RRHH', description: 'Aprobación de ausencias y justificantes', icon: CalendarCheck, badge: pendingLeavesCount },
+    { id: 'overtime', label: 'Horas Extra', group: 'Nómina & RRHH', description: 'LFT Art. 66-68 autorización de extras', icon: Clock, badge: pendingOvertimeCount },
+    { id: 'documents', label: 'Expedientes / Docs', group: 'Nómina & RRHH', description: 'Contratos, identificaciones y credenciales', icon: FileText },
+    { id: 'reports', label: 'Reportes Laborales', group: 'Control & Auditoría', description: 'Exportaciones en Excel/PDF y kardex', icon: FileBarChart },
+    { id: 'audit', label: 'Auditoría Forense', group: 'Control & Auditoría', description: 'Bitácora inmutable SHA-256', icon: ShieldCheck },
+    { id: 'users', label: 'Usuarios y Accesos', group: 'Control & Auditoría', description: 'Gestión de cuentas y envío WhatsApp', icon: UserCog },
+    { id: 'profile', label: 'Mi Perfil', group: 'Sistema & Cuenta', description: 'Foto de perfil, datos y firma digital', icon: User },
+    { id: 'manual', label: 'Manual de Usuario', group: 'Sistema & Cuenta', description: 'Guía oficial de uso del sistema', icon: BookOpen },
+    { id: 'settings', label: 'Configuración General', group: 'Sistema & Cuenta', description: 'Políticas de tolerancia y geofencing', icon: Settings },
+  ];
+
+  // 7 Employee Modules Definition
+  const employeeModulesList: {
+    id: EmployeeModule;
+    label: string;
+    group: string;
+    description: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    { id: 'punch', label: 'Marcaje Biométrico', group: 'Mi Asistencia', description: 'Checar entrada/salida con foto y GPS', icon: Fingerprint },
+    { id: 'profile', label: 'Mi Perfil', group: 'Mi Cuenta', description: 'Mis datos personales, foto y firma', icon: User },
+    { id: 'notifications', label: 'Notificaciones', group: 'Mi Cuenta', description: 'Avisos y comunicados de la empresa', icon: Bell },
+    { id: 'leaves', label: 'Mis Permisos', group: 'Mi Asistencia', description: 'Solicitudes de vacaciones y permisos', icon: CalendarCheck },
+    { id: 'documents', label: 'Mi Expediente', group: 'Mi Asistencia', description: 'Contratos, credencial y recibos', icon: FileText },
+    { id: 'overtime', label: 'Mis Horas Extra', group: 'Mi Asistencia', description: 'Registro y validación de horas extra', icon: Clock },
+    { id: 'manual', label: 'Manual de Usuario', group: 'Ayuda', description: 'Instrucciones paso a paso', icon: BookOpen },
+  ];
 
   // Absenteeism & Operational Alerts
   const [showNotifications, setShowNotifications] = useState(false);
@@ -97,8 +174,8 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 w-full">
         <div className="flex items-center justify-between h-13 sm:h-16 md:h-18 gap-1.5 sm:gap-3 w-full">
           
-          {/* System Logo: Urcheck - Optimized responsive size */}
-          <div className="flex items-center shrink-0 py-1">
+          {/* System Logo & Quick Modules Switcher */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 py-1">
             <img 
               id="header-urcheck-logo"
               src="https://ljymwaifrkaedgmpdpwv.supabase.co/storage/v1/object/public/logo/urchecklogo.png" 
@@ -106,6 +183,173 @@ export const Header: React.FC<HeaderProps> = ({
               className="h-6 sm:h-8 md:h-9 w-auto max-w-[85px] xs:max-w-[110px] sm:max-w-[200px] object-contain cursor-pointer"
               referrerPolicy="no-referrer"
             />
+
+            {/* Quick Modules Menu Trigger (Visible on all screen sizes) */}
+            <div className="relative">
+              <button
+                id="btn-header-modules-menu"
+                type="button"
+                onClick={() => setShowModulesMenu(prev => !prev)}
+                className="inline-flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-[#093244]/5 hover:bg-[#069AD8]/10 hover:text-[#069AD8] rounded-xl border border-neutral-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+                title="Explorar todos los módulos del sistema"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-[#069AD8]" />
+                <span className="hidden sm:inline">Módulos</span>
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#093244] text-white">
+                  {isAdmin ? '15' : '7'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-neutral-400 hidden sm:inline" />
+              </button>
+
+              {/* Modules Mega-Menu Dropdown / Modal */}
+              {showModulesMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs"
+                    onClick={() => setShowModulesMenu(false)}
+                  />
+                  <div className="fixed inset-x-2 top-14 sm:absolute sm:inset-auto sm:left-0 sm:top-full sm:mt-2 w-auto sm:w-[460px] md:w-[560px] max-h-[80vh] overflow-hidden bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 flex flex-col animate-in fade-in zoom-in-95">
+                    {/* Header */}
+                    <div className="p-3.5 border-b border-neutral-100 bg-[#093244] text-white flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <LayoutGrid className="w-4 h-4 text-[#069AD8]" />
+                        <span className="font-bold text-xs sm:text-sm">
+                          {isAdmin ? 'Módulos del Sistema Urcheck (15 Módulos)' : 'Mis Módulos (7 Módulos)'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowModulesMenu(false)}
+                        className="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className="p-2.5 border-b border-neutral-100 bg-neutral-50/50">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Buscar módulo por nombre o función..."
+                          value={moduleSearch}
+                          onChange={(e) => setModuleSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-neutral-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#069AD8] text-neutral-800"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    {/* Modules Grid */}
+                    <div className="p-3 overflow-y-auto max-h-[55vh] space-y-3 sidebar-scroll">
+                      {isAdmin ? (
+                        ['Operación', 'Nómina & RRHH', 'Control & Auditoría', 'Sistema & Cuenta'].map(groupName => {
+                          const groupModules = adminModulesList.filter(
+                            m => m.group === groupName && (
+                              m.label.toLowerCase().includes(moduleSearch.toLowerCase()) ||
+                              m.description.toLowerCase().includes(moduleSearch.toLowerCase())
+                            )
+                          );
+                          if (groupModules.length === 0) return null;
+
+                          return (
+                            <div key={groupName} className="space-y-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 px-1">
+                                {groupName}
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {groupModules.map(item => {
+                                  const Icon = item.icon;
+                                  const isActive = currentAdminModule === item.id;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => {
+                                        if (onSelectAdminModule) onSelectAdminModule(item.id);
+                                        setShowModulesMenu(false);
+                                      }}
+                                      className={`p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                                        isActive
+                                          ? 'bg-[#093244] text-white border-[#069AD8] shadow-sm'
+                                          : 'bg-neutral-50/70 hover:bg-neutral-100/90 border-neutral-200 text-neutral-800'
+                                      }`}
+                                    >
+                                      <div className={`p-1.5 rounded-lg shrink-0 ${
+                                        isActive ? 'bg-[#069AD8] text-white' : 'bg-white text-[#093244] border border-neutral-200'
+                                      }`}>
+                                        <Icon className="w-3.5 h-3.5" />
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center justify-between gap-1">
+                                          <span className="font-bold text-xs truncate">{item.label}</span>
+                                          {Boolean(item.badge && item.badge > 0) && (
+                                            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-rose-500 text-white shrink-0">
+                                              {item.badge}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className={`text-[10px] line-clamp-1 leading-snug mt-0.5 ${
+                                          isActive ? 'text-white/80' : 'text-neutral-500'
+                                        }`}>
+                                          {item.description}
+                                        </p>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {employeeModulesList
+                            .filter(m => 
+                              m.label.toLowerCase().includes(moduleSearch.toLowerCase()) ||
+                              m.description.toLowerCase().includes(moduleSearch.toLowerCase())
+                            )
+                            .map(item => {
+                              const Icon = item.icon;
+                              const isActive = currentEmployeeModule === item.id;
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (onSelectEmployeeModule) onSelectEmployeeModule(item.id);
+                                    setShowModulesMenu(false);
+                                  }}
+                                  className={`p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-[#093244] text-white border-[#069AD8] shadow-sm'
+                                      : 'bg-neutral-50/70 hover:bg-neutral-100/90 border-neutral-200 text-neutral-800'
+                                  }`}
+                                >
+                                  <div className={`p-1.5 rounded-lg shrink-0 ${
+                                    isActive ? 'bg-[#069AD8] text-white' : 'bg-white text-[#093244] border border-neutral-200'
+                                  }`}>
+                                    <Icon className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <span className="font-bold text-xs truncate block">{item.label}</span>
+                                    <p className={`text-[10px] line-clamp-1 leading-snug mt-0.5 ${
+                                      isActive ? 'text-white/80' : 'text-neutral-500'
+                                    }`}>
+                                      {item.description}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Right Actions: Compact & ultra-responsive layout */}

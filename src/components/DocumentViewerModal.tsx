@@ -134,12 +134,12 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                 Cláusulas y Términos Legales
               </span>
               <span className="text-[11px] text-neutral-400 font-mono">
-                {doc.contentClauses.length} Cláusulas Vinculantes
+                {(doc.contentClauses || []).length} Cláusulas Vinculantes
               </span>
             </div>
 
             <div className="space-y-3 text-neutral-700 leading-relaxed text-xs sm:text-[13px]">
-              {doc.contentClauses.map((clause, idx) => {
+              {(doc.contentClauses || []).map((clause, idx) => {
                 const parts = clause.split(':');
                 const title = parts[0];
                 const rest = parts.slice(1).join(':');

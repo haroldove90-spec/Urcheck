@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AttendanceRecord, Branch, Employee } from '../../types';
+import { AttendanceRecord, Branch, Employee, AdminModule } from '../../types';
 import { 
   Users, 
   CheckCircle2, 
@@ -18,7 +18,20 @@ import {
   Camera,
   Eye,
   X,
-  FileDown
+  FileDown,
+  UserCheck,
+  DollarSign,
+  CalendarDays,
+  FileText,
+  CalendarCheck,
+  Clock,
+  FileBarChart,
+  UserCog,
+  User,
+  BookOpen,
+  Settings,
+  LayoutGrid,
+  ArrowRight
 } from 'lucide-react';
 import { generateSystemDocumentationPDF } from '../../utils/generateSystemPDF';
 
@@ -28,34 +41,45 @@ interface DashboardViewProps {
   attendanceRecords: AttendanceRecord[];
   onAddSimulatedPunch: () => void;
   onNavigateToAttendance?: () => void;
+  onNavigateToModule?: (module: AdminModule) => void;
+  pendingLeavesCount?: number;
+  pendingOvertimeCount?: number;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  employees,
-  branches,
-  attendanceRecords,
-  onAddSimulatedPunch,
+  employees = [],
+  branches = [],
+  attendanceRecords = [],
+  onAddSimulatedPunch = () => {},
   onNavigateToAttendance,
+  onNavigateToModule,
+  pendingLeavesCount = 0,
+  pendingOvertimeCount = 0,
 }) => {
   const [filterType, setFilterType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Hace unos segundos');
   const [selectedRecordForSelfie, setSelectedRecordForSelfie] = useState<AttendanceRecord | null>(null);
+  const [moduleFilter, setModuleFilter] = useState<string>('all');
 
-  const totalEmployees = employees.length;
-  const uniqueAttendees = new Set(attendanceRecords.map(r => r.employeeId)).size;
+  const safeEmployees = employees || [];
+  const safeAttendanceRecords = attendanceRecords || [];
+  const safeBranches = branches || [];
+
+  const totalEmployees = safeEmployees.length;
+  const uniqueAttendees = new Set(safeAttendanceRecords.map(r => r.employeeId)).size;
   const attendanceRate = totalEmployees > 0 ? Math.round((uniqueAttendees / totalEmployees) * 100) : 0;
   
-  const lateRecords = attendanceRecords.filter(r => r.status === 'late');
-  const onTimeRecords = attendanceRecords.filter(r => r.status === 'on_time');
+  const lateRecords = safeAttendanceRecords.filter(r => r.status === 'late');
+  const onTimeRecords = safeAttendanceRecords.filter(r => r.status === 'on_time');
   const absentCount = Math.max(0, totalEmployees - uniqueAttendees);
 
-  const filteredRecords = attendanceRecords.filter(record => {
+  const filteredRecords = safeAttendanceRecords.filter(record => {
     const matchesFilter = filterType === 'all' || record.type === filterType;
-    const matchesSearch = record.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          record.branchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          record.employeeCode.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (record.employeeName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (record.branchName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (record.employeeCode || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -218,6 +242,239 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Colaboradores pendientes
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Central Admin Modules Hub (15 Módulos Activos de Administración) */}
+      <div className="bg-white rounded-2xl p-5 border border-neutral-200 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#069AD8]/10 text-[#069AD8] flex items-center justify-center">
+                <LayoutGrid className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-[#093244]">
+                Módulos del Sistema Urcheck
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#093244] text-white">
+                15 Módulos Activos
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 mt-1">
+              Accede directamente a todas las funciones operativas, de nómina, control y auditoría institucional.
+            </p>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { id: 'all', label: 'Todos (15)' },
+              { id: 'operacion', label: 'Operación' },
+              { id: 'rrhh', label: 'Nómina & RRHH' },
+              { id: 'control', label: 'Control & Auditoría' },
+              { id: 'sistema', label: 'Sistema' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setModuleFilter(tab.id)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                  moduleFilter === tab.id
+                    ? 'bg-[#093244] text-white'
+                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Modules Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {[
+            {
+              id: 'attendance' as AdminModule,
+              label: 'Asistencias en Vivo',
+              category: 'operacion',
+              categoryLabel: 'Operación',
+              description: 'Auditoría en tiempo real, registro con foto/selfie y corroboración.',
+              icon: UserCheck,
+              badge: `${attendanceRecords.length} reg.`,
+              badgeColor: 'bg-[#0871A0]/10 text-[#0871A0]',
+            },
+            {
+              id: 'employees' as AdminModule,
+              label: 'Empleados',
+              category: 'operacion',
+              categoryLabel: 'Operación',
+              description: 'Padrón de personal, números de nómina, puestos y sucursales.',
+              icon: Users,
+              badge: `${totalEmployees} activos`,
+              badgeColor: 'bg-neutral-100 text-neutral-800',
+            },
+            {
+              id: 'shifts' as AdminModule,
+              label: 'Turnos y Horarios',
+              category: 'operacion',
+              categoryLabel: 'Operación',
+              description: 'Configuración de jornadas matutinas, vespertinas y tolerancias.',
+              icon: CalendarDays,
+              badge: '3 turnos',
+              badgeColor: 'bg-neutral-100 text-neutral-800',
+            },
+            {
+              id: 'branches' as AdminModule,
+              label: 'Sucursales y Sedes',
+              category: 'operacion',
+              categoryLabel: 'Operación',
+              description: 'Gestión de ubicaciones físicas y terminales biométricas ZKTeco.',
+              icon: Building2,
+              badge: `${branches.length} sedes`,
+              badgeColor: 'bg-emerald-100 text-emerald-800',
+            },
+            {
+              id: 'payroll' as AdminModule,
+              label: 'Pre-Nómina',
+              category: 'rrhh',
+              categoryLabel: 'Nómina & RRHH',
+              description: 'Cálculo de horas trabajadas, retardos, incidencias y deducciones.',
+              icon: DollarSign,
+              badge: 'LFT Art. 66',
+              badgeColor: 'bg-emerald-100 text-emerald-800',
+            },
+            {
+              id: 'leaves' as AdminModule,
+              label: 'Permisos y Vacaciones',
+              category: 'rrhh',
+              categoryLabel: 'Nómina & RRHH',
+              description: 'Aprobación de ausencias, justificaciones médicas e incapacidades.',
+              icon: CalendarCheck,
+              badge: pendingLeavesCount > 0 ? `${pendingLeavesCount} pendientes` : 'Al día',
+              badgeColor: pendingLeavesCount > 0 ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-neutral-100 text-neutral-700',
+            },
+            {
+              id: 'overtime' as AdminModule,
+              label: 'Horas Extra',
+              category: 'rrhh',
+              categoryLabel: 'Nómina & RRHH',
+              description: 'Autorización de tiempo extraordinario doble y triple según ley.',
+              icon: Clock,
+              badge: pendingOvertimeCount > 0 ? `${pendingOvertimeCount} pendientes` : 'Al día',
+              badgeColor: pendingOvertimeCount > 0 ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-neutral-100 text-neutral-700',
+            },
+            {
+              id: 'documents' as AdminModule,
+              label: 'Expedientes / Documentos',
+              category: 'rrhh',
+              categoryLabel: 'Nómina & RRHH',
+              description: 'Contratos laborales, cartas patronales, actas y credenciales.',
+              icon: FileText,
+              badge: 'Digital',
+              badgeColor: 'bg-neutral-100 text-neutral-700',
+            },
+            {
+              id: 'reports' as AdminModule,
+              label: 'Reportes Laborales',
+              category: 'control',
+              categoryLabel: 'Control & Auditoría',
+              description: 'Exportaciones en Excel/PDF, kardex de asistencia y métricas.',
+              icon: FileBarChart,
+              badge: 'Excel / PDF',
+              badgeColor: 'bg-sky-100 text-sky-800',
+            },
+            {
+              id: 'audit' as AdminModule,
+              label: 'Auditoría Forense',
+              category: 'control',
+              categoryLabel: 'Control & Auditoría',
+              description: 'Bitácora criptográfica inmutable SHA-256 de todas las operaciones.',
+              icon: ShieldCheck,
+              badge: 'SHA-256',
+              badgeColor: 'bg-emerald-100 text-emerald-800',
+            },
+            {
+              id: 'users' as AdminModule,
+              label: 'Usuarios y Accesos',
+              category: 'control',
+              categoryLabel: 'Control & Auditoría',
+              description: 'Gestión de credenciales, roles y envío por WhatsApp en un clic.',
+              icon: UserCog,
+              badge: 'WhatsApp',
+              badgeColor: 'bg-emerald-100 text-emerald-800',
+            },
+            {
+              id: 'profile' as AdminModule,
+              label: 'Mi Perfil Institucional',
+              category: 'sistema',
+              categoryLabel: 'Sistema',
+              description: 'Fotografía de perfil, datos personales y firma digital.',
+              icon: User,
+              badge: 'Firma Activa',
+              badgeColor: 'bg-neutral-100 text-neutral-700',
+            },
+            {
+              id: 'manual' as AdminModule,
+              label: 'Manual de Usuario',
+              category: 'sistema',
+              categoryLabel: 'Sistema',
+              description: 'Guía interactiva completa con pasos de uso para Admin y Empleado.',
+              icon: BookOpen,
+              badge: 'Guía 2026',
+              badgeColor: 'bg-sky-100 text-sky-800',
+            },
+            {
+              id: 'settings' as AdminModule,
+              label: 'Configuración General',
+              category: 'sistema',
+              categoryLabel: 'Sistema',
+              description: 'Tolerancias, geofencing, políticas de retardo y sincronización.',
+              icon: Settings,
+              badge: 'Sistema',
+              badgeColor: 'bg-neutral-100 text-neutral-700',
+            },
+          ]
+            .filter(item => moduleFilter === 'all' || item.category === moduleFilter)
+            .map(item => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.id}
+                  className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50 hover:bg-white hover:border-[#069AD8]/50 hover:shadow-md transition-all flex flex-col justify-between group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#093244] text-white flex items-center justify-center shrink-0 group-hover:bg-[#069AD8] transition-colors">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badgeColor}`}>
+                        {item.badge}
+                      </span>
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-bold text-[#093244] group-hover:text-[#069AD8] transition-colors">
+                      {item.label}
+                    </h4>
+                    <p className="text-[11px] text-neutral-500 mt-1 line-clamp-2 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-neutral-100 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                      {item.categoryLabel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onNavigateToModule ? onNavigateToModule(item.id) : null}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#069AD8] hover:text-[#093244] group-hover:translate-x-0.5 transition-all cursor-pointer"
+                    >
+                      <span>Abrir</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
 

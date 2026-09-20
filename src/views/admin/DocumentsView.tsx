@@ -36,8 +36,8 @@ interface DocumentsViewProps {
 }
 
 export const DocumentsView: React.FC<DocumentsViewProps> = ({
-  documents,
-  employees,
+  documents = [],
+  employees = [],
   currentUser,
   onAddDocument,
   onUpdateDocument,
@@ -46,6 +46,9 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const safeDocs = documents || [];
+  const safeEmployees = employees || [];
 
   // Modals state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -66,16 +69,16 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const [adminSignsNow, setAdminSignsNow] = useState(false);
 
   // Quick stats
-  const totalDocs = documents.length;
-  const fullySignedCount = documents.filter(d => d.isAdminSigned && d.isEmployeeSigned).length;
-  const pendingEmployeeCount = documents.filter(d => !d.isEmployeeSigned).length;
-  const pendingAdminCount = documents.filter(d => !d.isAdminSigned).length;
+  const totalDocs = safeDocs.length;
+  const fullySignedCount = safeDocs.filter(d => d.isAdminSigned && d.isEmployeeSigned).length;
+  const pendingEmployeeCount = safeDocs.filter(d => !d.isEmployeeSigned).length;
+  const pendingAdminCount = safeDocs.filter(d => !d.isAdminSigned).length;
 
   // Filtered documents
-  const filteredDocs = documents.filter(doc => {
+  const filteredDocs = safeDocs.filter(doc => {
     const matchesSearch = 
-      doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doc.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (doc.code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (doc.targetEmployeeName && doc.targetEmployeeName.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = categoryFilter === 'all' || doc.category === categoryFilter;

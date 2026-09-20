@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { AuditLogEntry } from '../../types';
+import { INITIAL_AUDIT_LOGS } from '../../data/mockData';
 import { 
   ShieldCheck, 
   Search, 
@@ -14,29 +15,31 @@ import {
 } from 'lucide-react';
 
 interface AuditLogViewProps {
-  logs: AuditLogEntry[];
+  logs?: AuditLogEntry[];
 }
 
-export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs }) => {
+export const AuditLogView: React.FC<AuditLogViewProps> = ({ logs = INITIAL_AUDIT_LOGS }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModule, setFilterModule] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
 
+  const safeLogs = logs || [];
+
   const modules = useMemo(() => {
-    const set = new Set(logs.map(l => l.module));
+    const set = new Set(safeLogs.map(l => l.module));
     return Array.from(set);
-  }, [logs]);
+  }, [safeLogs]);
 
   const filteredLogs = useMemo(() => {
-    return logs.filter(l => {
-      const matchSearch = l.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          l.actorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          l.details.toLowerCase().includes(searchQuery.toLowerCase());
+    return safeLogs.filter(l => {
+      const matchSearch = (l.action || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (l.actorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (l.details || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchModule = filterModule === 'all' || l.module === filterModule;
       const matchSeverity = filterSeverity === 'all' || l.severity === filterSeverity;
       return matchSearch && matchModule && matchSeverity;
     });
-  }, [logs, searchQuery, filterModule, filterSeverity]);
+  }, [safeLogs, searchQuery, filterModule, filterSeverity]);
 
   const getSeverityBadge = (severity: AuditLogEntry['severity']) => {
     switch (severity) {

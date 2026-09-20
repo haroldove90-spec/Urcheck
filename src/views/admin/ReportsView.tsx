@@ -20,9 +20,9 @@ interface ReportsViewProps {
 }
 
 export const ReportsView: React.FC<ReportsViewProps> = ({
-  attendanceRecords,
-  employees,
-  branches,
+  attendanceRecords = [],
+  employees = [],
+  branches = [],
 }) => {
   const [reportType, setReportType] = useState<'asistencia' | 'incidencias' | 'expedientes' | 'nomina'>('asistencia');
   const [dateRange, setDateRange] = useState('mes_actual');
@@ -32,7 +32,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
   // Generate downloadable CSV
   const handleExportCSV = () => {
     let headers = ['ID', 'Codigo', 'Colaborador', 'Sucursal', 'Hora_Servidor', 'Tipo', 'Metodo', 'Estatus', 'Folio_Audit'];
-    let rows = attendanceRecords.map(r => [
+    let rows = (attendanceRecords || []).map(r => [
       r.id,
       r.employeeCode,
       `"${r.employeeName}"`,
@@ -46,13 +46,13 @@ export const ReportsView: React.FC<ReportsViewProps> = ({
 
     if (reportType === 'expedientes') {
       headers = ['Codigo', 'Colaborador', 'Departamento', 'Sucursal', 'Estatus_Expediente', 'Docs_Completos'];
-      rows = employees.map(e => [
+      rows = (employees || []).map(e => [
         e.employeeCode,
         `"${e.name}"`,
         `"${e.department}"`,
         `"${e.branchName}"`,
         e.dossierStatus,
-        e.documents.filter(d => d.status === 'complete').length.toString(),
+        (e.documents || []).filter(d => d.status === 'complete').length.toString(),
       ]);
     }
 

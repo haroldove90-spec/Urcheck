@@ -24,9 +24,9 @@ interface PayrollViewProps {
 }
 
 export const PayrollView: React.FC<PayrollViewProps> = ({
-  employees,
-  attendanceRecords,
-  overtimeRecords,
+  employees = [],
+  attendanceRecords = [],
+  overtimeRecords = [],
 }) => {
   const [period, setPeriod] = useState<'1q_sep' | '2q_sep' | 'month_aug'>('1q_sep');
   const [filterDepartment, setFilterDepartment] = useState<string>('all');
@@ -34,23 +34,27 @@ export const PayrollView: React.FC<PayrollViewProps> = ({
   const [isDispersed, setIsDispersed] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  const safeEmployees = employees || [];
+  const safeAttendanceRecords = attendanceRecords || [];
+  const safeOvertimeRecords = overtimeRecords || [];
+
   // Departments list for filter
   const departments = useMemo(() => {
-    const deps = new Set(employees.map(e => e.department));
+    const deps = new Set(safeEmployees.map(e => e.department));
     return Array.from(deps);
-  }, [employees]);
+  }, [safeEmployees]);
 
   // Generate real calculated payroll records
   const payrollRecords: PayrollRecord[] = useMemo(() => {
     const expectedDaysInPeriod = period === 'month_aug' ? 30 : 15;
 
-    return employees.map((emp) => {
+    return safeEmployees.map((emp) => {
       // Calculate daily and hourly rate (based on 30 days standard)
       const hourlyRate = emp.hourlyRate || 180;
       const dailyRate = Math.round(hourlyRate * 8);
 
       // Overtime for this employee
-      const empOvt = overtimeRecords.filter(o => o.employeeId === emp.id && o.status === 'approved');
+      const empOvt = safeOvertimeRecords.filter(o => o.employeeId === emp.id && o.status === 'approved');
       const totalOvtHours = empOvt.reduce((acc, curr) => acc + curr.totalHours, 0);
       const totalOvtPay = empOvt.reduce((acc, curr) => acc + (curr.estimatedPay || (curr.totalHours * hourlyRate * (curr.rateMultiplier || 2))), 0);
 

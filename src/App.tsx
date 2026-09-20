@@ -12,7 +12,10 @@ import {
   SystemSettings,
   CompanyDocument,
   DigitalSignature,
-  AppNotification
+  AppNotification,
+  Shift,
+  OfficialHoliday,
+  AuditLogEntry
 } from './types';
 import { 
   INITIAL_PROFILES, 
@@ -21,7 +24,10 @@ import {
   INITIAL_ATTENDANCE_RECORDS, 
   INITIAL_LEAVE_REQUESTS, 
   INITIAL_OVERTIME_RECORDS, 
-  INITIAL_SETTINGS 
+  INITIAL_SETTINGS,
+  INITIAL_SHIFTS,
+  INITIAL_HOLIDAYS,
+  INITIAL_AUDIT_LOGS
 } from './data/mockData';
 import { INITIAL_COMPANY_DOCUMENTS } from './utils/documentUtils';
 import { playSystemNotificationSound } from './utils/audioSystem';
@@ -125,6 +131,15 @@ export default function App() {
   const [settings, setSettings] = useState<SystemSettings>(INITIAL_SETTINGS);
   const [companyDocuments, setCompanyDocuments] = useState<CompanyDocument[]>(() => {
     return isMockDataPurged() ? [] : INITIAL_COMPANY_DOCUMENTS;
+  });
+  const [shifts, setShifts] = useState<Shift[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_SHIFTS;
+  });
+  const [holidays, setHolidays] = useState<OfficialHoliday[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_HOLIDAYS;
+  });
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
+    return isMockDataPurged() ? [] : INITIAL_AUDIT_LOGS;
   });
 
   // Notifications State for Employees
@@ -562,6 +577,39 @@ export default function App() {
     syncBatchAttendanceCorroboration(recordIds, reviewerName, nowStr, notes);
   };
 
+  // Shift and Holiday Handlers
+  const handleAddShift = (newShift: Shift) => {
+    setShifts(prev => [...prev, newShift]);
+    const auditEntry: AuditLogEntry = {
+      id: `aud-${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      actorId: currentUser.id,
+      actorName: currentUser.name,
+      actorRole: currentRole || 'admin',
+      action: 'CREAR_TURNO',
+      module: 'Turnos',
+      details: `Turno creado: ${newShift.name} (${newShift.code})`,
+      severity: 'info'
+    };
+    setAuditLogs(prev => [auditEntry, ...prev]);
+  };
+
+  const handleAssignEmployeeShift = (employeeId: string, shiftName: string) => {
+    setEmployees(prev => prev.map(emp => emp.id === employeeId ? { ...emp, shift: shiftName } : emp));
+    const auditEntry: AuditLogEntry = {
+      id: `aud-${Date.now()}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      actorId: currentUser.id,
+      actorName: currentUser.name,
+      actorRole: currentRole || 'admin',
+      action: 'ASIGNAR_TURNO',
+      module: 'Turnos',
+      details: `Turno asignado: ${shiftName} a colaborador ID ${employeeId}`,
+      severity: 'info'
+    };
+    setAuditLogs(prev => [auditEntry, ...prev]);
+  };
+
   // If no role is selected yet, render the institutional login form
   if (!currentRole) {
     return (
@@ -610,6 +658,12 @@ export default function App() {
         onRefreshFromSupabase={loadDataFromSupabase}
         isRefreshing={isFetchingDb}
         lastSyncTime={lastSyncTime}
+        onSelectAdminModule={setCurrentAdminModule}
+        onSelectEmployeeModule={setCurrentEmployeeModule}
+        currentAdminModule={currentAdminModule}
+        currentEmployeeModule={currentEmployeeModule}
+        pendingLeavesCount={pendingLeavesCount}
+        pendingOvertimeCount={pendingOvertimeCount}
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
@@ -644,6 +698,9 @@ export default function App() {
                   attendanceRecords={attendanceRecords}
                   onAddSimulatedPunch={handleAddSimulatedPunch}
                   onNavigateToAttendance={() => setCurrentAdminModule('attendance')}
+                  onNavigateToModule={setCurrentAdminModule}
+                  pendingLeavesCount={pendingLeavesCount}
+                  pendingOvertimeCount={pendingOvertimeCount}
                 />
               )}
 
@@ -731,16 +788,20 @@ export default function App() {
 
               {currentAdminModule === 'shifts' && (
                 <ShiftsView
+                  shifts={shifts}
                   employees={employees}
+                  holidays={holidays}
+                  onAddShift={handleAddShift}
+                  onAssignEmployeeShift={handleAssignEmployeeShift}
                 />
               )}
 
               {currentAdminModule === 'audit' && (
-                <AuditLogView />
+                <AuditLogView logs={auditLogs} />
               )}
 
               {currentAdminModule === 'manual' && (
-                <UserManualView currentRole={currentRole} />
+                <UserManualView currentRole={currentRole || 'admin'} />
               )}
 
               {currentAdminModule === 'profile' && (
@@ -816,7 +877,7 @@ export default function App() {
               )}
 
               {currentEmployeeModule === 'manual' && (
-                <UserManualView currentRole={currentRole} />
+                <UserManualView currentRole={currentRole || 'employee'} />
               )}
             </>
           )}

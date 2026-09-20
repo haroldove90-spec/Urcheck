@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shift, Employee, OfficialHoliday } from '../../types';
+import { INITIAL_SHIFTS, INITIAL_HOLIDAYS } from '../../data/mockData';
 import { 
   Clock, 
   Plus, 
@@ -7,29 +8,35 @@ import {
   Calendar, 
   CheckCircle2, 
   AlertCircle, 
-  Sparkles,
-  ShieldCheck,
-  Sun,
-  Moon,
-  Coffee,
-  X
+  Sparkles, 
+  ShieldCheck, 
+  Sun, 
+  Moon, 
+  Coffee, 
+  X 
 } from 'lucide-react';
 
 interface ShiftsViewProps {
-  shifts: Shift[];
-  employees: Employee[];
-  holidays: OfficialHoliday[];
-  onAddShift: (newShift: Shift) => void;
-  onAssignEmployeeShift: (employeeId: string, shiftName: string) => void;
+  shifts?: Shift[];
+  employees?: Employee[];
+  holidays?: OfficialHoliday[];
+  onAddShift?: (newShift: Shift) => void;
+  onAssignEmployeeShift?: (employeeId: string, shiftName: string) => void;
 }
 
 export const ShiftsView: React.FC<ShiftsViewProps> = ({
-  shifts,
-  employees,
-  holidays,
+  shifts: externalShifts,
+  employees = [],
+  holidays: externalHolidays,
   onAddShift,
   onAssignEmployeeShift,
 }) => {
+  const [internalShifts, setInternalShifts] = useState<Shift[]>(INITIAL_SHIFTS);
+  const [internalHolidays] = useState<OfficialHoliday[]>(INITIAL_HOLIDAYS);
+
+  const shifts = externalShifts || internalShifts;
+  const holidays = externalHolidays || internalHolidays;
+
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedShiftForAssign, setSelectedShiftForAssign] = useState<Shift | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -72,7 +79,11 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
       color: type === 'nocturno' ? '#8B5CF6' : type === 'vespertino' ? '#F59E0B' : '#069AD8',
     };
 
-    onAddShift(newShift);
+    if (onAddShift) {
+      onAddShift(newShift);
+    } else {
+      setInternalShifts(prev => [...prev, newShift]);
+    }
     setIsAddOpen(false);
     // Reset
     setName('');
@@ -83,7 +94,9 @@ export const ShiftsView: React.FC<ShiftsViewProps> = ({
   };
 
   const handleAssign = (empId: string, shiftName: string) => {
-    onAssignEmployeeShift(empId, shiftName);
+    if (onAssignEmployeeShift) {
+      onAssignEmployeeShift(empId, shiftName);
+    }
     setToastMsg('¡Horario de colaborador actualizado!');
     setTimeout(() => setToastMsg(null), 3000);
   };
