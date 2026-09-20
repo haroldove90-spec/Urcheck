@@ -203,7 +203,8 @@ export const Header: React.FC<HeaderProps> = ({
               referrerPolicy="no-referrer"
             />
 
-            {/* Quick Modules Menu Trigger (Visible on all screen sizes) */}
+            {/* Quick Modules Menu Trigger (Desactivado temporalmente por solicitud del usuario) */}
+            {false && (
             <div className="relative">
               <button
                 id="btn-header-modules-menu"
@@ -372,6 +373,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </>
               )}
             </div>
+            )}
           </div>
 
           {/* Right Actions: Compact & ultra-responsive layout */}

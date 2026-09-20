@@ -306,22 +306,19 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
     <div id="admin-attendance-corroboration-view" className="space-y-6">
 
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0871A0]/10 text-[#0871A0] flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Módulo Oficial de Recursos Humanos
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#138128]/10 text-[#138128]">
-              Biometría Facial Activa
+              Asistencias
             </span>
           </div>
-          <h1 className="text-2xl font-black text-[#0A3142]">
-            Control y Corroboración de Asistencias
+          <h1 className="text-xl sm:text-2xl font-black text-[#0A3142]">
+            Control y Corroboración
           </h1>
           <p className="text-neutral-500 text-xs sm:text-sm mt-0.5">
-            Supervisa, valida y audita los marcajes biométricos en tiempo real con evidencia fotográfica facial, score de liveness y sellos SHA-256.
+            Supervisa y valida los marcajes biométricos en tiempo real.
           </p>
         </div>
 

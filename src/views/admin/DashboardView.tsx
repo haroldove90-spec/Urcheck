@@ -103,15 +103,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg sm:text-xl font-bold text-[#0A3142]">
-                Monitoreo Global en Tiempo Real
+                Panel de Control
               </h2>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#138128]/10 text-[#138128] border border-[#138128]/30">
                 <span className="w-2 h-2 rounded-full bg-[#138128] animate-pulse" />
-                4 TERMINALES CONECTADAS
+                Terminales Conectadas
               </span>
             </div>
             <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-              Urcheck Biometric Cloud Protocol • Último ping de hardware: {lastSyncTime}
+              Monitoreo en tiempo real • Última sincronización: {lastSyncTime}
             </p>
           </div>
         </div>
@@ -121,11 +121,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             id="btn-download-dashboard-pdf"
             onClick={() => generateSystemDocumentationPDF()}
             type="button"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white shadow-xs transition cursor-pointer"
-            title="Descargar documento PDF oficial con roles, funciones y especificaciones"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-[#0A3142] hover:bg-[#082735] text-white shadow-xs transition cursor-pointer"
+            title="Descargar documento PDF oficial con especificaciones"
           >
-            <FileDown className="w-4 h-4 text-emerald-100" />
-            <span>Descargar PDF Sistema</span>
+            <FileDown className="w-4 h-4 text-[#0871A0]" />
+            <span>Descargar PDF</span>
           </button>
 
           <button

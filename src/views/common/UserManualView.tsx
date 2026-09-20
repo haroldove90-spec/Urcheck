@@ -14,6 +14,7 @@ import {
   Users,
   Smartphone,
   ChevronRight,
+  ChevronLeft,
   ExternalLink,
   HelpCircle,
   FileText,
@@ -527,256 +528,133 @@ export const UserManualView: React.FC<UserManualViewProps> = ({
     document.body.removeChild(link);
   };
 
+  const handleSelectSection = (sectionId: string) => {
+    setActiveSectionId(sectionId);
+    setTimeout(() => {
+      const detailEl = document.getElementById('manual-instructions-detail');
+      if (detailEl) {
+        detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
+  };
+
   const activeModeInfo = SYSTEM_MODES[selectedManualMode];
-  const systemActiveModeInfo = SYSTEM_MODES[systemMode];
 
   return (
-    <div id="user-manual-view" className="space-y-6">
+    <div id="user-manual-view" className="space-y-4 sm:space-y-5">
       
-      {/* Header Banner with Action Buttons */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* Header Banner - Minimalist & Direct */}
+      <div className="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#093244] text-white flex items-center gap-1">
               <BookOpen className="w-3.5 h-3.5 text-[#069AD8]" />
-              Centro de Ayuda y Documentación
+              Manual de Usuario
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1F832D]/10 text-[#1F832D] flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#1F832D] inline-block animate-pulse"></span>
-              Modo Activo: {systemActiveModeInfo.title}
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#069AD8]/10 text-[#069AD8]">
-              {modeSections.length} Capítulos Disponibles
+            <span className="text-xs text-neutral-500 font-medium">
+              {modeSections.length} capítulos disponibles
             </span>
           </div>
-          <h1 className="text-2xl font-black text-[#093244]">
-            Manual y Documentación Oficial de Urcheck BioCloud
+          <h1 className="text-xl sm:text-2xl font-black text-[#093244]">
+            Manual y Procedimientos de Operación
           </h1>
           <p className="text-neutral-500 text-xs sm:text-sm mt-0.5">
-            El contenido de este manual se adapta automáticamente a la versión activa del sistema (Básica, Intermedia o Full).
+            Selecciona un apartado para ver sus instrucciones de uso.
           </p>
         </div>
 
-        {/* Action Buttons: PDF & Document Download */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        {/* Action Buttons: Minimalist & Direct */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             id="btn-download-system-pdf"
             type="button"
             disabled={isGeneratingPDF}
             onClick={handleDownloadSystemPDF}
-            className="px-4 py-2.5 rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-sm disabled:opacity-60"
-            title="Descargar documento oficial en PDF con las características del programa, roles, funciones y workflow"
+            className="px-4 py-2 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold transition cursor-pointer flex items-center gap-2 shadow-xs disabled:opacity-60"
+            title="Descargar documento oficial en PDF"
           >
-            <FileCheck className="w-4 h-4 text-emerald-200" />
-            <span>{isGeneratingPDF ? 'Generando PDF...' : `Descargar PDF (${activeModeInfo.badge})`}</span>
+            <Download className="w-4 h-4 text-[#069AD8]" />
+            <span>{isGeneratingPDF ? 'Generando PDF...' : 'Descargar PDF'}</span>
           </button>
 
           <button
             id="btn-download-manual-pdf"
             type="button"
             onClick={handlePrintPDF}
-            className="px-3.5 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#065a80] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
-            title="Imprimir o exportar vista de pantalla completa en PDF"
+            className="px-3.5 py-2 rounded-xl border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            title="Imprimir manual"
           >
-            <Printer className="w-4 h-4" />
-            <span className="hidden sm:inline">Imprimir Manual</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownloadTextManual}
-            className="px-3.5 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-50 text-neutral-700 text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
-            title="Descargar texto estructurado para copiar y pegar en Word"
-          >
-            <FileText className="w-4 h-4 text-[#069AD8]" />
-            <span className="hidden sm:inline">Word / Markdown (.MD)</span>
-            <span className="sm:hidden">Word (.MD)</span>
+            <Printer className="w-4 h-4 text-neutral-500" />
+            <span className="hidden sm:inline">Imprimir</span>
           </button>
         </div>
-      </div>
-
-      {/* Mode Adaptation Selector Bar */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#069AD8]" />
-              <span className="text-xs font-black uppercase text-[#093244] tracking-wider">
-                Adaptación Automática del Manual por Modalidad
-              </span>
-            </div>
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Seleccione la versión del manual que desea consultar o aplíquela a la aplicación en tiempo real.
-            </p>
-          </div>
-
-          {/* Mode Switcher Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl overflow-x-auto">
-            {(['basic', 'intermediate', 'full'] as SystemMode[]).map((modeKey) => {
-              const mode = SYSTEM_MODES[modeKey];
-              const isSelected = selectedManualMode === modeKey;
-              const isSystemActive = systemMode === modeKey;
-
-              return (
-                <button
-                  key={modeKey}
-                  type="button"
-                  onClick={() => {
-                    setSelectedManualMode(modeKey);
-                    // Reset active section if it's not in the new mode
-                    const newModeSections = manualSections.filter((s) => isSectionInMode(s.minMode, modeKey));
-                    if (!newModeSections.some((s) => s.id === activeSectionId)) {
-                      setActiveSectionId(newModeSections[0]?.id || 'intro');
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                    isSelected
-                      ? 'bg-white text-[#093244] shadow-xs ring-1 ring-neutral-200'
-                      : 'text-neutral-600 hover:text-neutral-900'
-                  }`}
-                >
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      modeKey === 'basic'
-                        ? 'bg-emerald-500'
-                        : modeKey === 'intermediate'
-                        ? 'bg-blue-500'
-                        : 'bg-purple-500'
-                    }`}
-                  />
-                  <span>Manual {mode.badge}</span>
-                  {isSystemActive && (
-                    <span className="text-[10px] font-black uppercase tracking-wider px-1 py-0.2 rounded bg-emerald-100 text-emerald-800">
-                      En Uso
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Informative strip about current selected manual */}
-        <div className="mt-3 pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-neutral-600">
-            <span className="font-semibold text-neutral-800">{activeModeInfo.title}:</span>
-            <span>{activeModeInfo.description}</span>
-          </div>
-
-          {currentRole === 'admin' && selectedManualMode !== systemMode && onSwitchSystemMode && (
-            <button
-              type="button"
-              onClick={() => onSwitchSystemMode(selectedManualMode)}
-              className="px-3 py-1 rounded-lg bg-[#069AD8] hover:bg-[#0584b8] text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shrink-0"
-            >
-              <Sliders className="w-3 h-3" />
-              <span>Activar {activeModeInfo.badge} en el Sistema</span>
-            </button>
-          )}
-
-          {currentRole === 'admin' && onOpenModeSelector && (
-            <button
-              type="button"
-              onClick={onOpenModeSelector}
-              className="text-[#069AD8] hover:underline font-bold text-[11px] flex items-center gap-1 cursor-pointer shrink-0 ml-auto"
-            >
-              <Sliders className="w-3 h-3" />
-              <span>Configurar Módulos del Sistema</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Featured Callout Banner for Direct PDF Download */}
-      <div className="bg-gradient-to-r from-[#093244] to-[#0d4761] rounded-2xl p-5 text-white shadow-md border border-[#069AD8]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-[#069AD8]/20 border border-[#069AD8]/40 flex items-center justify-center shrink-0">
-            <Download className="w-6 h-6 text-[#069AD8]" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <span>PDF Oficial del Sistema Disponible para Descarga</span>
-              <span className="px-2 py-0.5 rounded-md bg-[#1F832D] text-white text-[10px] font-black uppercase tracking-wider">
-                Completo
-              </span>
-            </h3>
-            <p className="text-xs text-neutral-300 mt-0.5 leading-snug">
-              Incluye el checklist completo de funciones por rol (Empleado, Administrador, Kiosco), el flujo de trabajo operativo y la ficha técnica de arquitectura y seguridad.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={handleDownloadSystemPDF}
-          disabled={isGeneratingPDF}
-          type="button"
-          className="px-5 py-2.5 rounded-xl bg-[#069AD8] hover:bg-[#0584b8] active:scale-95 text-white font-black text-xs transition cursor-pointer shrink-0 flex items-center gap-2 shadow-md border border-white/20 disabled:opacity-60"
-        >
-          <Download className="w-4 h-4" />
-          <span>{isGeneratingPDF ? 'Generando...' : 'Descargar PDF Ahora'}</span>
-        </button>
       </div>
 
       {/* Search and Audience Filter */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-96">
+      <div className="bg-white rounded-2xl border border-neutral-200 p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por tema (ej. selfie, firma, corroborar, permisos)..."
+            placeholder="Buscar por tema o palabra clave..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#069AD8] focus:bg-white transition"
+            className="w-full pl-9 pr-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#069AD8] focus:bg-white transition"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl w-full sm:w-auto justify-center">
+        <div className="flex items-center gap-1 p-1 bg-neutral-100 rounded-xl w-full sm:w-auto justify-center text-xs">
           <button
             type="button"
             onClick={() => setActiveAudienceFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
               activeAudienceFilter === 'all'
                 ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            Todos los Temas
+            Todos
           </button>
           <button
             type="button"
             onClick={() => setActiveAudienceFilter('admin')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
               activeAudienceFilter === 'admin'
                 ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            Guía para Administrador / RRHH
+            Administrador
           </button>
           <button
             type="button"
             onClick={() => setActiveAudienceFilter('employee')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
               activeAudienceFilter === 'employee'
                 ? 'bg-white text-[#093244] shadow-xs'
                 : 'text-neutral-600 hover:text-neutral-900'
             }`}
           >
-            Guía para Empleados
+            Empleado
           </button>
         </div>
       </div>
 
       {/* Manual Layout: Interactive Index (Left) + Detail Reader (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
         
         {/* Left Side: Table of Contents / Index */}
-        <div className="lg:col-span-4 bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs space-y-1.5 sticky top-24">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 px-2 block mb-2">
-            Índice de Capítulos ({filteredSections.length})
-          </span>
+        <div id="manual-chapters-index" className="lg:col-span-4 bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs space-y-2 sticky top-20">
+          <div className="flex items-center justify-between px-1 mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+              Índice ({filteredSections.length})
+            </span>
+            <span className="text-[11px] text-[#069AD8] font-semibold lg:hidden">
+              Toca para ver instrucciones
+            </span>
+          </div>
 
-          <div className="space-y-1 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
+          <div className="space-y-1.5 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
             {filteredSections.map((section) => {
               const Icon = section.icon;
               const isSelected = activeSection.id === section.id;
@@ -784,11 +662,11 @@ export const UserManualView: React.FC<UserManualViewProps> = ({
                 <button
                   key={section.id}
                   type="button"
-                  onClick={() => setActiveSectionId(section.id)}
+                  onClick={() => handleSelectSection(section.id)}
                   className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer flex items-start gap-3 ${
                     isSelected
-                      ? 'bg-[#093244] text-white shadow-sm border-l-4 border-[#069AD8]'
-                      : 'text-neutral-700 hover:bg-neutral-100'
+                      ? 'bg-[#093244] text-white shadow-md border-l-4 border-[#069AD8] ring-2 ring-[#069AD8]/30'
+                      : 'text-neutral-700 hover:bg-neutral-100 border border-transparent'
                   }`}
                 >
                   <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${isSelected ? 'text-[#069AD8]' : 'text-neutral-500'}`} />
@@ -808,10 +686,30 @@ export const UserManualView: React.FC<UserManualViewProps> = ({
         </div>
 
         {/* Right Side: Section Detailed Reader */}
-        <div className="lg:col-span-8 bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-xs space-y-6">
+        <div id="manual-instructions-detail" className="scroll-mt-20 lg:col-span-8 bg-white rounded-2xl border border-neutral-200 p-5 sm:p-8 shadow-xs space-y-5">
           
+          {/* Mobile / Tablet Quick Navigation */}
+          <div className="lg:hidden flex items-center justify-between pb-3 border-b border-neutral-100">
+            <button
+              type="button"
+              onClick={() => {
+                const indexEl = document.getElementById('manual-chapters-index');
+                if (indexEl) {
+                  indexEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#069AD8] bg-[#069AD8]/10 hover:bg-[#069AD8]/20 rounded-xl transition cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Ver Índice de Capítulos</span>
+            </button>
+            <span className="text-[11px] font-semibold text-neutral-400">
+              Instrucciones
+            </span>
+          </div>
+
           {/* Chapter Header */}
-          <div className="border-b border-neutral-200 pb-5">
+          <div className="border-b border-neutral-200 pb-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase bg-[#069AD8]/10 text-[#069AD8]">
                 {activeSection.roleAudience === 'both' ? 'Para Todos los Usuarios' : activeSection.roleAudience === 'admin' ? 'Módulo de Administrador' : 'Módulo de Empleado'}
