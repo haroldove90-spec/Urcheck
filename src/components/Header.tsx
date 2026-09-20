@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, Employee, Branch, AdminModule, EmployeeModule } from '../types';
+import { UserProfile, Employee, Branch, AdminModule, EmployeeModule, SystemMode } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { PWAInstallModal } from './PWAInstallModal';
 import { SupabaseConnectionModal } from './SupabaseConnectionModal';
@@ -31,8 +31,10 @@ import {
   BookOpen,
   Settings,
   Fingerprint,
-  ChevronDown
+  ChevronDown,
+  Sliders,
 } from 'lucide-react';
+import { isModuleAllowedInMode } from '../utils/systemModes';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -49,6 +51,8 @@ interface HeaderProps {
   currentEmployeeModule?: EmployeeModule;
   pendingLeavesCount?: number;
   pendingOvertimeCount?: number;
+  systemMode?: SystemMode;
+  onOpenModeSelector?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -66,6 +70,8 @@ export const Header: React.FC<HeaderProps> = ({
   currentEmployeeModule,
   pendingLeavesCount = 0,
   pendingOvertimeCount = 0,
+  systemMode = 'basic',
+  onOpenModeSelector,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -245,12 +251,14 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="p-3 overflow-y-auto max-h-[55vh] space-y-3 sidebar-scroll">
                       {isAdmin ? (
                         ['Operación', 'Nómina & RRHH', 'Control & Auditoría', 'Sistema & Cuenta'].map(groupName => {
-                          const groupModules = adminModulesList.filter(
-                            m => m.group === groupName && (
-                              m.label.toLowerCase().includes(moduleSearch.toLowerCase()) ||
-                              m.description.toLowerCase().includes(moduleSearch.toLowerCase())
-                            )
-                          );
+                          const groupModules = adminModulesList
+                            .filter(m => isModuleAllowedInMode('admin', m.id, systemMode))
+                            .filter(
+                              m => m.group === groupName && (
+                                m.label.toLowerCase().includes(moduleSearch.toLowerCase()) ||
+                                m.description.toLowerCase().includes(moduleSearch.toLowerCase())
+                              )
+                            );
                           if (groupModules.length === 0) return null;
 
                           return (
@@ -306,6 +314,7 @@ export const Header: React.FC<HeaderProps> = ({
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {employeeModulesList
+                            .filter(m => isModuleAllowedInMode('employee', m.id, systemMode))
                             .filter(m => 
                               m.label.toLowerCase().includes(moduleSearch.toLowerCase()) ||
                               m.description.toLowerCase().includes(moduleSearch.toLowerCase())
@@ -354,6 +363,30 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Actions: Compact & ultra-responsive layout */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Smart System Complexity Mode Button (Admin Only) */}
+            {isAdmin && onOpenModeSelector && (
+              <button
+                id="btn-header-smart-mode"
+                type="button"
+                onClick={onOpenModeSelector}
+                className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 ${
+                  systemMode === 'basic' 
+                    ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300' 
+                    : systemMode === 'intermediate' 
+                    ? 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300' 
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-900 border-blue-300'
+                }`}
+                title={`Versión activa: ${systemMode === 'basic' ? 'Básica' : systemMode === 'intermediate' ? 'Intermedia' : 'Full'}. Clic para cambiar la versión del sistema.`}
+              >
+                <span className={`w-2 h-2 rounded-full shrink-0 ${
+                  systemMode === 'basic' ? 'bg-emerald-500' : systemMode === 'intermediate' ? 'bg-amber-500' : 'bg-blue-600'
+                }`} />
+                <span className="text-[11px] sm:text-xs">
+                  {systemMode === 'basic' ? 'Básica' : systemMode === 'intermediate' ? 'Intermedia' : 'Full'}
+                </span>
+                <Sliders className="w-3 h-3 opacity-60 ml-0.5 shrink-0" />
+              </button>
+            )}
             
             {/* Active Role Identification Badge / User Profile Trigger */}
             <button 

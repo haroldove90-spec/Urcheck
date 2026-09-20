@@ -138,7 +138,52 @@ export async function syncEmployeeToSupabase(employee: Employee): Promise<{ succ
 }
 
 /**
- * Synchronize a registered user profile directly into Supabase (employees table)
+ * Optional helper to upload avatar to Supabase Storage bucket 'avatars'
+ * If the bucket is not available or permissions deny it, gracefully falls back to base64.
+ */
+export async function uploadAvatarToSupabaseStorage(
+  userId: string,
+  dataUrlOrFile: string | File
+): Promise<string | null> {
+  try {
+    let blob: Blob;
+    let contentType = 'image/jpeg';
+    if (typeof dataUrlOrFile === 'string') {
+      if (!dataUrlOrFile.startsWith('data:')) return dataUrlOrFile;
+      const res = await fetch(dataUrlOrFile);
+      blob = await res.blob();
+      contentType = blob.type || 'image/jpeg';
+    } else {
+      blob = dataUrlOrFile;
+      contentType = dataUrlOrFile.type;
+    }
+
+    const fileExt = contentType.includes('png') ? 'png' : 'jpg';
+    const filePath = `avatar-${userId}-${Date.now()}.${fileExt}`;
+    
+    const { data, error } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, blob, {
+        contentType,
+        upsert: true,
+      });
+
+    if (!error && data?.path) {
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(data.path);
+      if (publicUrlData?.publicUrl) {
+        return publicUrlData.publicUrl;
+      }
+    }
+  } catch (err) {
+    console.warn('[Supabase Storage] Storage bucket upload fallback:', err);
+  }
+  return null;
+}
+
+/**
+ * Synchronize a registered user profile directly into Supabase (employees and system_users tables)
  */
 export async function syncUserProfileToSupabase(
   user: UserProfile,
@@ -165,26 +210,37 @@ export async function syncUserProfileToSupabase(
       });
     }
 
-    // Determine deterministic employee code
-    let employeeCode = user.employeeId;
-    if (!employeeCode) {
-      if (user.role === 'admin') {
-        employeeCode = 'EMP-7743';
-      } else if (user.id === 'emp-001') {
-        employeeCode = 'EMP-7742';
-      } else {
-        employeeCode = user.id.toUpperCase();
+    // Try uploading avatar to Supabase Storage if it is a new data URL
+    let finalAvatar = user.avatar;
+    if (user.avatar && user.avatar.startsWith('data:image')) {
+      const storageUrl = await uploadAvatarToSupabaseStorage(user.id, user.avatar);
+      if (storageUrl) {
+        finalAvatar = storageUrl;
+        user.avatar = storageUrl;
       }
     }
 
-    // 1. Sync primary profile row
-    const { error } = await supabase.from('employees').upsert({
-      id: user.id,
-      employee_code: employeeCode,
+    // Target employee ID in the employees table
+    // For admin (Fernanda Soto), her employee catalog ID is emp-002 (code EMP-7743)
+    // For employee (Carlos Mendoza), his employee catalog ID is emp-001 (code EMP-7742)
+    const targetEmployeeId = user.role === 'admin' 
+      ? 'emp-002' 
+      : (user.id.startsWith('usr-') ? 'emp-001' : user.id);
+
+    const targetEmployeeCode = user.employeeId || (
+      user.role === 'admin' 
+        ? 'EMP-7743' 
+        : (targetEmployeeId === 'emp-001' ? 'EMP-7742' : `EMP-${targetEmployeeId.toUpperCase()}`)
+    );
+
+    // 1. Sync primary profile into employees table
+    const { error: empError } = await supabase.from('employees').upsert({
+      id: targetEmployeeId,
+      employee_code: targetEmployeeCode,
       name: user.name,
       email: user.email,
       phone: extra?.phone || user.phone || '55 1234 5678',
-      avatar: user.avatar,
+      avatar: finalAvatar,
       position: user.position || (user.role === 'admin' ? 'Directora de Recursos Humanos' : 'Colaborador'),
       department: user.department || (user.role === 'admin' ? 'Gestión de Talento Humano' : 'Operaciones'),
       branch_id: branchId,
@@ -197,26 +253,67 @@ export async function syncUserProfileToSupabase(
       dossier_status: 'complete',
     });
 
-    if (error) {
-      console.warn('[Supabase Sync] User profile sync failed:', error.message);
-      return { success: false, error: error.message };
+    if (empError) {
+      console.warn('[Supabase Sync] Employees table profile sync failed:', empError.message);
     }
 
-    // 2. Also keep emp-002 synchronized if user is admin Fernanda Soto
-    if (user.role === 'admin' && user.id !== 'emp-002') {
-      await supabase.from('employees').upsert({
-        id: 'emp-002',
-        employee_code: 'EMP-7743',
+    // 2. Also keep system_users table synchronized (if created in Supabase)
+    try {
+      const systemUserId = user.role === 'admin' ? 'usr-admin-01' : (user.id === 'emp-001' ? 'usr-emp-01' : user.id);
+      await supabase.from('system_users').upsert({
+        id: systemUserId,
         name: user.name,
         email: user.email,
-        phone: extra?.phone || user.phone || '55 4920 1823',
-        avatar: user.avatar,
-        position: user.position || 'Directora de Recursos Humanos',
-        department: user.department || 'Gestión de Talento Humano',
-        branch_id: 'suc-01',
-        branch_name: 'Corporativo Reforma',
-        status: 'active',
+        username: user.role === 'admin' ? 'admin' : (user.email.split('@')[0] || 'empleado'),
+        password_hash: user.role === 'admin' ? 'admin123' : 'empleado123',
+        role: user.role,
+        role_name: user.roleName || (user.role === 'admin' ? 'Administrador' : 'Empleado'),
+        position: user.position || (user.role === 'admin' ? 'Directora de Recursos Humanos' : 'Colaborador'),
+        department: user.department || (user.role === 'admin' ? 'Gestión de Talento Humano' : 'Operaciones'),
+        branch: branchName,
+        avatar: finalAvatar,
+        phone: user.phone || '55 1234 5678',
+        pin_code: user.pinCode || '1988',
+        biometric_enrolled: true,
+        status: user.status || 'active',
+        updated_at: new Date().toISOString(),
       });
+    } catch (sysErr) {
+      console.warn('[Supabase Sync] system_users upsert skipped:', sysErr);
+    }
+
+    // 3. Keep attendance records updated with new employee name & avatar
+    try {
+      await supabase
+        .from('attendance_records')
+        .update({
+          employee_name: user.name,
+          employee_avatar: finalAvatar,
+        })
+        .eq('employee_id', targetEmployeeId);
+    } catch (attErr) {
+      console.warn('[Supabase Sync] attendance records update skipped:', attErr);
+    }
+
+    // 4. Keep leave requests and overtime records updated
+    try {
+      await supabase
+        .from('leave_requests')
+        .update({
+          employee_name: user.name,
+          employee_avatar: finalAvatar,
+        })
+        .eq('employee_id', targetEmployeeId);
+
+      await supabase
+        .from('overtime_records')
+        .update({
+          employee_name: user.name,
+          employee_avatar: finalAvatar,
+        })
+        .eq('employee_id', targetEmployeeId);
+    } catch (subErr) {
+      console.warn('[Supabase Sync] sub-records update skipped:', subErr);
     }
 
     return { success: true };

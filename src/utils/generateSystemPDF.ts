@@ -1,8 +1,10 @@
 import { jsPDF } from 'jspdf';
+import { SystemMode } from '../types';
 
 interface PDFGeneratorOptions {
   companyName?: string;
   generatedBy?: string;
+  systemMode?: SystemMode;
 }
 
 /**
@@ -253,7 +255,12 @@ export const generateSystemDocumentationPDF = (options: PDFGeneratorOptions = {}
   doc.setFontSize(8);
   doc.setTextColor(colorAccent[0], colorAccent[1], colorAccent[2]);
   const todayStr = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-  doc.text(`VERSIÓN OFICIAL v5.2 • FECHA DE EMISIÓN: ${todayStr.toUpperCase()}`, marginX, 35);
+  const modeLabel = options.systemMode === 'basic' 
+    ? ' • MODO BÁSICO (CHECADOR ÁGIL)' 
+    : options.systemMode === 'intermediate' 
+    ? ' • MODO INTERMEDIO (OPERATIVO & RRHH)' 
+    : ' • MODO FULL ENTERPRISE';
+  doc.text(`VERSIÓN OFICIAL v5.2${modeLabel} • ${todayStr.toUpperCase()}`, marginX, 35);
 
   cursorY = 52;
 

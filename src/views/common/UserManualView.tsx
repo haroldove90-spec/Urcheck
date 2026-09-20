@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Download,
@@ -26,13 +26,18 @@ import {
   CalendarDays,
   AlertTriangle,
   FileCheck,
-  Sparkles
+  Sparkles,
+  Sliders,
 } from 'lucide-react';
-import { UserRole } from '../../types';
+import { SystemMode, UserRole } from '../../types';
+import { SYSTEM_MODES } from '../../utils/systemModes';
 import { generateSystemDocumentationPDF } from '../../utils/generateSystemPDF';
 
 interface UserManualViewProps {
   currentRole: UserRole;
+  systemMode?: SystemMode;
+  onSwitchSystemMode?: (mode: SystemMode) => void;
+  onOpenModeSelector?: () => void;
 }
 
 interface ManualSection {
@@ -41,6 +46,7 @@ interface ManualSection {
   subtitle: string;
   icon: React.ComponentType<{ className?: string }>;
   roleAudience: 'both' | 'admin' | 'employee';
+  minMode: 'basic' | 'intermediate' | 'full';
   content: {
     summary: string;
     steps: string[];
@@ -49,10 +55,21 @@ interface ManualSection {
   };
 }
 
-export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) => {
+export const UserManualView: React.FC<UserManualViewProps> = ({ 
+  currentRole,
+  systemMode = 'basic',
+  onSwitchSystemMode,
+  onOpenModeSelector,
+}) => {
+  const [selectedManualMode, setSelectedManualMode] = useState<SystemMode>(systemMode);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeAudienceFilter, setActiveAudienceFilter] = useState<'all' | 'admin' | 'employee'>('all');
   const [activeSectionId, setActiveSectionId] = useState<string>('intro');
+
+  // Sync with active systemMode whenever it changes externally
+  useEffect(() => {
+    setSelectedManualMode(systemMode);
+  }, [systemMode]);
 
   const manualSections: ManualSection[] = [
     {
@@ -61,6 +78,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Visión general del sistema, perfiles de acceso y seguridad perimetral.',
       icon: ShieldCheck,
       roleAudience: 'both',
+      minMode: 'basic',
       content: {
         summary: 'Urcheck BioCloud es la solución empresarial para la gestión integral de asistencia laboral, auditoría biométrica con reconocimiento facial e inteligencia artificial, expediente digital con firma electrónica avanzada y administración multisede.',
         steps: [
@@ -90,6 +108,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Cómo realizar marcajes con prueba de vida (liveness) y captura fotográfica en tiempo real.',
       icon: ScanFace,
       roleAudience: 'both',
+      minMode: 'basic',
       content: {
         summary: 'La terminal de asistencia digital integra un motor de visión artificial que escanea los 68 puntos biométricos del rostro del colaborador, corrobora su presencia física y registra una fotografía selfie como comprobante legal.',
         steps: [
@@ -123,6 +142,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Supervisión de checadas, dictamen de retardos, inspección de selfies y justificaciones.',
       icon: Clock,
       roleAudience: 'admin',
+      minMode: 'basic',
       content: {
         summary: 'El nuevo módulo dedicado "Asistencias" permite al Administrador y al personal de Recursos Humanos inspeccionar cada checada, comparar la foto de la credencial contra la selfie tomada en vivo y emitir un dictamen oficial.',
         steps: [
@@ -151,6 +171,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Altas, edición de perfiles, credenciales QR y distribución directa por WhatsApp y Correo.',
       icon: Users,
       roleAudience: 'admin',
+      minMode: 'basic',
       content: {
         summary: 'Administre de manera centralizada la plantilla de empleados, asigne sucursales, configure puestos y genere gafetes de identificación digital con código QR de acceso rápido.',
         steps: [
@@ -171,6 +192,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Carga de contratos, políticas laborales, firma biométrica manuscrita y sellado NOM-151.',
       icon: FileSignature,
       roleAudience: 'both',
+      minMode: 'full',
       content: {
         summary: 'Gestione el archivo laboral sin papel. Los administradores pueden subir contratos, reglamentos internos y convenios para que los empleados los firmen digitalmente desde su pantalla con validez legal.',
         steps: [
@@ -191,6 +213,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Configuración de sedes, radio perimetral y enlace con checadores ZKTeco y Anviz.',
       icon: Building2,
       roleAudience: 'admin',
+      minMode: 'intermediate',
       content: {
         summary: 'Configure múltiples sedes de trabajo con coordenadas GPS y radio de geocerca en metros para garantizar que los empleados solo puedan checar dentro de las instalaciones autorizadas.',
         steps: [
@@ -210,6 +233,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Flujo de solicitud, cálculo de días y dictamen de aprobación o rechazo con motivos.',
       icon: CalendarCheck,
       roleAudience: 'both',
+      minMode: 'intermediate',
       content: {
         summary: 'Sistema integral de gestión de ausencias, licencias médicas, días económicos, vacaciones anuales y solicitud y validación de horas extra extraordinarias.',
         steps: [
@@ -230,6 +254,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Generación de sábanas de asistencia, métricas de puntualidad y entrega a nómina.',
       icon: FileText,
       roleAudience: 'admin',
+      minMode: 'full',
       content: {
         summary: 'Visualice gráficas de desempeño, índices de ausentismo y exporte reportes detallados en formatos CSV y hojas de cálculo para la dispersión de nómina.',
         steps: [
@@ -249,6 +274,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Configuración del proyecto, ejecución del script SQL y replicación en tiempo real.',
       icon: Database,
       roleAudience: 'admin',
+      minMode: 'full',
       content: {
         summary: 'Urcheck BioCloud Enterprise se conecta de forma nativa a la instancia Supabase del usuario para almacenar empleados, checadas con selfie, permisos, contratos y configuración del sistema.',
         steps: [
@@ -275,6 +301,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Configuración de terminal fija para entradas de planta con reseteo automático de 5 segundos.',
       icon: Smartphone,
       roleAudience: 'both',
+      minMode: 'basic',
       content: {
         summary: 'Convierte cualquier tablet o PC instalada en recepción o accesos en una terminal checadora comunitaria sin sesión abierta de un usuario particular.',
         steps: [
@@ -296,6 +323,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Cálculo de sueldo bruto, horas extra, descuentos por retardos/faltas y exportación CSV.',
       icon: DollarSign,
       roleAudience: 'admin',
+      minMode: 'full',
       content: {
         summary: 'Procesa el cruce de asistencias reales contra el tabulador de sueldos para entregar una pre-nómina transparente con percepciones y deducciones calculadas al centavo.',
         steps: [
@@ -316,6 +344,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Configuración de turnos rotativos, tolerancias de entrada y calendario de descansos obligatorios.',
       icon: CalendarDays,
       roleAudience: 'admin',
+      minMode: 'intermediate',
       content: {
         summary: 'Administre los turnos laborales de la organización (Matutino, Vespertino, Nocturno, Mixto y 12x24) y calendarice los descansos obligatorios marcados por la Ley Federal del Trabajo.',
         steps: [
@@ -336,6 +365,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Recepción de justificantes médicos del IMSS, averías de transporte y dictamen de RRHH.',
       icon: AlertTriangle,
       roleAudience: 'both',
+      minMode: 'intermediate',
       content: {
         summary: 'Permite tramitar y validar comprobantes de incidencias para evitar deducciones injustificadas en la nómina.',
         steps: [
@@ -356,6 +386,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Emisión con membrete oficial, sello digital SHA-256, validación QR e impresión directa en PDF.',
       icon: FileText,
       roleAudience: 'both',
+      minMode: 'full',
       content: {
         summary: 'Genera cartas patronales y constancias de trabajo para trámites de visa, créditos hipotecarios o bancarios con timbrado criptográfico seguro.',
         steps: [
@@ -376,6 +407,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       subtitle: 'Registro inmutable de marcajes, firmas, corroboraciones y cambios con severidad y actor.',
       icon: ShieldCheck,
       roleAudience: 'admin',
+      minMode: 'full',
       content: {
         summary: 'Supervise en tiempo real cada acción ejecutada en el sistema para garantizar transparencia y cumplimiento legal ante inspecciones de la STPS.',
         steps: [
@@ -391,8 +423,19 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
     },
   ];
 
+  // Check if a section is included in the selected manual mode
+  const isSectionInMode = (secMinMode: 'basic' | 'intermediate' | 'full', mode: SystemMode) => {
+    if (mode === 'basic') return secMinMode === 'basic';
+    if (mode === 'intermediate') return secMinMode === 'basic' || secMinMode === 'intermediate';
+    return true; // full
+  };
+
+  const modeSections = manualSections.filter((section) =>
+    isSectionInMode(section.minMode, selectedManualMode)
+  );
+
   // Filter sections by search and audience
-  const filteredSections = manualSections.filter((section) => {
+  const filteredSections = modeSections.filter((section) => {
     const matchesAudience =
       activeAudienceFilter === 'all'
         ? true
@@ -407,7 +450,11 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
     return matchesAudience && matchesSearch;
   });
 
-  const activeSection = manualSections.find((s) => s.id === activeSectionId) || manualSections[0];
+  const activeSection =
+    filteredSections.find((s) => s.id === activeSectionId) ||
+    filteredSections[0] ||
+    modeSections[0] ||
+    manualSections[0];
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -417,7 +464,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
       setIsGeneratingPDF(true);
       setTimeout(() => {
         generateSystemDocumentationPDF({
-          companyName: 'Urcheck BioCloud Enterprise',
+          companyName: `Urcheck BioCloud (${SYSTEM_MODES[selectedManualMode].title})`,
         });
         setIsGeneratingPDF(false);
       }, 150);
@@ -434,19 +481,21 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
 
   // Function to download structured text/markdown manual (ready for Word copy-paste)
   const handleDownloadTextManual = () => {
+    const modeInfo = SYSTEM_MODES[selectedManualMode];
     let content = `# DOCUMENTACIÓN TÉCNICA Y MANUAL DE OPERACIÓN OFICIAL\n`;
-    content += `SISTEMA: URCHECK BIOCLOUD ENTERPRISE v5.2\n`;
+    content += `SISTEMA: URCHECK BIOCLOUD - MODALIDAD ${modeInfo.title.toUpperCase()}\n`;
+    content += `NIVEL DE COMPLEJIDAD: ${modeInfo.badge.toUpperCase()} (${modeSections.length} CAPÍTULOS HABILITADOS)\n`;
     content += `FECHA DE EMISIÓN: ${new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}\n\n`;
     content += `=========================================================================\n\n`;
-    content += `## 1. RESUMEN DEL SISTEMA\n`;
-    content += `Urcheck BioCloud es un sistema integral de control biométrico de asistencia, gestión de incidencias, pre-nómina y expediente digital. Diseñado con arquitectura reactiva de alta disponibilidad, persistencia en la nube y verificación visual en tiempo real.\n\n`;
-    content += `## 2. ROLES DEL SISTEMA\n`;
-    content += `- ROL EMPLEADO (COLABORADOR): Terminal checadora (facial con selfie, huella, RFID y PIN), consulta de avisos, solicitud de permisos con justificantes, registro de horas extras, expediente digital y gafete QR.\n`;
-    content += `- ROL ADMINISTRADOR (RECURSOS HUMANOS): Tablero de control con métricas en vivo, pase de lista en tiempo real, corroboración de fotos selfies, gestión de colaboradores, sucursales con geocercas GPS, configuración de turnos y pre-nómina automatizada.\n`;
-    content += `- ROL MODO KIOSCO: Terminal táctil desatendida para sucursales con pantalla completa y reinicio automático.\n\n`;
+    content += `## 1. RESUMEN DEL SISTEMA (${modeInfo.title.toUpperCase()})\n`;
+    content += `${modeInfo.description}\n\n`;
+    content += `## 2. ROLES DEL SISTEMA EN ESTA MODALIDAD\n`;
+    content += `- ROL EMPLEADO (COLABORADOR): Terminal checadora (facial con selfie, huella, RFID y PIN), consulta de avisos y gafete QR.\n`;
+    content += `- ROL ADMINISTRADOR (RECURSOS HUMANOS): Supervisión de asistencias, corroboración de selfies en vivo, gestión de colaboradores y exportación.\n`;
+    content += `- ROL MODO KIOSCO: Terminal comunitaria táctil desatendida para accesos de personal.\n\n`;
     content += `=========================================================================\n\n`;
 
-    manualSections.forEach((sec) => {
+    modeSections.forEach((sec) => {
       content += `## ${sec.title}\n`;
       content += `${sec.subtitle}\n`;
       content += `Audiencia: ${sec.roleAudience === 'both' ? 'Administradores y Empleados' : sec.roleAudience === 'admin' ? 'Administrador / Recursos Humanos' : 'Colaboradores'}\n\n`;
@@ -472,11 +521,14 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Documentacion_Roles_Funciones_Urcheck_BioCloud_${new Date().toISOString().split('T')[0]}.md`;
+    link.download = `Manual_Usuario_${selectedManualMode.toUpperCase()}_Urcheck_${new Date().toISOString().split('T')[0]}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
+
+  const activeModeInfo = SYSTEM_MODES[selectedManualMode];
+  const systemActiveModeInfo = SYSTEM_MODES[systemMode];
 
   return (
     <div id="user-manual-view" className="space-y-6">
@@ -489,18 +541,19 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
               <BookOpen className="w-3.5 h-3.5 text-[#069AD8]" />
               Centro de Ayuda y Documentación
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1F832D]/10 text-[#1F832D]">
-              Versión Oficial v5.2
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1F832D]/10 text-[#1F832D] flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#1F832D] inline-block animate-pulse"></span>
+              Modo Activo: {systemActiveModeInfo.title}
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#069AD8]/10 text-[#069AD8]">
-              Descargable en PDF
+              {modeSections.length} Capítulos Disponibles
             </span>
           </div>
           <h1 className="text-2xl font-black text-[#093244]">
             Manual y Documentación Oficial de Urcheck BioCloud
           </h1>
           <p className="text-neutral-500 text-xs sm:text-sm mt-0.5">
-            Especificaciones del sistema, checklist de funciones por rol, flujo de trabajo y manual de operación.
+            El contenido de este manual se adapta automáticamente a la versión activa del sistema (Básica, Intermedia o Full).
           </p>
         </div>
 
@@ -515,7 +568,7 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             title="Descargar documento oficial en PDF con las características del programa, roles, funciones y workflow"
           >
             <FileCheck className="w-4 h-4 text-emerald-200" />
-            <span>{isGeneratingPDF ? 'Generando PDF...' : 'Descargar PDF del Sistema (Roles y Funciones)'}</span>
+            <span>{isGeneratingPDF ? 'Generando PDF...' : `Descargar PDF (${activeModeInfo.badge})`}</span>
           </button>
 
           <button
@@ -536,9 +589,101 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
             title="Descargar texto estructurado para copiar y pegar en Word"
           >
             <FileText className="w-4 h-4 text-[#069AD8]" />
-            <span className="hidden sm:inline">Copiar a Word (.DOC/.MD)</span>
-            <span className="sm:hidden">Word (.DOC)</span>
+            <span className="hidden sm:inline">Word / Markdown (.MD)</span>
+            <span className="sm:hidden">Word (.MD)</span>
           </button>
+        </div>
+      </div>
+
+      {/* Mode Adaptation Selector Bar */}
+      <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-[#069AD8]" />
+              <span className="text-xs font-black uppercase text-[#093244] tracking-wider">
+                Adaptación Automática del Manual por Modalidad
+              </span>
+            </div>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Seleccione la versión del manual que desea consultar o aplíquela a la aplicación en tiempo real.
+            </p>
+          </div>
+
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl overflow-x-auto">
+            {(['basic', 'intermediate', 'full'] as SystemMode[]).map((modeKey) => {
+              const mode = SYSTEM_MODES[modeKey];
+              const isSelected = selectedManualMode === modeKey;
+              const isSystemActive = systemMode === modeKey;
+
+              return (
+                <button
+                  key={modeKey}
+                  type="button"
+                  onClick={() => {
+                    setSelectedManualMode(modeKey);
+                    // Reset active section if it's not in the new mode
+                    const newModeSections = manualSections.filter((s) => isSectionInMode(s.minMode, modeKey));
+                    if (!newModeSections.some((s) => s.id === activeSectionId)) {
+                      setActiveSectionId(newModeSections[0]?.id || 'intro');
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                    isSelected
+                      ? 'bg-white text-[#093244] shadow-xs ring-1 ring-neutral-200'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      modeKey === 'basic'
+                        ? 'bg-emerald-500'
+                        : modeKey === 'intermediate'
+                        ? 'bg-blue-500'
+                        : 'bg-purple-500'
+                    }`}
+                  />
+                  <span>Manual {mode.badge}</span>
+                  {isSystemActive && (
+                    <span className="text-[10px] font-black uppercase tracking-wider px-1 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                      En Uso
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Informative strip about current selected manual */}
+        <div className="mt-3 pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-neutral-600">
+            <span className="font-semibold text-neutral-800">{activeModeInfo.title}:</span>
+            <span>{activeModeInfo.description}</span>
+          </div>
+
+          {currentRole === 'admin' && selectedManualMode !== systemMode && onSwitchSystemMode && (
+            <button
+              type="button"
+              onClick={() => onSwitchSystemMode(selectedManualMode)}
+              className="px-3 py-1 rounded-lg bg-[#069AD8] hover:bg-[#0584b8] text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shrink-0"
+            >
+              <Sliders className="w-3 h-3" />
+              <span>Activar {activeModeInfo.badge} en el Sistema</span>
+            </button>
+          )}
+
+          {currentRole === 'admin' && onOpenModeSelector && (
+            <button
+              type="button"
+              onClick={onOpenModeSelector}
+              className="text-[#069AD8] hover:underline font-bold text-[11px] flex items-center gap-1 cursor-pointer shrink-0 ml-auto"
+            >
+              <Sliders className="w-3 h-3" />
+              <span>Configurar Módulos del Sistema</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -776,11 +921,12 @@ export const UserManualView: React.FC<UserManualViewProps> = ({ currentRole }) =
           />
           <div className="text-right">
             <h1 className="text-lg font-black uppercase text-[#093244]">MANUAL OFICIAL DE OPERACIÓN</h1>
+            <p className="text-xs font-bold text-[#069AD8] uppercase">Modalidad: {activeModeInfo.title} ({modeSections.length} Capítulos)</p>
             <p className="text-xs text-neutral-600">Fecha de emisión: {new Date().toLocaleDateString('es-MX', { dateStyle: 'full' })}</p>
           </div>
         </div>
 
-        {manualSections.map((sec, idx) => (
+        {modeSections.map((sec, idx) => (
           <div key={sec.id} className="py-4 border-b border-neutral-300 page-break-inside-avoid">
             <h2 className="text-lg font-bold">{sec.title}</h2>
             <p className="text-xs italic mb-2">{sec.subtitle}</p>

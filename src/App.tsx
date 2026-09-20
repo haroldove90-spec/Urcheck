@@ -15,8 +15,11 @@ import {
   AppNotification,
   Shift,
   OfficialHoliday,
-  AuditLogEntry
+  AuditLogEntry,
+  SystemMode
 } from './types';
+import { getStoredSystemMode, saveStoredSystemMode } from './utils/systemModes';
+import { SystemModeSelectorModal } from './components/SystemModeSelectorModal';
 import { 
   INITIAL_PROFILES, 
   INITIAL_EMPLOYEES, 
@@ -186,6 +189,15 @@ export default function App() {
   // DB Sync State indicators
   const [isFetchingDb, setIsFetchingDb] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
+
+  // System Mode State (Básica, Intermedia, Full Enterprise)
+  const [systemMode, setSystemModeState] = useState<SystemMode>(() => getStoredSystemMode());
+  const [isModeSelectorOpen, setIsModeSelectorOpen] = useState<boolean>(false);
+
+  const setSystemMode = (mode: SystemMode) => {
+    setSystemModeState(mode);
+    saveStoredSystemMode(mode);
+  };
 
   // Persist session state to localStorage on every change
   useEffect(() => {
@@ -691,6 +703,8 @@ export default function App() {
         currentEmployeeModule={currentEmployeeModule}
         pendingLeavesCount={pendingLeavesCount}
         pendingOvertimeCount={pendingOvertimeCount}
+        systemMode={systemMode}
+        onOpenModeSelector={() => setIsModeSelectorOpen(true)}
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
@@ -709,6 +723,8 @@ export default function App() {
           pendingOvertimeCount={pendingOvertimeCount}
           unreadNotificationsCount={unreadNotificationsCount}
           onLogout={handleLogout}
+          systemMode={systemMode}
+          onOpenModeSelector={() => setIsModeSelectorOpen(true)}
         />
 
         {/* Main Content Area (Clean, no redundant duplicate horizontal tabs) */}
@@ -828,7 +844,12 @@ export default function App() {
               )}
 
               {currentAdminModule === 'manual' && (
-                <UserManualView currentRole={currentRole || 'admin'} />
+                <UserManualView 
+                  currentRole={currentRole || 'admin'}
+                  systemMode={systemMode}
+                  onSwitchSystemMode={setSystemMode}
+                  onOpenModeSelector={() => setIsModeSelectorOpen(true)}
+                />
               )}
 
               {currentAdminModule === 'profile' && (
@@ -910,7 +931,24 @@ export default function App() {
               )}
 
               {currentEmployeeModule === 'manual' && (
-                <UserManualView currentRole={currentRole || 'employee'} />
+                <UserManualView 
+                  currentRole={currentRole || 'employee'} 
+                  systemMode={systemMode}
+                  onSwitchSystemMode={setSystemMode}
+                  onOpenModeSelector={() => setIsModeSelectorOpen(true)}
+                />
+              )}
+
+              {currentEmployeeModule === 'profile' && (
+                <UserProfileView
+                  currentUser={currentUser}
+                  onUpdateProfile={handleUpdateProfile}
+                  branches={branches}
+                  allEmployees={employees}
+                  onPurgeMockData={handlePurgeMockData}
+                  onRestoreMockData={handleRestoreMockData}
+                  isMockDataPurged={isMockDataPurged()}
+                />
               )}
             </>
           )}
@@ -926,6 +964,19 @@ export default function App() {
         onSelectEmployeeModule={setCurrentEmployeeModule}
         pendingLeavesCount={pendingLeavesCount}
         unreadNotificationsCount={unreadNotificationsCount}
+        systemMode={systemMode}
+        onOpenModeSelector={() => setIsModeSelectorOpen(true)}
+      />
+
+      {/* System Complexity / Mode Switcher Modal */}
+      <SystemModeSelectorModal
+        isOpen={isModeSelectorOpen}
+        onClose={() => setIsModeSelectorOpen(false)}
+        currentMode={systemMode}
+        onSelectMode={(mode) => {
+          setSystemMode(mode);
+          setIsModeSelectorOpen(false);
+        }}
       />
 
       {/* Offline Connectivity Indicator */}

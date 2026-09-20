@@ -1,5 +1,5 @@
 import React from 'react';
-import { AdminModule, EmployeeModule, UserRole } from '../types';
+import { AdminModule, EmployeeModule, SystemMode, UserRole } from '../types';
 import {
   LayoutDashboard,
   Users,
@@ -22,7 +22,9 @@ import {
   CalendarDays,
   ShieldCheck,
   User,
+  Sliders,
 } from 'lucide-react';
+import { isModuleAllowedInMode } from '../utils/systemModes';
 
 interface SidebarProps {
   role: UserRole;
@@ -36,6 +38,8 @@ interface SidebarProps {
   pendingOvertimeCount?: number;
   unreadNotificationsCount?: number;
   onLogout: () => void;
+  systemMode?: SystemMode;
+  onOpenModeSelector?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -50,10 +54,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   pendingOvertimeCount = 0,
   unreadNotificationsCount = 0,
   onLogout,
+  systemMode = 'basic',
+  onOpenModeSelector,
 }) => {
   const isAdmin = role === 'admin';
 
-  const adminNavItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
+  const allAdminNavItems: { id: AdminModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
     { id: 'attendance', label: 'Asistencias', icon: UserCheck },
     { id: 'payroll', label: 'Pre-Nómina', icon: DollarSign },
@@ -71,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
-  const employeeNavItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
+  const allEmployeeNavItems: { id: EmployeeModule; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'punch', label: 'Marcaje Biométrico', icon: Fingerprint },
     { id: 'profile', label: 'Mi Perfil', icon: User },
     { id: 'notifications', label: 'Notificaciones', icon: Bell, badge: unreadNotificationsCount },
@@ -80,6 +86,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'overtime', label: 'Horas extra', icon: Clock },
     { id: 'manual', label: 'Manual de Usuario', icon: BookOpen },
   ];
+
+  const adminNavItems = allAdminNavItems.filter(item => isModuleAllowedInMode('admin', item.id, systemMode));
+  const employeeNavItems = allEmployeeNavItems.filter(item => isModuleAllowedInMode('employee', item.id, systemMode));
 
   return (
     <aside
@@ -95,8 +104,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#093244]">
               Módulos
             </span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-[#069AD8]/15 text-[#069AD8]">
-              {isAdmin ? '15 Activos' : '7 Activos'}
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+              systemMode === 'basic' ? 'bg-emerald-50 text-emerald-700 border-emerald-300' :
+              systemMode === 'intermediate' ? 'bg-amber-50 text-amber-700 border-amber-300' :
+              'bg-blue-50 text-blue-700 border-blue-300'
+            }`}>
+              {systemMode === 'basic' ? 'Básica' : systemMode === 'intermediate' ? 'Intermedia' : 'Full'} ({isAdmin ? `${adminNavItems.length}` : `${employeeNavItems.length}`})
             </span>
           </div>
         )}
@@ -112,6 +125,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation List with styled visible scrollbar */}
       <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5 sidebar-scroll">
+        {isAdmin && onOpenModeSelector && !isCollapsed && (
+          <button
+            type="button"
+            onClick={onOpenModeSelector}
+            className="w-full mb-2.5 flex items-center justify-between p-2 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 hover:from-sky-100 hover:to-blue-100 border border-sky-200 text-[#093244] transition-all cursor-pointer text-left shadow-2xs group"
+            title="Cambiar complejidad del sistema"
+          >
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-[#069AD8] text-white shadow-2xs">
+                <Sliders className="w-3.5 h-3.5" />
+              </span>
+              <div>
+                <span className="text-[11px] font-bold block leading-tight">Modo {systemMode === 'basic' ? 'Básico' : systemMode === 'intermediate' ? 'Intermedio' : 'Full'}</span>
+                <span className="text-[9px] text-neutral-500 font-medium">Selector inteligente</span>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold text-[#069AD8] bg-white px-2 py-0.5 rounded-lg border border-sky-200 group-hover:bg-[#069AD8] group-hover:text-white transition-colors">
+              Cambiar
+            </span>
+          </button>
+        )}
         {isAdmin ? (
           adminNavItems.map((item, index) => {
             const Icon = item.icon;

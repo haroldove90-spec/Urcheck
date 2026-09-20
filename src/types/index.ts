@@ -2,6 +2,25 @@ export type UserRole =
   | 'admin'          // Administrador
   | 'employee';      // Empleado
 
+export type SystemMode = 'basic' | 'intermediate' | 'full';
+
+export interface SystemModeInfo {
+  id: SystemMode;
+  name: string;
+  title: string;
+  tagline: string;
+  badge: string;
+  badgeLabel: string;
+  badgeColor: string;
+  badgeBg: string;
+  badgeBorder: string;
+  description: string;
+  adminModules: AdminModule[];
+  employeeModules: EmployeeModule[];
+  targetAudience: string;
+  includedFeatures: string[];
+}
+
 export type AdminModule = 
   | 'dashboard'
   | 'attendance'

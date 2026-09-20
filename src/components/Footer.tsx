@@ -5,17 +5,18 @@ export const Footer: React.FC = () => {
   return (
     <footer 
       id="institutional-footer"
-      className="bg-white border-t border-neutral-200 py-4 px-4 sm:px-6 lg:px-8 mt-auto"
+      className="bg-white border-t border-neutral-200 pt-6 pb-36 sm:pb-32 md:pb-6 px-4 sm:px-6 lg:px-8 mt-auto"
     >
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#1F832D] animate-pulse" />
-          <span className="font-bold text-[#093244]">Urcheck</span>
-          <span className="text-neutral-400">|</span>
-          <span className="text-neutral-500 hidden sm:inline">Servidor Biométrico Cloud Activo (4 terminales ZKTeco)</span>
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-600">
+        <div className="flex items-center justify-center sm:justify-start gap-2.5 text-center sm:text-left py-1">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#1F832D] animate-pulse shrink-0 ring-4 ring-emerald-100" />
+          <span className="font-black text-sm text-[#093244] tracking-wide">Urcheck</span>
+          <span className="text-neutral-300">|</span>
+          <span className="text-neutral-600 font-medium">Servidor Biométrico Cloud Activo</span>
+          <span className="text-neutral-400 hidden lg:inline">• 4 terminales sincronizadas</span>
         </div>
 
-        <p className="text-center sm:text-right font-medium text-neutral-700">
+        <p className="text-center sm:text-right font-medium text-neutral-700 leading-normal">
           Desarrollado por Harold Anguiano - App Design – Whatsapp:{' '}
           <a
             id="footer-whatsapp-link"
