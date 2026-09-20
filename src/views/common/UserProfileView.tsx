@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, Branch, Employee } from '../../types';
+import { compressProfileImage } from '../../utils/imageCompressor';
+import { SUPABASE_PURGE_SQL } from '../../utils/purgeSqlScript';
 import {
   Camera,
   Upload,
@@ -23,14 +25,23 @@ import {
   Fingerprint,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy,
+  Check,
+  Database,
+  Code,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 
 interface UserProfileViewProps {
   currentUser: UserProfile;
-  onUpdateProfile: (updatedUser: UserProfile) => void;
+  onUpdateProfile: (updatedUser: UserProfile) => Promise<{ success: boolean; error?: string } | void> | void;
   branches?: Branch[];
   allEmployees?: Employee[];
+  onPurgeMockData?: () => Promise<void>;
+  onRestoreMockData?: () => Promise<void>;
+  isMockDataPurged?: boolean;
 }
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({
@@ -38,12 +49,23 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   onUpdateProfile,
   branches = [],
   allEmployees = [],
+  onPurgeMockData,
+  onRestoreMockData,
+  isMockDataPurged = false,
 }) => {
   // Form State initialized with current user details
   const [formData, setFormData] = useState<UserProfile>({ ...currentUser });
   const [avatarPreview, setAvatarPreview] = useState<string>(currentUser.avatar);
   const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [photoCompressing, setPhotoCompressing] = useState<boolean>(false);
+
+  // Keep form in sync if currentUser changes (e.g. role switch, initial load)
+  useEffect(() => {
+    setFormData({ ...currentUser });
+    setAvatarPreview(currentUser.avatar);
+  }, [currentUser]);
 
   // Camera capture modal state
   const [isCapturingCamera, setIsCapturingCamera] = useState<boolean>(false);
@@ -55,6 +77,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   // Security / PIN visibility
   const [showPin, setShowPin] = useState<boolean>(false);
 
+  // Mock Data Purge / SQL Modal State
+  const [showSqlModal, setShowSqlModal] = useState<boolean>(false);
+  const [copiedSql, setCopiedSql] = useState<boolean>(false);
+  const [isPurging, setIsPurging] = useState<boolean>(false);
+  const [isRestoring, setIsRestoring] = useState<boolean>(false);
+  const [purgeFeedback, setPurgeFeedback] = useState<string | null>(null);
+
   // Handle text field changes
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setFormData((prev) => ({
@@ -64,32 +93,30 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     setIsSaved(false);
   };
 
-  // Handle image upload from computer / phone gallery
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle image upload with automatic client-side compression (max 400x400 JPEG, ~30KB)
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size (< 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage('La imagen no debe superar los 5 MB de tamaño.');
-      return;
-    }
+    setPhotoCompressing(true);
+    setErrorMessage(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      if (result) {
-        setAvatarPreview(result);
-        setFormData((prev) => ({
-          ...prev,
-          avatar: result,
-          biometricEnrolled: true,
-        }));
-        setIsSaved(false);
-        setErrorMessage(null);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress and format to optimized lightweight square data URL
+      const compressedDataUrl = await compressProfileImage(file, 400, 400, 0.85);
+      setAvatarPreview(compressedDataUrl);
+      setFormData((prev) => ({
+        ...prev,
+        avatar: compressedDataUrl,
+        biometricEnrolled: true,
+      }));
+      setIsSaved(false);
+    } catch (err) {
+      console.error('Error al procesar la imagen de perfil:', err);
+      setErrorMessage('No se pudo procesar la imagen. Intenta con otra fotografía en formato JPG, PNG o WEBP.');
+    } finally {
+      setPhotoCompressing(false);
+    }
   };
 
   // Start live webcam for taking profile selfie
@@ -112,17 +139,24 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     }
   };
 
-  // Take photo from video stream
+  // Take photo from video stream and compress to lightweight square JPEG
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 640;
+    const size = Math.min(video.videoWidth || 480, video.videoHeight || 480);
+    const startX = ((video.videoWidth || 480) - size) / 2;
+    const startY = ((video.videoHeight || 480) - size) / 2;
+
+    const targetSize = Math.min(size, 400);
+    canvas.width = targetSize;
+    canvas.height = targetSize;
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(video, startX, startY, size, size, 0, 0, targetSize, targetSize);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       setAvatarPreview(dataUrl);
       setFormData((prev) => ({
         ...prev,
@@ -143,8 +177,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     setIsCapturingCamera(false);
   };
 
-  // Submit and save profile
-  const handleSubmit = (e: React.FormEvent) => {
+  // Submit and save profile with Supabase sync
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       setErrorMessage('El nombre completo no puede estar vacío.');
@@ -155,20 +189,75 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       return;
     }
 
-    const updatedUser: UserProfile = {
-      ...formData,
-      avatar: avatarPreview,
-      biometricEnrolled: true,
-    };
-
-    onUpdateProfile(updatedUser);
-    setIsSaved(true);
+    setIsSaving(true);
     setErrorMessage(null);
 
-    // Fade confirmation after 4 seconds
-    setTimeout(() => {
-      setIsSaved(false);
-    }, 4000);
+    try {
+      const updatedUser: UserProfile = {
+        ...formData,
+        avatar: avatarPreview,
+        biometricEnrolled: true,
+      };
+
+      await onUpdateProfile(updatedUser);
+      setIsSaved(true);
+
+      // Fade confirmation after 5 seconds
+      setTimeout(() => {
+        setIsSaved(false);
+      }, 5000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMessage(`Ocurrió un error al guardar: ${msg}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle Purging Mock Data
+  const handleTriggerPurge = async () => {
+    if (!onPurgeMockData) return;
+    const confirm = window.confirm(
+      '¿Estás seguro de que deseas eliminar los registros y datos de muestra del sistema (asistencias ficticias, permisos y horas extras demo)? Las cuentas de Administrador y Empleado creadas permanecerán intactas.'
+    );
+    if (!confirm) return;
+
+    setIsPurging(true);
+    setPurgeFeedback(null);
+    try {
+      await onPurgeMockData();
+      setPurgeFeedback('¡Registros de muestra eliminados exitosamente de Supabase y de la sesión local!');
+      setTimeout(() => setPurgeFeedback(null), 6000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPurgeFeedback(`Error al depurar datos: ${msg}`);
+    } finally {
+      setIsPurging(false);
+    }
+  };
+
+  // Handle Restoring Mock Data
+  const handleTriggerRestore = async () => {
+    if (!onRestoreMockData) return;
+    setIsRestoring(true);
+    setPurgeFeedback(null);
+    try {
+      await onRestoreMockData();
+      setPurgeFeedback('¡Registros de muestra restaurados en el sistema!');
+      setTimeout(() => setPurgeFeedback(null), 5000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPurgeFeedback(`Error al restaurar datos: ${msg}`);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  // Copy SQL to clipboard
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(SUPABASE_PURGE_SQL);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 3000);
   };
 
   // Reset to original data
@@ -598,17 +687,28 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2.5 rounded-xl border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-bold transition cursor-pointer"
+                disabled={isSaving}
+                className="px-4 py-2.5 rounded-xl border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-bold transition cursor-pointer disabled:opacity-50"
               >
                 Descartar Cambios
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer"
+                disabled={isSaving || photoCompressing}
+                className="px-6 py-2.5 rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-75"
               >
-                <Save className="w-4 h-4" />
-                <span>Guardar Perfil y Fotografía</span>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando en Supabase...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Guardar Perfil y Fotografía</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -616,6 +716,173 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
         </div>
       </form>
+
+      {/* SYSTEM DATA PURGE & DEMO RECORDS MANAGEMENT - APPLIED TO ALL ROLES */}
+      <div id="system-data-management-card" className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#093244] flex items-center gap-2">
+                Gestión de Datos y Registros de Muestra del Sistema
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-700">
+                  Todos los Roles
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Elimina o restaura los registros ficticios de demostración (asistencias, permisos, horas extras y expedientes de prueba) tanto localmente como en Supabase.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {isMockDataPurged ? (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Sistema Limpio (Sin Muestra)
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                Datos de Muestra Activos
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Purge / Restore Feedback */}
+        {purgeFeedback && (
+          <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-medium text-neutral-800 flex items-center gap-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 text-[#1F832D] shrink-0" />
+            <span>{purgeFeedback}</span>
+          </div>
+        )}
+
+        <div className="p-4 rounded-xl bg-neutral-50/70 border border-neutral-200/80 text-xs text-neutral-600 leading-relaxed space-y-2">
+          <p>
+            Al pulsar <strong>&ldquo;Borrar Registros de Muestra&rdquo;</strong>, se removerán todos los marcajes biométricos ficticios (<code>att-001</code> a <code>att-015</code>), solicitudes de permiso de prueba (<code>leave-001</code> a <code>leave-004</code>), horas extras y expedientes de prueba. 
+            Tus perfiles oficiales (Fernanda Soto y Carlos Mendoza) y configuraciones principales se mantendrán protegidos.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleTriggerPurge}
+              disabled={isPurging}
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {isPurging ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Depurando datos en Supabase...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  <span>Borrar Registros de Muestra del Sistema</span>
+                </>
+              )}
+            </button>
+
+            {isMockDataPurged && (
+              <button
+                type="button"
+                onClick={handleTriggerRestore}
+                disabled={isRestoring}
+                className="px-4 py-2.5 rounded-xl border border-neutral-300 text-neutral-700 hover:bg-neutral-100 active:scale-95 text-xs font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isRestoring ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Restaurando datos demo...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-4 h-4 text-[#069AD8]" />
+                    <span>Restaurar Registros de Muestra</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSqlModal(true)}
+            className="px-4 py-2.5 rounded-xl border border-[#069AD8]/40 bg-[#069AD8]/10 hover:bg-[#069AD8]/20 text-[#093244] text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+          >
+            <Code className="w-4 h-4 text-[#069AD8]" />
+            <span>Ver Script SQL para Supabase</span>
+          </button>
+        </div>
+      </div>
+
+      {/* SQL Script Viewer Modal */}
+      {showSqlModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full space-y-4 shadow-2xl animate-in zoom-in-95 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
+              <div className="flex items-center gap-2">
+                <Code className="w-5 h-5 text-[#069AD8]" />
+                <h3 className="font-bold text-sm sm:text-base text-[#093244]">
+                  Script SQL de Limpieza para Supabase
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSqlModal(false)}
+                className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-400 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              Puedes copiar y ejecutar este script directamente en el <strong>SQL Editor</strong> de tu proyecto en Supabase (<a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-[#069AD8] underline">supabase.com</a>) para limpiar los registros de prueba de la base de datos con una sola instrucción:
+            </p>
+
+            <div className="relative flex-1 overflow-hidden rounded-xl border border-neutral-800 bg-[#0d1117] text-neutral-100 font-mono text-xs p-4 overflow-y-auto max-h-[340px]">
+              <pre className="whitespace-pre-wrap">{SUPABASE_PURGE_SQL}</pre>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[11px] text-neutral-500">
+                Afecta tablas: attendance_records, leave_requests, overtime_records, company_documents
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className="px-4 py-2 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  {copiedSql ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <span>¡Copiado al Portapapeles!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span>Copiar Script SQL</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSqlModal(false)}
+                  className="px-4 py-2 rounded-xl border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs font-bold transition cursor-pointer"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Live Camera Modal for Taking Profile Picture */}
       {isCapturingCamera && (

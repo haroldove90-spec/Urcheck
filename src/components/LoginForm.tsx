@@ -134,6 +134,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, employees = [] })
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  // Default to deactivated manual login form per user instruction
+  const [showManualForm, setShowManualForm] = useState<boolean>(false);
+
+  // Dynamic names and avatars reflecting any profile updates (Fernanda Soto & Carlos Mendoza)
+  const adminEmp = employees?.find(e => e.id === 'emp-002');
+  const employeeEmp = employees?.find(e => e.id === 'emp-001');
+
+  const adminName = adminEmp?.name || INITIAL_PROFILES.admin.name;
+  const adminAvatar = adminEmp?.avatar || INITIAL_PROFILES.admin.avatar;
+  const employeeName = employeeEmp?.name || INITIAL_PROFILES.employee.name;
+  const employeeAvatar = employeeEmp?.avatar || INITIAL_PROFILES.employee.avatar;
 
   const handleInstallClick = async () => {
     if (isInstallable) {
@@ -162,8 +173,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, employees = [] })
       if (instant) {
         setIsLoading(true);
         setTimeout(() => {
-          onLogin('admin', INITIAL_PROFILES.admin);
-        }, 400);
+          onLogin('admin', {
+            ...INITIAL_PROFILES.admin,
+            name: adminName,
+            avatar: adminAvatar,
+          });
+        }, 350);
       }
     } else {
       setEmailOrUser('empleado@urcheck.com');
@@ -171,8 +186,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, employees = [] })
       if (instant) {
         setIsLoading(true);
         setTimeout(() => {
-          onLogin('employee', INITIAL_PROFILES.employee);
-        }, 400);
+          onLogin('employee', {
+            ...INITIAL_PROFILES.employee,
+            name: employeeName,
+            avatar: employeeAvatar,
+          });
+        }, 350);
       }
     }
   };
@@ -305,343 +324,528 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, employees = [] })
           </div>
         </div>
 
-        {/* Login Form Card */}
-        <div className="w-full bg-white rounded-3xl border border-neutral-200 shadow-xl p-5 sm:p-8 relative overflow-hidden">
-          
-          {/* Top Brand Accent Bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#093244] via-[#069AD8] to-[#1F832D]" />
-
-          {/* Form Header */}
-          <div className="mb-5 pb-3 border-b border-neutral-100 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-[#069AD8]" />
-              <span className="text-sm sm:text-base font-bold text-[#093244]">
-                Iniciar Sesión
-              </span>
-            </div>
-            <span className="text-xs text-neutral-400 font-medium">
-              Autenticación v2.5
-            </span>
-          </div>
-
-          {/* Error Message Banner */}
-          {errorMessage && (
-            <div 
-              id="login-error-alert"
-              className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in"
-            >
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div className="flex-1 leading-snug">
-                {errorMessage}
+        {/* Main Access Area: Deactivated manual form by default, prioritizing Direct Created Credentials */}
+        {!showManualForm ? (
+          <div id="credential-access-container" className="w-full space-y-4">
+            {/* Status notice */}
+            <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200/80 flex items-start gap-3 shadow-xs">
+              <Info className="w-5 h-5 text-[#069AD8] shrink-0 mt-0.5" />
+              <div className="text-xs text-sky-950 leading-relaxed">
+                <span className="font-bold">Formulario manual desactivado:</span> El inicio de sesión por formulario de texto se encuentra desactivado temporalmente. Puedes ingresar instantáneamente haciendo clic en cualquiera de las credenciales creadas a continuación.
               </div>
             </div>
-          )}
 
-          {/* Actual Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            
-            {/* Username / Email Input */}
-            <div>
-              <label 
-                htmlFor="input-username"
-                className="block text-xs sm:text-sm font-bold text-neutral-700 mb-1.5"
+            {/* Grid of 2 Direct Created Credential Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              {/* Card 1: ADMINISTRADOR - Fernanda Soto */}
+              <div 
+                id="credential-card-admin"
+                onClick={() => handleQuickLogin('admin', true)}
+                className="bg-white rounded-3xl border-2 border-[#093244]/20 hover:border-[#069AD8] p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between cursor-pointer group hover:-translate-y-0.5 relative overflow-hidden"
               >
-                Usuario o Correo Institucional
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <input
-                  id="input-username"
-                  type="text"
-                  value={emailOrUser}
-                  onChange={(e) => setEmailOrUser(e.target.value)}
-                  placeholder="ej. admin@urcheck.com o empleado@urcheck.com"
-                  autoComplete="username"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-neutral-50 hover:bg-white focus:bg-white text-xs sm:text-sm text-neutral-900 border border-neutral-300 focus:border-[#069AD8] rounded-xl focus:ring-3 focus:ring-[#069AD8]/15 outline-none transition-all font-medium"
-                />
-              </div>
-            </div>
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#093244]" />
 
-            {/* Password Input */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label 
-                  htmlFor="input-password"
-                  className="block text-xs sm:text-sm font-bold text-neutral-700"
-                >
-                  Contraseña de Acceso
-                </label>
-                <span className="text-[11px] text-neutral-500">
-                  Sensible a mayúsculas
-                </span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <input
-                  id="input-password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                  className="w-full pl-10 pr-11 py-2.5 sm:py-3 bg-neutral-50 hover:bg-white focus:bg-white text-xs sm:text-sm text-neutral-900 border border-neutral-300 focus:border-[#069AD8] rounded-xl focus:ring-3 focus:ring-[#069AD8]/15 outline-none transition-all font-medium"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                  title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-700 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-[#069AD8] border-neutral-300 rounded focus:ring-[#069AD8] cursor-pointer"
-                />
-                <span className="text-xs text-neutral-600 font-medium">
-                  Mantener sesión activa en este dispositivo
-                </span>
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              id="btn-login-submit"
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-[#093244] hover:bg-[#069AD8] active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed mt-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Verificando credenciales...</span>
-                </>
-              ) : (
-                <>
-                  <span>Ingresar a Urcheck</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* TEST CREDENTIALS CARDS SECTION - Highlighted right below the login form */}
-        <div className="w-full mt-6 space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-[#069AD8]" />
-              <h2 className="text-xs sm:text-sm font-bold text-[#093244] uppercase tracking-wider">
-                Credenciales Oficiales de Demostración y Prueba
-              </h2>
-            </div>
-            <span className="text-[11px] text-neutral-500 font-medium hidden sm:inline">
-              Acceso rápido con un toque
-            </span>
-          </div>
-          <p className="text-xs text-neutral-600 px-1">
-            Selecciona cualquiera de las dos credenciales para explorar libremente las funciones como <strong>Administrador</strong> o como <strong>Empleado</strong>:
-          </p>
-
-          {/* Grid of 2 Test Credential Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            
-            {/* Card 1: ADMINISTRADOR */}
-            <div 
-              id="credential-card-admin"
-              className="bg-white rounded-2xl border-2 border-[#069AD8]/30 hover:border-[#069AD8] p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#093244] text-white flex items-center justify-center">
-                      <ShieldCheck className="w-4 h-4 text-[#069AD8]" />
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider bg-[#093244]/10 text-[#093244] uppercase">
+                <div>
+                  <div className="flex items-center justify-between mb-3 pt-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold tracking-wider bg-[#093244] text-white uppercase flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#069AD8]" />
                       Administrador
                     </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Control Total
-                  </span>
-                </div>
-
-                <h3 className="text-sm font-bold text-[#093244] leading-tight">
-                  Fernanda Soto Vargas
-                </h3>
-                <p className="text-[11px] text-neutral-500 mb-3">
-                  Directora de Recursos Humanos
-                </p>
-
-                {/* Credential Data Box */}
-                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 space-y-1.5 text-xs font-mono mb-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-neutral-500 font-sans text-[11px]">Usuario:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-[#093244] select-all">admin@urcheck.com</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText('admin@urcheck.com', 'admin-user')}
-                        className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
-                        title="Copiar usuario"
-                      >
-                        {copiedKey === 'admin-user' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-neutral-200/60 pt-1.5">
-                    <span className="text-neutral-500 font-sans text-[11px]">Contraseña:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-[#093244] select-all">admin123</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText('admin123', 'admin-pass')}
-                        className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
-                        title="Copiar contraseña"
-                      >
-                        {copiedKey === 'admin-pass' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  id="btn-quick-admin-login"
-                  type="button"
-                  onClick={() => handleQuickLogin('admin', true)}
-                  className="flex-1 py-2 px-3 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#069AD8]" />
-                  <span>Ingresar como Admin</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('admin', false)}
-                  className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition-colors cursor-pointer"
-                  title="Auto-completar formulario sin ingresar inmediatamente"
-                >
-                  Rellenar
-                </button>
-              </div>
-            </div>
-
-            {/* Card 2: EMPLEADO */}
-            <div 
-              id="credential-card-employee"
-              className="bg-white rounded-2xl border-2 border-[#1F832D]/30 hover:border-[#1F832D] p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#1F832D] text-white flex items-center justify-center">
-                      <UserCheck className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider bg-[#1F832D]/10 text-[#1F832D] uppercase">
-                      Empleado
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Control Total
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-                    Portal Personal
-                  </span>
-                </div>
 
-                <h3 className="text-sm font-bold text-[#093244] leading-tight">
-                  Carlos Mendoza Ortiz
-                </h3>
-                <p className="text-[11px] text-neutral-500 mb-3">
-                  Ingeniero de Operaciones Senior
-                </p>
-
-                {/* Credential Data Box */}
-                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 space-y-1.5 text-xs font-mono mb-3.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-neutral-500 font-sans text-[11px]">Usuario:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-[#093244] select-all">empleado@urcheck.com</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText('empleado@urcheck.com', 'emp-user')}
-                        className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
-                        title="Copiar usuario"
-                      >
-                        {copiedKey === 'emp-user' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      </button>
+                  {/* Avatar + Name */}
+                  <div className="flex items-center gap-3.5 mb-3">
+                    <img
+                      src={adminAvatar}
+                      alt={adminName}
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-neutral-200 group-hover:border-[#069AD8] transition-colors shrink-0 shadow-xs"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-[#093244] leading-tight truncate">
+                        {adminName}
+                      </h3>
+                      <p className="text-xs text-neutral-500 font-medium">
+                        Directora de Recursos Humanos
+                      </p>
+                      <p className="text-[11px] text-[#069AD8] font-mono mt-0.5">
+                        admin@urcheck.com
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between border-t border-neutral-200/60 pt-1.5">
-                    <span className="text-neutral-500 font-sans text-[11px]">Contraseña:</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-[#093244] select-all">empleado123</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText('empleado123', 'emp-pass')}
-                        className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
-                        title="Copiar contraseña"
-                      >
-                        {copiedKey === 'emp-pass' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      </button>
+
+                  {/* Credentials Preview */}
+                  <div className="bg-neutral-50 border border-neutral-200/80 rounded-xl p-2.5 text-xs font-mono mb-4 text-neutral-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400 font-sans text-[11px]">Usuario:</span>
+                      <span className="font-semibold text-neutral-800">admin@urcheck.com</span>
+                    </div>
+                    <div className="flex justify-between border-t border-neutral-200/50 pt-1">
+                      <span className="text-neutral-400 font-sans text-[11px]">Clave:</span>
+                      <span className="font-semibold text-neutral-800">admin123</span>
                     </div>
                   </div>
                 </div>
+
+                {/* Direct Action Button */}
+                <button
+                  id="btn-login-as-admin"
+                  type="button"
+                  disabled={isLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickLogin('admin', true);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm group-hover:shadow-md cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#069AD8]" />
+                  <span>Ingresar como {adminName.split(' ')[0]}</span>
+                  <ArrowRight className="w-4 h-4 ml-auto" />
+                </button>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              {/* Card 2: EMPLEADO - Carlos Mendoza Ortiz */}
+              <div 
+                id="credential-card-employee"
+                onClick={() => handleQuickLogin('employee', true)}
+                className="bg-white rounded-3xl border-2 border-[#1F832D]/30 hover:border-[#1F832D] p-5 shadow-md hover:shadow-xl transition-all flex flex-col justify-between cursor-pointer group hover:-translate-y-0.5 relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#1F832D]" />
+
+                <div>
+                  <div className="flex items-center justify-between mb-3 pt-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold tracking-wider bg-[#1F832D] text-white uppercase flex items-center gap-1">
+                      <UserCheck className="w-3.5 h-3.5 text-white" />
+                      Empleado
+                    </span>
+                    <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+                      Portal Móvil
+                    </span>
+                  </div>
+
+                  {/* Avatar + Name */}
+                  <div className="flex items-center gap-3.5 mb-3">
+                    <img
+                      src={employeeAvatar}
+                      alt={employeeName}
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-neutral-200 group-hover:border-[#1F832D] transition-colors shrink-0 shadow-xs"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-[#093244] leading-tight truncate">
+                        {employeeName}
+                      </h3>
+                      <p className="text-xs text-neutral-500 font-medium">
+                        Ingeniero de Operaciones
+                      </p>
+                      <p className="text-[11px] text-[#1F832D] font-mono mt-0.5">
+                        empleado@urcheck.com
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Credentials Preview */}
+                  <div className="bg-neutral-50 border border-neutral-200/80 rounded-xl p-2.5 text-xs font-mono mb-4 text-neutral-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400 font-sans text-[11px]">Usuario:</span>
+                      <span className="font-semibold text-neutral-800">empleado@urcheck.com</span>
+                    </div>
+                    <div className="flex justify-between border-t border-neutral-200/50 pt-1">
+                      <span className="text-neutral-400 font-sans text-[11px]">Clave:</span>
+                      <span className="font-semibold text-neutral-800">empleado123</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direct Action Button */}
                 <button
-                  id="btn-quick-employee-login"
+                  id="btn-login-as-employee"
                   type="button"
-                  onClick={() => handleQuickLogin('employee', true)}
-                  className="flex-1 py-2 px-3 rounded-xl bg-[#1F832D] hover:bg-[#166524] text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  disabled={isLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickLogin('employee', true);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-[#1F832D] hover:bg-[#166422] text-white text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm group-hover:shadow-md cursor-pointer"
                 >
-                  <UserCheck className="w-3.5 h-3.5 text-white" />
-                  <span>Ingresar como Empleado</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('employee', false)}
-                  className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition-colors cursor-pointer"
-                  title="Auto-completar formulario sin ingresar inmediatamente"
-                >
-                  Rellenar
+                  <UserCheck className="w-4 h-4 text-white" />
+                  <span>Ingresar como {employeeName.split(' ')[0]}</span>
+                  <ArrowRight className="w-4 h-4 ml-auto" />
                 </button>
               </div>
+
+            </div>
+
+            {/* Bottom Utility Bar (Toggle manual form + SQL script button) */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-neutral-200/80 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setShowManualForm(true)}
+                className="text-xs text-neutral-600 hover:text-[#069AD8] font-medium underline transition cursor-pointer"
+              >
+                ¿Deseas activar el formulario manual de usuario y contraseña?
+              </button>
+
+              <button
+                id="btn-open-sql-modal"
+                type="button"
+                onClick={() => setShowSqlModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#093244] bg-white hover:bg-neutral-50 border border-neutral-300 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+              >
+                <Database className="w-3.5 h-3.5 text-[#069AD8]" />
+                <span>Ver Script SQL para Supabase</span>
+              </button>
             </div>
           </div>
+        ) : (
+          /* Manual Login Form Card (Activated on request) */
+          <div className="w-full bg-white rounded-3xl border border-neutral-200 shadow-xl p-5 sm:p-8 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+            
+            {/* Top Brand Accent Bar */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#093244] via-[#069AD8] to-[#1F832D]" />
 
-          {/* Database SQL button */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <p className="text-[11px] text-neutral-500">
-              ¿Deseas almacenar estas credenciales en tu base de datos PostgreSQL / Supabase?
-            </p>
-            <button
-              id="btn-open-sql-modal"
-              type="button"
-              onClick={() => setShowSqlModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#093244] bg-white hover:bg-neutral-50 border border-neutral-300 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer"
-            >
-              <Database className="w-3.5 h-3.5 text-[#069AD8]" />
-              <span>Ver Script SQL para Supabase</span>
-            </button>
+            {/* Form Header */}
+            <div className="mb-5 pb-3 border-b border-neutral-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-[#069AD8]" />
+                <span className="text-sm sm:text-base font-bold text-[#093244]">
+                  Formulario de Acceso Manual
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowManualForm(false)}
+                className="text-xs font-bold text-[#069AD8] hover:underline cursor-pointer"
+              >
+                ← Volver a acceso con credenciales
+              </button>
+            </div>
+
+            {/* Error Message Banner */}
+            {errorMessage && (
+              <div 
+                id="login-error-alert"
+                className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-2.5 animate-in fade-in"
+              >
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-snug">
+                  {errorMessage}
+                </div>
+              </div>
+            )}
+
+            {/* Actual Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Username / Email Input */}
+              <div>
+                <label 
+                  htmlFor="input-username"
+                  className="block text-xs sm:text-sm font-bold text-neutral-700 mb-1.5"
+                >
+                  Usuario o Correo Institucional
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="input-username"
+                    type="text"
+                    value={emailOrUser}
+                    onChange={(e) => setEmailOrUser(e.target.value)}
+                    placeholder="ej. admin@urcheck.com o empleado@urcheck.com"
+                    autoComplete="username"
+                    required
+                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-neutral-50 hover:bg-white focus:bg-white text-xs sm:text-sm text-neutral-900 border border-neutral-300 focus:border-[#069AD8] rounded-xl focus:ring-3 focus:ring-[#069AD8]/15 outline-none transition-all font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label 
+                    htmlFor="input-password"
+                    className="block text-xs sm:text-sm font-bold text-neutral-700"
+                  >
+                    Contraseña de Acceso
+                  </label>
+                  <span className="text-[11px] text-neutral-500">
+                    Sensible a mayúsculas
+                  </span>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    id="input-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    required
+                    className="w-full pl-10 pr-11 py-2.5 sm:py-3 bg-neutral-50 hover:bg-white focus:bg-white text-xs sm:text-sm text-neutral-900 border border-neutral-300 focus:border-[#069AD8] rounded-xl focus:ring-3 focus:ring-[#069AD8]/15 outline-none transition-all font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                    title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-700 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-[#069AD8] border-neutral-300 rounded focus:ring-[#069AD8] cursor-pointer"
+                  />
+                  <span className="text-xs text-neutral-600 font-medium">
+                    Mantener sesión activa en este dispositivo
+                  </span>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                id="btn-login-submit"
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-[#093244] hover:bg-[#069AD8] active:scale-[0.99] text-white text-sm sm:text-base font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed mt-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Verificando credenciales...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Ingresar a Urcheck</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
           </div>
-        </div>
+        )}
+
+        {/* TEST CREDENTIALS CARDS SECTION - Shown only when manual form is toggled open to avoid duplicate cards */}
+        {showManualForm && (
+          <div className="w-full mt-6 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-[#069AD8]" />
+                <h2 className="text-xs sm:text-sm font-bold text-[#093244] uppercase tracking-wider">
+                  Credenciales Oficiales de Demostración y Prueba
+                </h2>
+              </div>
+              <span className="text-[11px] text-neutral-500 font-medium hidden sm:inline">
+                Acceso rápido con un toque
+              </span>
+            </div>
+            <p className="text-xs text-neutral-600 px-1">
+              Selecciona cualquiera de las dos credenciales para auto-rellenar o ingresar directamente:
+            </p>
+
+            {/* Grid of 2 Test Credential Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              
+              {/* Card 1: ADMINISTRADOR */}
+              <div 
+                id="credential-card-admin"
+                className="bg-white rounded-2xl border-2 border-[#069AD8]/30 hover:border-[#069AD8] p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#093244] text-white flex items-center justify-center">
+                        <ShieldCheck className="w-4 h-4 text-[#069AD8]" />
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider bg-[#093244]/10 text-[#093244] uppercase">
+                        Administrador
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Control Total
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-[#093244] leading-tight">
+                    {adminName}
+                  </h3>
+                  <p className="text-[11px] text-neutral-500 mb-3">
+                    Directora de Recursos Humanos
+                  </p>
+
+                  {/* Credential Data Box */}
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 space-y-1.5 text-xs font-mono mb-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-neutral-500 font-sans text-[11px]">Usuario:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#093244] select-all">admin@urcheck.com</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText('admin@urcheck.com', 'admin-user')}
+                          className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
+                          title="Copiar usuario"
+                        >
+                          {copiedKey === 'admin-user' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-neutral-200/60 pt-1.5">
+                      <span className="text-neutral-500 font-sans text-[11px]">Contraseña:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#093244] select-all">admin123</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText('admin123', 'admin-pass')}
+                          className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
+                          title="Copiar contraseña"
+                        >
+                          {copiedKey === 'admin-pass' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    id="btn-quick-admin-login"
+                    type="button"
+                    onClick={() => handleQuickLogin('admin', true)}
+                    className="flex-1 py-2 px-3 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#069AD8]" />
+                    <span>Ingresar como Admin</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('admin', false)}
+                    className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition-colors cursor-pointer"
+                    title="Auto-completar formulario sin ingresar inmediatamente"
+                  >
+                    Rellenar
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: EMPLEADO */}
+              <div 
+                id="credential-card-employee"
+                className="bg-white rounded-2xl border-2 border-[#1F832D]/30 hover:border-[#1F832D] p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative group"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[#1F832D] text-white flex items-center justify-center">
+                        <UserCheck className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider bg-[#1F832D]/10 text-[#1F832D] uppercase">
+                        Empleado
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                      Portal Personal
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-[#093244] leading-tight">
+                    {employeeName}
+                  </h3>
+                  <p className="text-[11px] text-neutral-500 mb-3">
+                    Ingeniero de Operaciones Senior
+                  </p>
+
+                  {/* Credential Data Box */}
+                  <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 space-y-1.5 text-xs font-mono mb-3.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-neutral-500 font-sans text-[11px]">Usuario:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#093244] select-all">empleado@urcheck.com</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText('empleado@urcheck.com', 'emp-user')}
+                          className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
+                          title="Copiar usuario"
+                        >
+                          {copiedKey === 'emp-user' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-neutral-200/60 pt-1.5">
+                      <span className="text-neutral-500 font-sans text-[11px]">Contraseña:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#093244] select-all">empleado123</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText('empleado123', 'emp-pass')}
+                          className="p-1 hover:bg-neutral-200 rounded text-neutral-500 cursor-pointer"
+                          title="Copiar contraseña"
+                        >
+                          {copiedKey === 'emp-pass' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    id="btn-quick-employee-login"
+                    type="button"
+                    onClick={() => handleQuickLogin('employee', true)}
+                    className="flex-1 py-2 px-3 rounded-xl bg-[#1F832D] hover:bg-[#166524] text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-white" />
+                    <span>Ingresar como Empleado</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('employee', false)}
+                    className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition-colors cursor-pointer"
+                    title="Auto-completar formulario sin ingresar inmediatamente"
+                  >
+                    Rellenar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Database SQL button */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+              <p className="text-[11px] text-neutral-500">
+                ¿Deseas almacenar estas credenciales en tu base de datos PostgreSQL / Supabase?
+              </p>
+              <button
+                id="btn-open-sql-modal-manual"
+                type="button"
+                onClick={() => setShowSqlModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#093244] bg-white hover:bg-neutral-50 border border-neutral-300 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+              >
+                <Database className="w-3.5 h-3.5 text-[#069AD8]" />
+                <span>Ver Script SQL para Supabase</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Minimalist Install App Button */}
         {!isInstalled && (

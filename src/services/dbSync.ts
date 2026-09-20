@@ -165,26 +165,35 @@ export async function syncUserProfileToSupabase(
       });
     }
 
-    const generatedCode = user.id.startsWith('emp-') 
-      ? user.id.toUpperCase() 
-      : `USR-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Determine deterministic employee code
+    let employeeCode = user.employeeId;
+    if (!employeeCode) {
+      if (user.role === 'admin') {
+        employeeCode = 'EMP-7743';
+      } else if (user.id === 'emp-001') {
+        employeeCode = 'EMP-7742';
+      } else {
+        employeeCode = user.id.toUpperCase();
+      }
+    }
 
+    // 1. Sync primary profile row
     const { error } = await supabase.from('employees').upsert({
       id: user.id,
-      employee_code: generatedCode,
+      employee_code: employeeCode,
       name: user.name,
       email: user.email,
-      phone: extra?.phone || '55 1234 5678',
+      phone: extra?.phone || user.phone || '55 1234 5678',
       avatar: user.avatar,
-      position: user.position || (user.role === 'admin' ? 'Administrador del Sistema' : 'Colaborador'),
-      department: user.department || (user.role === 'admin' ? 'Recursos Humanos' : 'Operaciones'),
+      position: user.position || (user.role === 'admin' ? 'Directora de Recursos Humanos' : 'Colaborador'),
+      department: user.department || (user.role === 'admin' ? 'Gestión de Talento Humano' : 'Operaciones'),
       branch_id: branchId,
       branch_name: branchName,
-      hire_date: new Date().toISOString().split('T')[0],
+      hire_date: '2023-03-15',
       status: user.status || 'active',
       shift: extra?.shift || 'Matutino (08:00 - 17:00)',
       vacation_days_left: 12,
-      hourly_rate: extra?.hourlyRate || (user.role === 'admin' ? 250 : 160),
+      hourly_rate: extra?.hourlyRate || (user.role === 'admin' ? 250 : 185),
       dossier_status: 'complete',
     });
 
@@ -192,6 +201,24 @@ export async function syncUserProfileToSupabase(
       console.warn('[Supabase Sync] User profile sync failed:', error.message);
       return { success: false, error: error.message };
     }
+
+    // 2. Also keep emp-002 synchronized if user is admin Fernanda Soto
+    if (user.role === 'admin' && user.id !== 'emp-002') {
+      await supabase.from('employees').upsert({
+        id: 'emp-002',
+        employee_code: 'EMP-7743',
+        name: user.name,
+        email: user.email,
+        phone: extra?.phone || user.phone || '55 4920 1823',
+        avatar: user.avatar,
+        position: user.position || 'Directora de Recursos Humanos',
+        department: user.department || 'Gestión de Talento Humano',
+        branch_id: 'suc-01',
+        branch_name: 'Corporativo Reforma',
+        status: 'active',
+      });
+    }
+
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -384,30 +411,31 @@ export function setMockDataPurgedFlag(purged: boolean): void {
  * so they are never re-seeded or re-loaded into the database.
  */
 export async function purgeAllMockDataFromSupabase(
-  keepEmployeeIds: string[] = []
+  keepEmployeeIds: string[] = ['emp-001', 'emp-002', 'usr-admin-01']
 ): Promise<{ success: boolean; message: string; error?: string }> {
   try {
     setMockDataPurgedFlag(true);
 
-    const sampleEmpIds = ['emp-001', 'emp-002', 'emp-003', 'emp-004', 'emp-005', 'emp-006', 'emp-007', 'emp-008'];
+    const sampleEmpIds = ['emp-003', 'emp-004', 'emp-005', 'emp-006', 'emp-007', 'emp-008'];
+    const allDemoIds = ['emp-001', 'emp-002', ...sampleEmpIds];
     const idsToDelete = sampleEmpIds.filter(id => !keepEmployeeIds.includes(id));
 
     // 1. Delete demo attendance records
-    await supabase.from('attendance_records').delete().in('employee_id', sampleEmpIds);
-    await supabase.from('attendance_records').delete().ilike('id', 'att-0%');
+    await supabase.from('attendance_records').delete().in('employee_id', allDemoIds);
+    await supabase.from('attendance_records').delete().ilike('id', 'att-%');
 
     // 2. Delete demo leaves
-    await supabase.from('leave_requests').delete().in('employee_id', sampleEmpIds);
-    await supabase.from('leave_requests').delete().ilike('id', 'leave-0%');
+    await supabase.from('leave_requests').delete().in('employee_id', allDemoIds);
+    await supabase.from('leave_requests').delete().ilike('id', 'leave-%');
 
     // 3. Delete demo overtime
-    await supabase.from('overtime_records').delete().in('employee_id', sampleEmpIds);
-    await supabase.from('overtime_records').delete().ilike('id', 'ot-0%');
+    await supabase.from('overtime_records').delete().in('employee_id', allDemoIds);
+    await supabase.from('overtime_records').delete().ilike('id', 'ot-%');
 
     // 4. Delete demo documents
-    await supabase.from('company_documents').delete().ilike('id', 'doc-0%');
+    await supabase.from('company_documents').delete().ilike('id', 'doc-%');
 
-    // 5. Delete sample employees
+    // 5. Delete sample demo employees (keeping the active admin and employee)
     if (idsToDelete.length > 0) {
       await supabase.from('employees').delete().in('id', idsToDelete);
     }

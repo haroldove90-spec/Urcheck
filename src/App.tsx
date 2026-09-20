@@ -66,6 +66,7 @@ import {
   syncAttendanceToSupabase, 
   syncBatchAttendanceCorroboration, 
   syncEmployeeToSupabase, 
+  syncUserProfileToSupabase,
   syncBranchToSupabase, 
   syncLeaveRequestToSupabase, 
   syncOvertimeToSupabase, 
@@ -465,6 +466,11 @@ export default function App() {
 
   const handlePurgeMockData = async () => {
     await purgeAllMockDataFromSupabase();
+    setAttendanceRecords([]);
+    setLeaveRequests([]);
+    setOvertimeRecords([]);
+    setCompanyDocuments([]);
+    setEmployees(prev => prev.filter(e => e.id === 'emp-001' || e.id === 'emp-002'));
     await loadDataFromSupabase();
   };
 
@@ -511,8 +517,8 @@ export default function App() {
     }));
   };
 
-  // User Profile Update (photo upload, personal data, and bidirectional sync)
-  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+  // User Profile Update (photo upload, personal data, and bidirectional sync to Supabase)
+  const handleUpdateProfile = async (updatedProfile: UserProfile) => {
     setCurrentUser(updatedProfile);
 
     // Save updated profile to persistent session
@@ -525,16 +531,21 @@ export default function App() {
       });
     }
 
-    // Bidirectional sync with employee catalog if matching
+    // Direct sync of user profile (including name, details, and compressed photo) to Supabase
+    await syncUserProfileToSupabase(updatedProfile);
+
+    // Bidirectional sync with employee catalog if matching (Fernanda Soto emp-002, Carlos Mendoza emp-001)
     setEmployees(prev => prev.map(emp => {
       const isMatching = (updatedProfile.employeeId && emp.employeeCode === updatedProfile.employeeId) ||
                          (emp.email.toLowerCase() === updatedProfile.email.toLowerCase()) ||
-                         (emp.id === updatedProfile.id);
+                         (emp.id === updatedProfile.id) ||
+                         (updatedProfile.role === 'admin' && emp.id === 'emp-002') ||
+                         (updatedProfile.role === 'employee' && emp.id === 'emp-001');
       if (isMatching) {
         const updatedEmp: Employee = {
           ...emp,
           name: updatedProfile.name,
-          email: updatedProfile.email,
+          email: updatedProfile.email || emp.email,
           phone: updatedProfile.phone || emp.phone,
           avatar: updatedProfile.avatar,
           position: updatedProfile.position || emp.position,
@@ -545,6 +556,22 @@ export default function App() {
         return updatedEmp;
       }
       return emp;
+    }));
+
+    // If employee Carlos Mendoza or current user changed name or avatar, update associated attendance records
+    setAttendanceRecords(prev => prev.map(rec => {
+      if (rec.employeeId === updatedProfile.id || 
+         (updatedProfile.role === 'employee' && rec.employeeId === 'emp-001') ||
+         (updatedProfile.employeeId && rec.employeeCode === updatedProfile.employeeId)) {
+        const updated = { 
+          ...rec, 
+          employeeName: updatedProfile.name, 
+          employeeAvatar: updatedProfile.avatar 
+        };
+        syncAttendanceToSupabase(updated);
+        return updated;
+      }
+      return rec;
     }));
   };
 
@@ -810,6 +837,9 @@ export default function App() {
                   onUpdateProfile={handleUpdateProfile}
                   branches={branches}
                   allEmployees={employees}
+                  onPurgeMockData={handlePurgeMockData}
+                  onRestoreMockData={handleRestoreMockData}
+                  isMockDataPurged={isMockDataPurged()}
                 />
               )}
 
@@ -839,6 +869,9 @@ export default function App() {
                   onUpdateProfile={handleUpdateProfile}
                   branches={branches}
                   allEmployees={employees}
+                  onPurgeMockData={handlePurgeMockData}
+                  onRestoreMockData={handleRestoreMockData}
+                  isMockDataPurged={isMockDataPurged()}
                 />
               )}
 
