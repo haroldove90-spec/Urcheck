@@ -19,6 +19,7 @@ interface EmployeeNotificationsViewProps {
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onClearAll: () => void;
+  onDeleteNotification?: (id: string) => void;
   onNavigateModule: (module: EmployeeModule) => void;
 }
 
@@ -27,6 +28,7 @@ export const EmployeeNotificationsView: React.FC<EmployeeNotificationsViewProps>
   onMarkAsRead,
   onMarkAllAsRead,
   onClearAll,
+  onDeleteNotification,
   onNavigateModule,
 }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -99,11 +101,15 @@ export const EmployeeNotificationsView: React.FC<EmployeeNotificationsViewProps>
           {notifications.length > 0 && (
             <button
               type="button"
-              onClick={onClearAll}
-              className="p-2 rounded-xl border border-neutral-300 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-              title="Limpiar todas las notificaciones"
+              onClick={() => {
+                const confirmClear = window.confirm('¿Deseas eliminar todas las notificaciones recibidas?');
+                if (confirmClear) onClearAll();
+              }}
+              className="px-3 py-2 rounded-xl border border-neutral-300 text-neutral-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              title="Borrar todas las notificaciones"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 text-rose-500" />
+              <span>Borrar todas</span>
             </button>
           )}
         </div>
@@ -197,14 +203,27 @@ export const EmployeeNotificationsView: React.FC<EmployeeNotificationsViewProps>
                 </div>
               </div>
 
-              {notif.actionModule && (
-                <div className="self-end sm:self-center shrink-0">
+              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                {notif.actionModule && (
                   <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-neutral-300 text-xs font-bold text-[#093244] hover:border-[#069AD8] hover:text-[#069AD8] transition shadow-2xs">
                     <span>Ver módulo</span>
                     <ExternalLink className="w-3 h-3" />
                   </span>
-                </div>
-              )}
+                )}
+                {onDeleteNotification && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteNotification(notif.id);
+                    }}
+                    className="p-2 rounded-xl border border-neutral-200 bg-white hover:border-rose-300 hover:bg-rose-50 text-neutral-400 hover:text-rose-600 transition shadow-2xs cursor-pointer active:scale-95"
+                    title="Eliminar esta notificación"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           ))
         ) : (

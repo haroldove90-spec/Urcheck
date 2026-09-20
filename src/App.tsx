@@ -87,6 +87,16 @@ import {
   saveStoredSession
 } from './services/dbSync';
 
+// Instant Realtime Notification Service & Cross-tab broadcast
+import {
+  subscribeToRealtimeNotifications,
+  broadcastInstantNotification,
+  buildInstantNotification,
+  loadStoredNotifications,
+  saveStoredNotifications,
+  clearAllStoredNotifications,
+} from './services/notificationService';
+
 // Employee Views
 import { BiometricPunchView } from './views/employee/BiometricPunchView';
 import { EmployeeNotificationsView } from './views/employee/EmployeeNotificationsView';
@@ -146,39 +156,10 @@ export default function App() {
     return isMockDataPurged() ? [] : INITIAL_AUDIT_LOGS;
   });
 
-  // Notifications State for Employees
-  const [notifications, setNotifications] = useState<AppNotification[]>([
-    {
-      id: 'notif-1',
-      targetEmployeeId: 'all',
-      title: '¡Bienvenido al Portal Biométrico Urcheck!',
-      message: 'Tu terminal móvil y reconocimiento facial están activos. Recuerda checar tu entrada y salida diariamente.',
-      type: 'system',
-      timestamp: 'Hoy, 08:00 AM',
-      read: false,
-      actionModule: 'punch',
-    },
-    {
-      id: 'notif-2',
-      targetEmployeeId: 'all',
-      title: 'Contrato y Políticas Pendientes de Firma',
-      message: 'Recursos Humanos ha cargado un nuevo documento laboral. Por favor fírmalo digitalmente con tu trazo desde el móvil.',
-      type: 'document',
-      timestamp: 'Ayer, 04:30 PM',
-      read: false,
-      actionModule: 'documents',
-    },
-    {
-      id: 'notif-3',
-      targetEmployeeId: 'all',
-      title: 'Marcaje Biométrico Corroborado',
-      message: 'Tus registros de asistencia de la semana fueron auditados y certificados por RRHH con sello digital SHA-256.',
-      type: 'attendance',
-      timestamp: '15 Sept, 10:15 AM',
-      read: true,
-      actionModule: 'punch',
-    }
-  ]);
+  // Notifications State for Employees & System Alerts with local persistence
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
+    return loadStoredNotifications();
+  });
 
   // Splash screen: only show when there is NO saved active session
   const [showSplash, setShowSplash] = useState<boolean>(() => {
@@ -256,6 +237,28 @@ export default function App() {
     }
   }, []);
 
+  // Realtime Notifications & Cross-Tab Instant Sync without needing page refresh
+  useEffect(() => {
+    const unsubscribe = subscribeToRealtimeNotifications({
+      onNotificationReceived: (newNotif) => {
+        setNotifications(prev => {
+          if (prev.some(n => n.id === newNotif.id)) return prev;
+          const updated = [newNotif, ...prev];
+          saveStoredNotifications(updated);
+          return updated;
+        });
+        playSystemNotificationSound();
+      },
+      onRefreshDataNeeded: () => {
+        loadDataFromSupabase();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [loadDataFromSupabase]);
+
   // Fetch live Supabase data on mount and whenever tab gets focus
   useEffect(() => {
     loadDataFromSupabase();
@@ -331,18 +334,24 @@ export default function App() {
     setAttendanceRecords(prev => [newRecord, ...prev]);
     syncAttendanceToSupabase(newRecord);
 
-    // Notify employee with sound
-    const newNotif: AppNotification = {
-      id: `notif-${Date.now()}`,
-      targetEmployeeId: newRecord.employeeId,
-      title: `Marcaje ${newRecord.type === 'entry' ? 'de Entrada' : newRecord.type === 'exit' ? 'de Salida' : 'de Almuerzo'} Registrado`,
-      message: `Tu asistencia a las ${newRecord.timestamp} ha sido sellada biométricamente (${newRecord.method === 'facial' ? 'Reconocimiento Facial' : newRecord.method === 'fingerprint' ? 'Huella Digital' : 'Tarjeta RFID'}) y sincronizada.`,
-      type: 'attendance',
-      timestamp: 'Justo ahora',
-      read: false,
-      actionModule: 'punch',
-    };
-    setNotifications(prev => [newNotif, ...prev]);
+    // Build and broadcast instant notification
+    const newNotif = buildInstantNotification(
+      `Marcaje ${newRecord.type === 'entry' ? 'de Entrada' : newRecord.type === 'exit' ? 'de Salida' : 'de Almuerzo'} Registrado`,
+      `Tu asistencia a las ${newRecord.timestamp} ha sido sellada biométricamente (${newRecord.method === 'facial' ? 'Reconocimiento Facial' : newRecord.method === 'fingerprint' ? 'Huella Digital' : 'Tarjeta RFID'}) y sincronizada.`,
+      'attendance',
+      'punch',
+      newRecord.employeeId
+    );
+    setNotifications(prev => {
+      const updated = [newNotif, ...prev];
+      saveStoredNotifications(updated);
+      return updated;
+    });
+    broadcastInstantNotification({
+      type: 'PUNCH',
+      notification: newNotif,
+      data: newRecord
+    });
     playSystemNotificationSound();
   };
 
@@ -396,79 +405,205 @@ export default function App() {
 
   // Leaves Handlers
   const handleApproveLeave = (leaveId: string) => {
+    let affectedReq: LeaveRequest | undefined;
     setLeaveRequests(prev => prev.map(req => {
       if (req.id === leaveId) {
-        const updated = {
+        affectedReq = {
           ...req,
           status: 'approved' as const,
           reviewedBy: currentUser.name,
           reviewedDate: new Date().toISOString().split('T')[0],
         };
-        syncLeaveRequestToSupabase(updated);
-        return updated;
+        syncLeaveRequestToSupabase(affectedReq);
+        return affectedReq;
       }
       return req;
     }));
+
+    if (affectedReq) {
+      const notif = buildInstantNotification(
+        'Solicitud de Permiso Aprobada',
+        `El permiso de ${affectedReq.employeeName} (${affectedReq.type}, ${affectedReq.daysCount} días) fue aprobado institucionalmente.`,
+        'leave',
+        'leaves',
+        affectedReq.employeeId
+      );
+      setNotifications(prev => {
+        const updated = [notif, ...prev];
+        saveStoredNotifications(updated);
+        return updated;
+      });
+      broadcastInstantNotification({
+        type: 'LEAVE_STATUS',
+        notification: notif,
+        data: affectedReq
+      });
+      playSystemNotificationSound();
+    }
   };
 
   const handleRejectLeave = (leaveId: string, reason: string) => {
+    let affectedReq: LeaveRequest | undefined;
     setLeaveRequests(prev => prev.map(req => {
       if (req.id === leaveId) {
-        const updated = {
+        affectedReq = {
           ...req,
           status: 'rejected' as const,
           rejectionReason: reason,
           reviewedBy: currentUser.name,
           reviewedDate: new Date().toISOString().split('T')[0],
         };
-        syncLeaveRequestToSupabase(updated);
-        return updated;
+        syncLeaveRequestToSupabase(affectedReq);
+        return affectedReq;
       }
       return req;
     }));
+
+    if (affectedReq) {
+      const notif = buildInstantNotification(
+        'Solicitud de Permiso Declinada',
+        `El permiso de ${affectedReq.employeeName} fue declinado. Motivo: ${reason}`,
+        'leave',
+        'leaves',
+        affectedReq.employeeId
+      );
+      setNotifications(prev => {
+        const updated = [notif, ...prev];
+        saveStoredNotifications(updated);
+        return updated;
+      });
+      broadcastInstantNotification({
+        type: 'LEAVE_STATUS',
+        notification: notif,
+        data: affectedReq
+      });
+      playSystemNotificationSound();
+    }
   };
 
   const handleSubmitLeaveRequest = (newReq: LeaveRequest) => {
     setLeaveRequests(prev => [newReq, ...prev]);
     syncLeaveRequestToSupabase(newReq);
+
+    const notif = buildInstantNotification(
+      'Nueva Solicitud de Permiso Registrada',
+      `${newReq.employeeName} solicitó ${newReq.daysCount} día(s) por motivo de ${newReq.type}.`,
+      'leave',
+      'leaves',
+      newReq.employeeId
+    );
+    setNotifications(prev => {
+      const updated = [notif, ...prev];
+      saveStoredNotifications(updated);
+      return updated;
+    });
+    broadcastInstantNotification({
+      type: 'LEAVE_REQUEST',
+      notification: notif,
+      data: newReq
+    });
+    playSystemNotificationSound();
   };
 
   // Overtime Handlers
   const handleApproveOvertime = (recordId: string) => {
+    let affectedRec: OvertimeRecord | undefined;
     setOvertimeRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
-        const updated = {
+        affectedRec = {
           ...rec,
           status: 'approved' as const,
           approvedBy: currentUser.name,
           approvedDate: new Date().toISOString().split('T')[0],
         };
-        syncOvertimeToSupabase(updated);
-        return updated;
+        syncOvertimeToSupabase(affectedRec);
+        return affectedRec;
       }
       return rec;
     }));
+
+    if (affectedRec) {
+      const notif = buildInstantNotification(
+        'Horas Extras Aprobadas',
+        `Las ${affectedRec.totalHours} horas extras de ${affectedRec.employeeName} (${affectedRec.date}) fueron aprobadas.`,
+        'overtime',
+        'overtime',
+        affectedRec.employeeId
+      );
+      setNotifications(prev => {
+        const updated = [notif, ...prev];
+        saveStoredNotifications(updated);
+        return updated;
+      });
+      broadcastInstantNotification({
+        type: 'OVERTIME_STATUS',
+        notification: notif,
+        data: affectedRec
+      });
+      playSystemNotificationSound();
+    }
   };
 
   const handleRejectOvertime = (recordId: string) => {
+    let affectedRec: OvertimeRecord | undefined;
     setOvertimeRecords(prev => prev.map(rec => {
       if (rec.id === recordId) {
-        const updated = {
+        affectedRec = {
           ...rec,
           status: 'rejected' as const,
           approvedBy: currentUser.name,
           approvedDate: new Date().toISOString().split('T')[0],
         };
-        syncOvertimeToSupabase(updated);
-        return updated;
+        syncOvertimeToSupabase(affectedRec);
+        return affectedRec;
       }
       return rec;
     }));
+
+    if (affectedRec) {
+      const notif = buildInstantNotification(
+        'Horas Extras Declinadas',
+        `La solicitud de horas extras de ${affectedRec.employeeName} (${affectedRec.date}) fue declinada.`,
+        'overtime',
+        'overtime',
+        affectedRec.employeeId
+      );
+      setNotifications(prev => {
+        const updated = [notif, ...prev];
+        saveStoredNotifications(updated);
+        return updated;
+      });
+      broadcastInstantNotification({
+        type: 'OVERTIME_STATUS',
+        notification: notif,
+        data: affectedRec
+      });
+      playSystemNotificationSound();
+    }
   };
 
   const handleSubmitOvertime = (newRec: OvertimeRecord) => {
     setOvertimeRecords(prev => [newRec, ...prev]);
     syncOvertimeToSupabase(newRec);
+
+    const notif = buildInstantNotification(
+      'Nueva Solicitud de Horas Extras',
+      `${newRec.employeeName} solicitó ${newRec.totalHours} horas extraordinarias para el día ${newRec.date}.`,
+      'overtime',
+      'overtime',
+      newRec.employeeId
+    );
+    setNotifications(prev => {
+      const updated = [notif, ...prev];
+      saveStoredNotifications(updated);
+      return updated;
+    });
+    broadcastInstantNotification({
+      type: 'OVERTIME_REQUEST',
+      notification: notif,
+      data: newRec
+    });
+    playSystemNotificationSound();
   };
 
   // Settings
@@ -585,6 +720,25 @@ export default function App() {
       }
       return rec;
     }));
+
+    // Build and broadcast instant notification for profile update
+    const notif = buildInstantNotification(
+      'Perfil y Credenciales Actualizados',
+      `Tus datos personales y fotografía biométrica han sido respaldados y sincronizados con éxito.`,
+      'system',
+      'profile',
+      updatedProfile.id
+    );
+    setNotifications(prev => {
+      const updated = [notif, ...prev];
+      saveStoredNotifications(updated);
+      return updated;
+    });
+    broadcastInstantNotification({
+      type: 'PROFILE_UPDATED',
+      notification: notif,
+      data: updatedProfile
+    });
   };
 
   // Attendance Corroboration & Deletion Handlers
@@ -665,16 +819,33 @@ export default function App() {
   const isAdmin = currentRole === 'admin';
 
   // Notification actions
-  const handleMarkNotificationAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  };
-
-  const handleMarkAllNotificationsAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const handleDeleteNotification = (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.id !== id);
+      saveStoredNotifications(updated);
+      return updated;
+    });
   };
 
   const handleClearAllNotifications = () => {
     setNotifications([]);
+    clearAllStoredNotifications();
+  };
+
+  const handleMarkNotificationAsRead = (id: string) => {
+    setNotifications(prev => {
+      const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
+      saveStoredNotifications(updated);
+      return updated;
+    });
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setNotifications(prev => {
+      const updated = prev.map(n => ({ ...n, read: true }));
+      saveStoredNotifications(updated);
+      return updated;
+    });
   };
 
   return (
@@ -705,6 +876,12 @@ export default function App() {
         pendingOvertimeCount={pendingOvertimeCount}
         systemMode={systemMode}
         onOpenModeSelector={() => setIsModeSelectorOpen(true)}
+        notifications={notifications}
+        unreadNotificationsCount={unreadNotificationsCount}
+        onMarkNotificationAsRead={handleMarkNotificationAsRead}
+        onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+        onDeleteNotification={handleDeleteNotification}
+        onClearAllNotifications={handleClearAllNotifications}
       />
 
       {/* Main Workspace Layout (Desktop Sidebar + Content Area) */}
@@ -902,6 +1079,7 @@ export default function App() {
                   onMarkAsRead={handleMarkNotificationAsRead}
                   onMarkAllAsRead={handleMarkAllNotificationsAsRead}
                   onClearAll={handleClearAllNotifications}
+                  onDeleteNotification={handleDeleteNotification}
                   onNavigateModule={(mod) => setCurrentEmployeeModule(mod)}
                 />
               )}

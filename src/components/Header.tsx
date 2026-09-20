@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserProfile, Employee, Branch, AdminModule, EmployeeModule, SystemMode } from '../types';
+import { UserProfile, Employee, Branch, AdminModule, EmployeeModule, SystemMode, AppNotification } from '../types';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { PWAInstallModal } from './PWAInstallModal';
 import { SupabaseConnectionModal } from './SupabaseConnectionModal';
@@ -33,6 +33,7 @@ import {
   Fingerprint,
   ChevronDown,
   Sliders,
+  Trash2,
 } from 'lucide-react';
 import { isModuleAllowedInMode } from '../utils/systemModes';
 
@@ -53,6 +54,12 @@ interface HeaderProps {
   pendingOvertimeCount?: number;
   systemMode?: SystemMode;
   onOpenModeSelector?: () => void;
+  notifications?: AppNotification[];
+  unreadNotificationsCount?: number;
+  onMarkNotificationAsRead?: (id: string) => void;
+  onMarkAllNotificationsAsRead?: () => void;
+  onDeleteNotification?: (id: string) => void;
+  onClearAllNotifications?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -72,6 +79,12 @@ export const Header: React.FC<HeaderProps> = ({
   pendingOvertimeCount = 0,
   systemMode = 'basic',
   onOpenModeSelector,
+  notifications,
+  unreadNotificationsCount,
+  onMarkNotificationAsRead,
+  onMarkAllNotificationsAsRead,
+  onDeleteNotification,
+  onClearAllNotifications,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [showInstallModal, setShowInstallModal] = useState(false);
@@ -414,88 +427,189 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </button>
 
-            {/* Absenteeism & Incidents Notifications Bell */}
+            {/* Realtime Notifications Bell */}
             <div className="relative">
-              <button
-                id="btn-alerts-bell"
-                type="button"
-                onClick={() => setShowNotifications(prev => !prev)}
-                className="relative inline-flex items-center justify-center p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-neutral-100 hover:bg-neutral-200 active:scale-95 border border-neutral-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
-                title="Alertas de Ausentismo y Avisos Operativos"
-              >
-                <Bell className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />
-                {unreadAlertsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse">
-                    {unreadAlertsCount}
-                  </span>
-                )}
-              </button>
+              {(() => {
+                const effectiveNotifications: AppNotification[] = notifications !== undefined
+                  ? notifications
+                  : alerts.map(a => ({
+                      id: a.id,
+                      targetEmployeeId: 'all',
+                      title: a.title,
+                      message: a.message,
+                      type: (a.severity === 'critical' || a.severity === 'warning' ? 'attendance' : 'system') as any,
+                      timestamp: a.timestamp,
+                      read: !a.unread,
+                      actionModule: 'punch' as const,
+                    }));
 
-              {/* Dropdown panel - Perfectly centered on mobile and docked on desktop */}
-              {showNotifications && (
-                <>
-                  {/* Backdrop on mobile for closing */}
-                  <div
-                    className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs sm:hidden"
-                    onClick={() => setShowNotifications(false)}
-                  />
-                  <div className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
-                  <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                    <div className="flex items-center gap-1.5">
-                      <ShieldAlert className="w-4 h-4 text-[#069AD8]" />
-                      <span className="font-bold text-xs text-[#093244]">Alertas de Ausentismo</span>
-                      {unreadAlertsCount > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black">
-                          {unreadAlertsCount} nuevas
+                const effectiveUnreadCount = typeof unreadNotificationsCount === 'number'
+                  ? unreadNotificationsCount
+                  : effectiveNotifications.filter(n => !n.read).length;
+
+                return (
+                  <>
+                    <button
+                      id="btn-alerts-bell"
+                      type="button"
+                      onClick={() => setShowNotifications(prev => !prev)}
+                      className="relative inline-flex items-center justify-center p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-bold text-[#093244] bg-neutral-100 hover:bg-neutral-200 active:scale-95 border border-neutral-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+                      title="Avisos y Notificaciones del Sistema"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />
+                      {effectiveUnreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                          {effectiveUnreadCount}
                         </span>
                       )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {unreadAlertsCount > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleMarkAllRead}
-                          className="text-[10px] font-semibold text-[#069AD8] hover:underline cursor-pointer"
-                        >
-                          Marcar leídas
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setShowNotifications(false)}
-                        className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-400 cursor-pointer"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                    </button>
 
-                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                    {alerts.map(a => (
-                      <div
-                        key={a.id}
-                        className={`p-2.5 rounded-xl border text-xs transition ${
-                          a.unread
-                            ? 'bg-amber-50/50 border-amber-200'
-                            : 'bg-neutral-50/60 border-neutral-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-1.5 font-bold text-neutral-900 text-[11px]">
-                            {a.severity === 'critical' && <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />}
-                            {a.severity === 'warning' && <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
-                            {a.severity === 'info' && <CheckCircle2 className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />}
-                            <span>{a.title}</span>
+                    {/* Dropdown panel - Perfectly centered on mobile and docked on desktop */}
+                    {showNotifications && (
+                      <>
+                        {/* Backdrop on mobile for closing */}
+                        <div
+                          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs sm:hidden"
+                          onClick={() => setShowNotifications(false)}
+                        />
+                        <div className="fixed inset-x-3 top-14 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white rounded-2xl border border-neutral-200 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95">
+                          <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+                            <div className="flex items-center gap-1.5">
+                              <Bell className="w-4 h-4 text-[#069AD8]" />
+                              <span className="font-bold text-xs text-[#093244]">Avisos y Notificaciones</span>
+                              {effectiveUnreadCount > 0 && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black">
+                                  {effectiveUnreadCount} nuevas
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {effectiveUnreadCount > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (onMarkAllNotificationsAsRead) onMarkAllNotificationsAsRead();
+                                    else handleMarkAllRead();
+                                  }}
+                                  className="text-[10px] font-semibold text-[#069AD8] hover:underline cursor-pointer"
+                                >
+                                  Marcar leídas
+                                </button>
+                              )}
+                              {effectiveNotifications.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const confirmClear = window.confirm('¿Deseas eliminar todas las notificaciones?');
+                                    if (confirmClear) {
+                                      if (onClearAllNotifications) onClearAllNotifications();
+                                      else setAlerts([]);
+                                    }
+                                  }}
+                                  className="text-[10px] font-semibold text-neutral-400 hover:text-rose-600 flex items-center gap-0.5 cursor-pointer"
+                                  title="Borrar todas las notificaciones"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                  <span className="hidden xs:inline">Borrar</span>
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setShowNotifications(false)}
+                                className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-400 cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <span className="text-[9px] text-neutral-400 font-mono shrink-0">{a.timestamp}</span>
+
+                          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                            {effectiveNotifications.length > 0 ? (
+                              effectiveNotifications.map(n => (
+                                <div
+                                  key={n.id}
+                                  onClick={() => {
+                                    if (!n.read && onMarkNotificationAsRead) {
+                                      onMarkNotificationAsRead(n.id);
+                                    }
+                                    if (n.actionModule) {
+                                      if (isAdmin && onSelectAdminModule) {
+                                        if (n.actionModule === 'punch') onSelectAdminModule('attendance');
+                                        else if (n.actionModule === 'leaves') onSelectAdminModule('leaves');
+                                        else if (n.actionModule === 'overtime') onSelectAdminModule('overtime');
+                                        else if (n.actionModule === 'documents') onSelectAdminModule('documents');
+                                        else if (n.actionModule === 'profile') onSelectAdminModule('profile');
+                                      } else if (!isAdmin && onSelectEmployeeModule) {
+                                        onSelectEmployeeModule(n.actionModule);
+                                      }
+                                      setShowNotifications(false);
+                                    }
+                                  }}
+                                  className={`p-2.5 rounded-xl border text-xs transition cursor-pointer flex items-start justify-between gap-2 group ${
+                                    !n.read
+                                      ? 'bg-sky-50/50 border-[#069AD8]/30 shadow-2xs'
+                                      : 'bg-neutral-50/60 border-neutral-200/80 hover:bg-neutral-100/80'
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 font-bold text-neutral-900 text-[11px]">
+                                      {n.type === 'attendance' && <Fingerprint className="w-3.5 h-3.5 text-[#069AD8] shrink-0" />}
+                                      {n.type === 'document' && <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />}
+                                      {n.type === 'leave' && <CalendarCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />}
+                                      {n.type === 'overtime' && <Clock className="w-3.5 h-3.5 text-orange-600 shrink-0" />}
+                                      {n.type === 'system' && <ShieldCheck className="w-3.5 h-3.5 text-[#1F832D] shrink-0" />}
+                                      <span className="truncate">{n.title}</span>
+                                      {!n.read && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#069AD8] shrink-0 animate-pulse" />
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-neutral-600 mt-1 leading-snug break-words">
+                                      {n.message}
+                                    </p>
+                                    <div className="flex items-center justify-between gap-2 mt-1.5">
+                                      <span className="text-[9px] text-neutral-400 font-mono">
+                                        {n.timestamp}
+                                      </span>
+                                      {n.actionModule && (
+                                        <span className="text-[9px] font-bold text-[#069AD8] group-hover:underline">
+                                          Ver detalle →
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Individual Delete Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onDeleteNotification) {
+                                        onDeleteNotification(n.id);
+                                      } else {
+                                        setAlerts(prev => prev.filter(x => x.id !== n.id));
+                                      }
+                                    }}
+                                    className="p-1 rounded-lg text-neutral-300 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer shrink-0"
+                                    title="Eliminar notificación"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="py-8 text-center text-neutral-400">
+                                <Bell className="w-8 h-8 mx-auto mb-2 opacity-30 text-neutral-400" />
+                                <p className="text-xs font-semibold text-neutral-600">No hay notificaciones</p>
+                                <p className="text-[10px] text-neutral-400 mt-0.5">Las alertas y avisos del sistema se mostrarán aquí.</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-[11px] text-neutral-600 mt-1 leading-snug">{a.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                </>
-              )}
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Supabase Realtime Database Test Button - hidden on mobile, visible from sm */}

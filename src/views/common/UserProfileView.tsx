@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, Branch, Employee } from '../../types';
 import { compressProfileImage } from '../../utils/imageCompressor';
 import { SUPABASE_PURGE_SQL } from '../../utils/purgeSqlScript';
+import { playSystemNotificationSound } from '../../utils/audioSystem';
 import {
   Camera,
   Upload,
@@ -31,7 +32,8 @@ import {
   Database,
   Code,
   RefreshCw,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 interface UserProfileViewProps {
@@ -201,11 +203,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
       await onUpdateProfile(updatedUser);
       setIsSaved(true);
+      playSystemNotificationSound();
 
-      // Fade confirmation after 5 seconds
+      // Fade confirmation after 5.5 seconds if user has not clicked close
       setTimeout(() => {
         setIsSaved(false);
-      }, 5000);
+      }, 5500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(`Ocurrió un error al guardar: ${msg}`);
@@ -269,7 +272,76 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   };
 
   return (
-    <div id="user-profile-view" className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div id="user-profile-view" className="space-y-6 max-w-5xl mx-auto pb-12 relative">
+      {/* Centered Screen Success Modal - Visible at any scroll depth on mobile and desktop */}
+      {isSaved && (
+        <div 
+          id="profile-save-centered-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setIsSaved(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-2 border-emerald-400 text-center space-y-4 animate-in zoom-in-95 duration-200 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsSaved(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-xl hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition cursor-pointer"
+              title="Cerrar aviso"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border-2 border-emerald-200 text-[#1F832D] flex items-center justify-center mx-auto shadow-sm ring-8 ring-emerald-50/60">
+              <CheckCircle2 className="w-9 h-9 animate-bounce" />
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Sincronización Exitosa</span>
+              </div>
+              <h3 className="text-xl font-black text-[#093244] mt-2">
+                ¡Cambios Guardados Exitosamente!
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-600 mt-1 leading-relaxed">
+                Tus datos personales, fotografía biométrica y credenciales han sido respaldados y sincronizados con éxito en la nube de Supabase y en tu sesión activa.
+              </p>
+            </div>
+
+            {/* Profile Snapshot Preview */}
+            <div className="bg-neutral-50 rounded-2xl p-3 border border-neutral-200 text-left flex items-center gap-3">
+              <img 
+                src={avatarPreview || currentUser.avatar} 
+                alt={formData.name} 
+                className="w-12 h-12 rounded-xl object-cover border-2 border-emerald-400 shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-bold text-[#093244] truncate block">
+                  {formData.name}
+                </span>
+                <span className="text-[11px] text-neutral-500 truncate block">
+                  {formData.email} • {formData.phone || 'Sin teléfono'}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 block mt-0.5">
+                  Biometría y Perfil Sincronizados
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsSaved(false)}
+                className="w-full py-3 px-5 rounded-xl bg-[#093244] hover:bg-[#069AD8] text-white text-xs font-bold transition shadow-sm cursor-pointer active:scale-98"
+              >
+                Aceptar y Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
